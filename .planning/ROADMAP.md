@@ -34,12 +34,17 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Restarting the collector backfills any gaps idempotently (no duplicate bars, no silent gaps)
   4. A history-availability report per symbol/timeframe is persisted and queryable
 
-**Plans**: 3 plans
+**Plans**: 1/3 plans executed
 
 Plans:
+
+- [x] 01-01-PLAN.md
+- [ ] 01-02-PLAN.md
+- [ ] 01-03-PLAN.md
+
 **Wave 1**
 
-- [ ] 01-01: Project scaffold (uv, ruff, pytest, config with symbols/timeframes/broker offset) + store access layer (Parquet bars + SQLite meta)
+- [x] 01-01: Project scaffold (uv, ruff, pytest, config with symbols/timeframes/broker offset) + store access layer (Parquet bars + SQLite meta)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -157,7 +162,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Data Foundation | 0/3 | Not started | - |
+| 1. Data Foundation | 1/3 | In Progress|  |
 | 2. SMC Detection Engine | 0/4 | Not started | - |
 | 3. Backtesting & Labeling | 0/3 | Not started | - |
 | 4. ML Scoring | 0/3 | Not started | - |

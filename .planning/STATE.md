@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Data Foundation
 status: executing
-stopped_at: Project initialization complete — ready to plan Phase 1
-last_updated: "2026-08-29T20:18:38.758Z"
+stopped_at: Completed 01-01-PLAN.md (Tasks 2-4; 01-01 fully done)
+last_updated: "2026-08-29T23:59:19.080Z"
 last_activity: 2026-08-29
 last_activity_desc: Phase 1 execution started
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 3
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -29,8 +29,8 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 1 (Data Foundation) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 1
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-08-29 — Phase 1 execution started
 
 Progress: [░░░░░░░░░░] 0%
@@ -55,6 +55,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 01 P01 | 11min | 4 tasks | 16 files |
 
 ## Accumulated Context
 
@@ -67,6 +68,10 @@ Recent decisions affecting current work:
 - [Init]: Hybrid AI — calibrated ML owns probability; LLM only narrates/confirm-refutes structured evidence
 - [Init]: One shared, look-ahead-safe code path for live analysis AND backtests (non-negotiable)
 - [Init]: Stack locked per research: Python 3.12, metatrader5 5.0.6147, pandas, LightGBM+sklearn, SQLite+Parquet, Streamlit v1
+- [Phase 01]: Symbol config validation accepts an optional .broker suffix (regex ^[A-Z]{6}(\.[A-Za-z0-9]+)?$) — widens research assumption A5 for plan 01-02 suffixed names
+- [Phase 01]: merge_and_write is the single Parquet write path: atomic tmp+os.replace, dedup on raw bar-open time keep=last, .tmp cleaned up even on failed writes
+- [Phase 01]: assert_closed_bars strips tz from an aware now_utc before comparing to naive time_utc — broker columns stay naive
+- [Phase 01]: metatrader5 5.0.6147 vendor-binary install approved by human legitimacy checkpoint (Task 1) before any uv add ran
 
 ### Pending Todos
 
@@ -88,6 +93,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-30
-Stopped at: Phase 1 executing — 01-01 Task 1 checkpoint (metatrader5 legitimacy, blocking-human) APPROVED by user ("approved"); continuation executor to run Tasks 2-4. Plans 01-02/01-03 not started.
+Last session: 2026-08-29T23:59:02.946Z
+Stopped at: Completed 01-01-PLAN.md (Tasks 2-4; 01-01 fully done)
 Resume file: None
