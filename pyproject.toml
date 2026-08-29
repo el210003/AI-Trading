@@ -1,0 +1,38 @@
+[project]
+name = "ai-trading"
+version = "0.1.0"
+description = "AI Forex SMC trading system — data foundation (MT5 collector, stores, normalization)"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "metatrader5==5.0.6147",
+    "pandas>=3.0,<4",
+    "pyarrow>=25.0.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ai_trading"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = '-m "not mt5"'
+markers = [
+    "unit: fast tests with no MT5 dependency",
+    "mt5: integration tests requiring a running, logged-in MT5 terminal",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.16.5",
+]
