@@ -537,7 +537,7 @@ def validate_offset(symbol: str, cfg) -> int:
 ### Wave 0 Gaps
 - [ ] `pyproject.toml` — project scaffold incl. `[tool.pytest.ini_options]` markers (`unit`, `mt5`), ruff config (plan 01-01)
 - [ ] `tests/conftest.py` — fake MT5 client fixture + synthetic bar factory (OHLCV sanity, aligned TF boundaries)
-- [ ] `tests/unit/` — five unit modules mapped above
+- [ ] `tests/unit/` — seven unit modules mapped above
 - [ ] `src/ai_trading/mt5_client.py` importable with `MetaTrader5` absent-fake injection path (enables CI-less Windows runs)
 - [ ] Wave-0 smoke: `uv run python -c "import MetaTrader5, pandas, pyarrow; print(MetaTrader5.__version__)"` on cp312 (de-risks assumption A3 before collector tasks)
 

@@ -58,7 +58,7 @@ created: 2026-08-30
 ## Wave 0 Requirements
 
 - [ ] `pyproject.toml` — project scaffold with `[tool.pytest.ini_options]` markers `unit`/`mt5` and default addopts `-m "not mt5"`; deps pinned (`metatrader5==5.0.6147`, `pandas>=3.0,<4`, `pyarrow`); ruff config (plan 01-01 Task 2)
-- [ ] `tests/conftest.py` — shared fixtures: synthetic bar factory `make_bars` (plan 01-01 Task 2); `FakeMT5Client` + `fake_mt5` fixture (plan 01-02 Task 2)
+- [ ] `tests/conftest.py` — shared fixtures: synthetic bar factory `make_bars` (plan 01-01 Task 2); `FakeMT5Client` + `fake_mt5` fixture with call recording and per-(symbol, timeframe) response deques (plan 01-02 Task 2; plan 01-03 may extend hooks minimally if one is missing)
 - [ ] `tests/unit/` — seven unit modules mapped to requirements: `test_normalize_and_config.py` (DATA-03), `test_idempotent_store.py` (DATA-04), `test_health_check.py` (DATA-01), `test_fetch_and_schedule.py` (DATA-02/03), plus `test_backfill.py` (DATA-04), `test_history_report.py` (DATA-05), `test_timezone_dst.py` (DATA-03)
 - [ ] `tests/integration/test_live_collect.py` — mt5-marked live tests, auto-skipped by default addopts (plan 01-03 Task 3)
 - [ ] Wave-0 smoke: `uv run python -c "import MetaTrader5, pandas, pyarrow"` on cp312 (plan 01-01 Task 2, de-risks research assumption A3)
