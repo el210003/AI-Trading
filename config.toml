@@ -1,0 +1,28 @@
+# Committed runtime configuration — NO secrets in this file (ASVS V14).
+# Local overrides belong in config.local.toml (gitignored), which wins key-by-key.
+
+symbols = ["EURUSD", "GBPUSD", "USDJPY"]
+timeframes = ["M15", "H1", "H4"]
+
+# MT5 terminal — must be overridden in config.local.toml (Pitfall 8: never let
+# initialize() find its own terminal; two installs exist on this machine).
+terminal_path = ""
+expected_server = ""
+
+# Broker server pseudo-UTC offset (hours to subtract to reach true UTC).
+# Placeholder until empirically validated against the terminal in plan 01-02.
+broker_offset_hours = 3
+validated_at = ""
+
+# Storage layout (data/ is gitignored runtime state)
+bars_dir = "data/bars"
+meta_db = "data/meta/meta.sqlite"
+
+# Collector / backfill tuning
+init_timeout_ms = 30000
+poll_delay_seconds = 3
+lookback_bars = 500
+min_maxbars = 100000
+backfill_max_rounds = 12
+backfill_pause_seconds = 0.7
+initial_backfill_days = 90
