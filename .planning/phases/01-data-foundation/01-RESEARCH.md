@@ -476,18 +476,21 @@ def validate_offset(symbol: str, cfg) -> int:
 | A7 | Closed MT5 bars are final (no retro revision of OHLCV after close) | Pattern 3 (keep="last" rationale) | Low — keep="last" overwrite is correct either way |
 | A8 | `datetime.utcnow()` deprecation status as stated | State of the Art | Low — using `datetime.now(timezone.utc)` is correct regardless |
 
-## Open Questions
+## Open Questions (RESOLVED — all three closed by Phase 1 plan tasks)
 
 1. **Which MT5 terminal + account is the intended data feed?**
    - What we know: two MT5 terminals installed — "MetaTrader 5 IC Markets Global" (v5.0.0.5833, `C:\Program Files\MetaTrader 5 IC Markets Global\terminal64.exe`) and "MetaTrader 5-01" (v5.0.0.4410, `C:\Program Files\MetaTrader 5-01\terminal64.exe`); neither running; several MT4 installs also present. [VERIFIED: local filesystem probe]
    - What's unclear: which terminal/account the user wants; whether saved credentials exist in that terminal (avoiding config-stored passwords).
    - Recommendation: `checkpoint:human-verify` — user starts and logs into the chosen terminal before plan 01-02 integration tasks; collector config records the exact path.
+   - **RESOLVED →** plan 01-02 Task 1 (terminal/account selection checkpoint records terminal path, server, and symbol names into config.local.toml).
 2. **What is the terminal's current "Max. bars in chart" setting, and what history depth does the broker actually serve?**
    - What we know: official default in docs' example is 5000; the setting caps everything [VERIFIED: mql5.com]. Actual user setting unknown (terminal offline).
    - Recommendation: startup health check reads `terminal_info().maxbars` and warns; DATA-05 report records it; user sets *Unlimited* if backtest depth is insufficient.
+   - **RESOLVED →** plan 01-02 Tasks 1–2 (human sets Max. bars = Unlimited during terminal selection; connect_and_verify warns when maxbars < min_maxbars) and plan 01-03 Task 2 (report persists terminal_maxbars provenance; first-generation discovery / --discover measures true available depth).
 3. **Exact broker offset and its DST policy.**
    - What we know: cannot be determined offline; empirical validation is locked for Phase 1 (STATE.md).
    - Recommendation: implement validation (Code Example 5) during active market hours; persist offset + `validated_at`; re-validate each startup.
+   - **RESOLVED →** plan 01-02 Tasks 3–4 (validate_offset logic + live confirmation checkpoint persist offset + validated_at) and plan 01-03 Tasks 1/3 (run_startup re-samples and warns on drift each startup; rederive_time_utc + DST-transition tests lock the correction semantics).
 
 ## Environment Availability
 
