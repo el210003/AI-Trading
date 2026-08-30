@@ -13,7 +13,7 @@ This roadmap builds a signals-only AI forex trading system in dependency order: 
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Data Foundation** - MT5 ingestion, UTC normalization, Parquet/SQLite stores, health checks, history report
+- [x] **Phase 1: Data Foundation** - MT5 ingestion, UTC normalization, Parquet/SQLite stores, health checks, history report (completed 2026-08-30)
 - [ ] **Phase 2: SMC Detection Engine** - Look-ahead-safe swings, liquidity pools, sweeps, premium/discount zones with lifecycle state
 - [ ] **Phase 3: Backtesting & Labeling** - Shared-code-path replay, spread-modeled costs, triple-barrier labels, canonical + walk-forward stats
 - [ ] **Phase 4: ML Scoring** - Point-in-time features, calibrated LightGBM probability, walk-forward evaluation, versioned artifacts
@@ -34,13 +34,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Restarting the collector backfills any gaps idempotently (no duplicate bars, no silent gaps)
   4. A history-availability report per symbol/timeframe is persisted and queryable
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans complete
 
 Plans:
 
 - [x] 01-01-PLAN.md
 - [x] 01-02-PLAN.md
-- [ ] 01-03-PLAN.md
+- [x] 01-03-PLAN.md
 
 **Wave 1**
 
@@ -48,7 +48,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 01-02: MT5 client + collector service (initialize/shutdown lifecycle, symbol_select checks, incremental closed-bar polling, UTC normalization)
+- [x] 01-02: MT5 client + collector service (initialize/shutdown lifecycle, symbol_select checks, incremental closed-bar polling, UTC normalization)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -162,7 +162,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Data Foundation | 2/3 | In Progress|  |
+| 1. Data Foundation | 3/3 | Complete   | 2026-08-30 |
 | 2. SMC Detection Engine | 0/4 | Not started | - |
 | 3. Backtesting & Labeling | 0/3 | Not started | - |
 | 4. ML Scoring | 0/3 | Not started | - |
