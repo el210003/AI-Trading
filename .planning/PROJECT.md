@@ -12,11 +12,10 @@ Produce high-probability SMC-based forex trade setups with transparent, reasoned
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] Ingest OHLC data from MT5 for EURUSD, GBPUSD, USDJPY on M15/H1/H4 via MetaTrader5 Python lib — Validated in Phase 1: Data Foundation (9/9 combos storing UTC-normalized bars; offset validated UTC+3, DST-dependent)
 
 ### Active
 
-- [ ] Ingest OHLC data from MT5 for EURUSD, GBPUSD, USDJPY on M15/H1/H4 via MetaTrader5 Python lib
 - [ ] Detect SMC liquidity concepts: sweeps of equal highs/lows and premium/discount zones (built on swing-point detection)
 - [ ] ML model scores each setup's probability
 - [ ] LLM produces narrative/confirmation reasoning per setup
@@ -76,4 +75,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-08-29 after initialization*
+*Last updated: 2026-08-30 after Phase 1 (Data Foundation) completion*
