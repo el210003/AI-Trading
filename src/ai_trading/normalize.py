@@ -63,6 +63,22 @@ def floor_to_timeframe(ts: datetime, timeframe: str) -> datetime:
     return start_of_day + timedelta(minutes=floored_minutes)
 
 
+def rederive_time_utc(df: pd.DataFrame, old_offset: int, new_offset: int) -> pd.DataFrame:
+    """Re-derive ``time_utc`` from the RAW server-wall ``time`` column using
+    ``new_offset``; return a copy, leaving the raw column untouched.
+
+    Research assumption A1 mitigation (T-1-11): whenever the validated broker
+    offset changes (DST transitions), stored bars are corrected by recomputing
+    from the preserved raw column — NEVER by shifting the old ``time_utc``
+    (which would compound any prior error). ``old_offset`` documents the
+    superseded value that produced the incoming ``time_utc``; it takes no part
+    in the math. Pure function; no MetaTrader5 import.
+    """
+    out = df.copy()
+    out["time_utc"] = out["time"] - pd.Timedelta(hours=new_offset)
+    return out
+
+
 def assert_closed_bars(df: pd.DataFrame, timeframe: str, now_utc: datetime) -> None:
     """Forming-bar guard (Pitfall 4): refuse any frame carrying a bar at or
     after the current timeframe floor of ``now_utc``.
