@@ -9,8 +9,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Data Ingestion
 
-- [ ] **DATA-01**: System connects to the local MT5 terminal and verifies health at startup (initialize success, each symbol selectable via symbol_select)
-- [ ] **DATA-02**: System collects closed-bar OHLC data for EURUSD, GBPUSD, USDJPY on M15/H1/H4 via the MetaTrader5 Python library
+- [x] **DATA-01**: System connects to the local MT5 terminal and verifies health at startup (initialize success, each symbol selectable via symbol_select)
+- [x] **DATA-02**: System collects closed-bar OHLC data for EURUSD, GBPUSD, USDJPY on M15/H1/H4 via the MetaTrader5 Python library
 - [x] **DATA-03**: All stored bar timestamps are UTC-normalized, with the broker server offset held as validated configuration
 - [x] **DATA-04**: Bar collection performs incremental updates with gap backfill and is idempotent across restarts
 - [ ] **DATA-05**: System reports available history depth per symbol/timeframe and persists it for backtest range validation
@@ -104,8 +104,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DATA-01 | Phase 1 | Pending |
-| DATA-02 | Phase 1 | Pending |
+| DATA-01 | Phase 1 | Complete |
+| DATA-02 | Phase 1 | Complete |
 | DATA-03 | Phase 1 | Complete |
 | DATA-04 | Phase 1 | Complete |
 | DATA-05 | Phase 1 | Pending |

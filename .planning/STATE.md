@@ -5,16 +5,16 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Data Foundation
 status: executing
-stopped_at: Completed 01-01-PLAN.md (Tasks 2-4; 01-01 fully done)
-last_updated: "2026-08-29T23:59:19.080Z"
+stopped_at: Completed 01-02-PLAN.md (Tasks 1-4; offset confirmed UTC+3, DST-dependent)
+last_updated: "2026-08-30T12:30:42.467Z"
 last_activity: 2026-08-29
 last_activity_desc: Phase 1 execution started
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
-  percent: 0
+  completed_plans: 2
+  percent: 67
 ---
 
 # Project State
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 1 (Data Foundation) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-08-29 — Phase 1 execution started
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [███████░░░] 67%
 
 ## Performance Metrics
 
@@ -56,6 +56,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 01 P01 | 11min | 4 tasks | 16 files |
+| Phase 01 P02 | 3min | 4 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,9 @@ Recent decisions affecting current work:
 - [Phase 01]: merge_and_write is the single Parquet write path: atomic tmp+os.replace, dedup on raw bar-open time keep=last, .tmp cleaned up even on failed writes
 - [Phase 01]: assert_closed_bars strips tz from an aware now_utc before comparing to naive time_utc — broker columns stay naive
 - [Phase 01]: metatrader5 5.0.6147 vendor-binary install approved by human legitimacy checkpoint (Task 1) before any uv add ran
+- [Phase 01]: Broker offset human-confirmed UTC+3 (2026-08-30) and persisted with validated_at; DST-dependent - expected +2 after US summer time ends (early November); re-validate at DST transitions
+- [Phase 01]: Task 4 weekend rule applied - poisoned -36 weekend tick sample flagged by offset_drift_detected and NOT persisted; human confirmation replaced the weekday sample; H4 21:00-UTC grid anchor independently corroborates +3
+- [Phase 01]: FakeMT5Client recording + per-(symbol, timeframe) deque hooks fixed in conftest so plan 01-03 tests consume them without extending conftest
 
 ### Pending Todos
 
@@ -80,7 +84,7 @@ None yet.
 ### Blockers/Concerns
 
 - [Init]: Subagent (Task tool) spawns aborted repeatedly in this runtime — research completed inline; prefer inline execution if subagent spawns fail again
-- [Init]: Broker server timezone offset must be validated empirically against the user's MT5 terminal during Phase 1
+- [Init - resolved 2026-08-30]: Broker server timezone offset validated empirically (plan 01-02 Task 4): human-confirmed UTC+3, DST-dependent — re-validate at DST transitions (plan 01-03 owns the re-derivation guard)
 - [Init]: MT5 terminal must be running and logged in for any collector work
 
 ## Deferred Items
@@ -93,6 +97,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-29T23:59:02.946Z
-Stopped at: Completed 01-01-PLAN.md (Tasks 2-4; 01-01 fully done)
+Last session: 2026-08-30T12:30:42.456Z
+Stopped at: Completed 01-02-PLAN.md (Tasks 1-4; offset confirmed UTC+3, DST-dependent)
 Resume file: None

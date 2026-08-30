@@ -34,12 +34,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Restarting the collector backfills any gaps idempotently (no duplicate bars, no silent gaps)
   4. A history-availability report per symbol/timeframe is persisted and queryable
 
-**Plans**: 1/3 plans executed
+**Plans**: 2/3 plans executed
 
 Plans:
 
 - [x] 01-01-PLAN.md
-- [ ] 01-02-PLAN.md
+- [x] 01-02-PLAN.md
 - [ ] 01-03-PLAN.md
 
 **Wave 1**
@@ -162,7 +162,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Data Foundation | 1/3 | In Progress|  |
+| 1. Data Foundation | 2/3 | In Progress|  |
 | 2. SMC Detection Engine | 0/4 | Not started | - |
 | 3. Backtesting & Labeling | 0/3 | Not started | - |
 | 4. ML Scoring | 0/3 | Not started | - |
