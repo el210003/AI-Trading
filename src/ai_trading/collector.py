@@ -1,5 +1,6 @@
-"""Collector service: startup health check, closed-bar polling, and empirical
-broker-offset validation (DATA-01/02/03).
+"""Collector service: startup health check, closed-bar polling, empirical
+broker-offset validation, retry-until-stable range fetching, and checkpoint-
+driven idempotent backfill (DATA-01/02/03/04).
 
 Pattern of record:
 - RESEARCH.md Code Example 1 (health-check sequence with actionable,
@@ -9,6 +10,9 @@ Pattern of record:
 - RESEARCH.md Pattern 5 (checkpoint is the ONLY restart state; write-then-
   checkpoint ordering so a crash between the two merely refetches).
 - RESEARCH.md Code Example 5 (empirical offset validation sketch).
+- RESEARCH.md Pattern 4 / Code Example 3 (retry-until-stable range fetch:
+  two consecutive equal counts = download complete; None + code -4 is the
+  documented not-ready signal — retry, never crash).
 
 The MetaTrader5 import lives ONLY in ai_trading.mt5_client (Shared Pattern 6);
 `client` parameters accept the mt5_client module itself by default and any
@@ -21,7 +25,7 @@ import argparse
 import logging
 import sys
 import time as _time
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pandas as pd
@@ -29,7 +33,12 @@ import pandas as pd
 from ai_trading import mt5_client
 from ai_trading.config import load_config
 from ai_trading.mt5_client import MT5ConnectionError, MT5DataError
-from ai_trading.normalize import TIMEFRAME_MINUTES, rates_to_dataframe
+from ai_trading.normalize import (
+    COLUMNS,
+    TIMEFRAME_MINUTES,
+    floor_to_timeframe,
+    rates_to_dataframe,
+)
 from ai_trading.stores import bar_store, meta_store
 
 log = logging.getLogger(__name__)
@@ -237,27 +246,217 @@ def offset_drift_detected(cfg, freshly_validated: int) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# CLI
+# DATA-04: retry-until-stable range fetch + checkpoint-driven backfill
 # ---------------------------------------------------------------------------
 
 
-def _poll_once_and_report(cfg) -> int:
-    """Open the meta DB, run one poll cycle, close the DB, return new-row count."""
-    conn = meta_store.connect(Path(cfg.meta_db))
+def to_server_wall(dt_true_utc, offset_hours: int) -> datetime:
+    """Convert a true-UTC bound into the AWARE-UTC datetime whose epoch equals
+    the MT5 terminal's server-wall stamp for that instant (server wall =
+    true UTC + offset).
+
+    CopyRates range semantics, verified live against the IC Markets terminal
+    (2026-08-30 probe): the terminal compares the request epoch directly
+    against bar ``time`` stamps, and bar epochs decode to broker SERVER WALL
+    time (RESEARCH Pitfall 1). The Python package converts a datetime argument
+    to epoch via its own tzinfo — but a NAIVE datetime is converted using the
+    MACHINE-LOCAL zone (UTC+8 on this machine), which would silently shift the
+    requested window. Passing aware-UTC datetimes carrying the server-wall
+    wall-clock makes the epoch conversion machine-independent and lands the
+    request exactly on the intended server-wall window, inclusive on both
+    ends.
+    """
+    ts = pd.Timestamp(dt_true_utc)
+    if ts.tzinfo is not None:
+        ts = ts.tz_convert("UTC").tz_localize(None)
+    return (ts + pd.Timedelta(hours=offset_hours)).to_pydatetime().replace(tzinfo=UTC)
+
+
+def fetch_range_until_stable(
+    symbol: str,
+    timeframe_enum_value: int,
+    date_from,
+    date_to,
+    client=mt5_client,
+    max_rounds: int = 12,
+    pause: float = 0.7,
+):
+    """Range fetch with the officially sanctioned retry-until-stable loop
+    (RESEARCH Pattern 4 / Code Example 3): history downloads lazily, so a
+    first request returns only what is ready.
+
+    Issues the IDENTICAL copy_rates_range request every round until the
+    returned row count is stable across two consecutive rounds, then returns
+    the rates array. ``None`` + last_error code NO_HISTORY (-4) is the
+    documented not-ready/out-of-range signal — sleep and retry, never a
+    crash. ``None`` with any other code raises MT5DataError embedding the
+    code. When ``max_rounds`` are exhausted without stabilization, raises
+    MT5DataError (callers source max_rounds/pause from cfg.backfill_*).
+
+    ``date_from``/``date_to`` must already be in terminal representation
+    (aware-UTC server-wall bounds — see to_server_wall).
+    """
+    prev_len = -1
+    for _round in range(max_rounds):
+        rates = client.copy_rates_range(symbol, timeframe_enum_value, date_from, date_to)
+        if rates is None:
+            code, msg = client.last_error()
+            if code == mt5_client.NO_HISTORY:
+                # Not yet downloaded / out of available range: keep polling.
+                _time.sleep(pause)
+                continue
+            raise MT5DataError(
+                f"copy_rates_range('{symbol}') -> None [{code}: {msg}] — "
+                "check Market Watch visibility and history availability for this symbol."
+            )
+        if len(rates) == prev_len:
+            return rates  # two consecutive equal counts -> download complete
+        prev_len = len(rates)
+        _time.sleep(pause)
+    raise MT5DataError(
+        f"'{symbol}': history did not stabilize in {max_rounds} rounds — the terminal "
+        "may still be downloading; retry, or raise backfill_max_rounds in config."
+    )
+
+
+def backfill_range(
+    cfg,
+    conn,
+    symbol: str,
+    timeframe: str,
+    date_from,
+    date_to,
+    client=mt5_client,
+    now_utc: datetime | None = None,
+) -> int:
+    """Backfill (symbol, timeframe) over the inclusive true-UTC range
+    [date_from, date_to]; return the number of rows added.
+
+    ``date_from``/``date_to`` are TRUE-UTC bounds (naive or aware); they are
+    converted to terminal representation via to_server_wall. The fetched
+    frame is DEFENSIVELY TRIMMED before merge — every row whose time_utc is
+    at or after the current timeframe floor of ``now_utc`` (default: true
+    now) is dropped, because the inclusive range can include the still-forming
+    bar under some MT5 range-time semantics. merge_and_write's forming-bar
+    guard must then raise only for genuine guard violations, never for a
+    legitimate inclusive-range fetch (``now_utc`` exists purely for unit
+    testability, mirroring merge_and_write).
+
+    Storage order is write-then-checkpoint (Pattern 5): merge_and_write into
+    bar_store.bar_path first; ONLY then meta_store.update_checkpoint with the
+    new max time_utc when it advances the stored checkpoint (the checkpoint
+    is the ONLY restart state — a crash between the two merely refetches the
+    overlap, and an overlap refetch re-advancing the checkpoint is what
+    converges a crash-between-write-and-checkpoint).
+    """
+    path = bar_store.bar_path(Path(cfg.bars_dir), symbol, timeframe)
+    before = len(bar_store.read_bars(path))
+
+    rates = fetch_range_until_stable(
+        symbol,
+        client.timeframe_enum(timeframe),
+        to_server_wall(date_from, cfg.broker_offset_hours),
+        to_server_wall(date_to, cfg.broker_offset_hours),
+        client,
+        max_rounds=cfg.backfill_max_rounds,
+        pause=cfg.backfill_pause_seconds,
+    )
+    if rates is None or len(rates) == 0:
+        df = pd.DataFrame(columns=COLUMNS)
+    else:
+        df = rates_to_dataframe(rates, symbol, cfg.broker_offset_hours)
+
+    # Defensive trim: drop rows at/after the current timeframe floor (the
+    # forming bar that an inclusive range fetch can carry).
+    trim_now = now_utc if now_utc is not None else datetime.now(UTC)
+    floor = floor_to_timeframe(trim_now, timeframe)
+    if floor.tzinfo is not None:
+        floor = floor.astimezone(UTC).replace(tzinfo=None)
+    df = df[df["time_utc"] < floor]
+
+    if df.empty:
+        return 0
+
+    after = bar_store.merge_and_write(df, path, timeframe, now_utc=trim_now)
+
+    max_iso = df["time_utc"].max().isoformat()
+    checkpoint_iso = meta_store.get_checkpoint(conn, symbol, timeframe)
+    if checkpoint_iso is None or pd.Timestamp(max_iso) > pd.Timestamp(checkpoint_iso):
+        meta_store.update_checkpoint(
+            conn, symbol, timeframe, max_iso, datetime.now(UTC).isoformat()
+        )
+    return after - before
+
+
+def backfill_symbol_timeframe(cfg, conn, symbol: str, timeframe: str, client=mt5_client) -> int:
+    """Checkpoint-driven backfill window for one (symbol, timeframe).
+
+    With a checkpoint: date_from = its last_bar_time (inclusive — overlap is
+    harmless because the merge is idempotent). Without: the first-run initial
+    window floor(now, tf) - cfg.initial_backfill_days. date_to is always
+    floor(now, tf). The SQLite checkpoint is the ONLY restart state.
+    """
+    now_true = datetime.now(UTC).replace(tzinfo=None)
+    upper = floor_to_timeframe(now_true, timeframe)
+    checkpoint_iso = meta_store.get_checkpoint(conn, symbol, timeframe)
+    if checkpoint_iso is not None:
+        date_from = pd.Timestamp(checkpoint_iso).to_pydatetime()
+    else:
+        date_from = upper - timedelta(days=cfg.initial_backfill_days)
+    return backfill_range(cfg, conn, symbol, timeframe, date_from, upper, client)
+
+
+def backfill_all(cfg, conn, client=mt5_client) -> dict[str, int]:
+    """Backfill every configured (symbol, timeframe) combo; return a mapping
+    of f"{symbol}_{timeframe}" to rows added."""
+    results: dict[str, int] = {}
+    for symbol in cfg.symbols:
+        for timeframe in cfg.timeframes:
+            results[f"{symbol}_{timeframe}"] = backfill_symbol_timeframe(
+                cfg, conn, symbol, timeframe, client
+            )
+    return results
+
+
+def run_startup(cfg, conn, client=mt5_client) -> None:
+    """Startup sequence: health check -> empirical offset drift advisory ->
+    checkpoint-driven backfill (DATA-01/03/04).
+
+    The offset drift warning is advisory only: the correction itself is a
+    human-approved config change (plan 01-02 Task 4), and a sample that
+    cannot be taken (e.g. weekend stale ticks) must not block collection.
+    """
+    connect_and_verify(cfg, client)
+
     try:
-        stored = run_poll_cycle(cfg, conn)
-    finally:
-        conn.close()
-    log.info("poll cycle stored %d new bar row(s)", stored)
-    return stored
+        fresh = validate_offset(cfg, cfg.symbols[0], client)
+        if offset_drift_detected(cfg, fresh):
+            log.warning(
+                "freshly validated broker offset %d differs from configured "
+                "broker_offset_hours %d — the correction is a human-approved config "
+                "change in config.local.toml (stored bars keep the raw server time "
+                "column and can be re-derived); continuing with the configured offset",
+                fresh,
+                cfg.broker_offset_hours,
+            )
+    except MT5DataError as exc:
+        log.warning("offset validation unavailable: %s", exc)
+
+    added = backfill_all(cfg, conn, client)
+    log.info("startup backfill complete: %d combo(s), rows added: %s", len(added), added)
+
+
+# ---------------------------------------------------------------------------
+# CLI
+# ---------------------------------------------------------------------------
 
 
 def main(argv: list[str] | None = None) -> int:
     """Collector CLI: `uv run python -m ai_trading.collector --once [--config PATH]`.
 
-    --once: connect_and_verify -> warn on offset drift against a fresh
-    validate_offset sample -> one run_poll_cycle -> exit.
-    Default (continuous): loop run_poll_cycle, sleeping via
+    --once: run_startup (connect_and_verify -> offset drift advisory ->
+    checkpoint-driven backfill) -> one run_poll_cycle -> exit.
+    Default (continuous): run_startup, then loop run_poll_cycle, sleeping via
     seconds_until_next_close("M15", ...) with drift-corrected recomputation
     from the current clock each iteration (processing time never accumulates).
     MT5ConnectionError logs the actionable message and exits nonzero.
@@ -284,43 +483,34 @@ def main(argv: list[str] | None = None) -> int:
         log.error("invalid configuration: %s", exc)
         return 2
 
+    conn = meta_store.connect(Path(cfg.meta_db))
     try:
-        connect_and_verify(cfg)
-    except MT5ConnectionError as exc:
-        log.error("%s", exc)
-        return 1
+        try:
+            run_startup(cfg, conn)
+        except MT5ConnectionError as exc:
+            log.error("%s", exc)
+            return 1
 
-    # Offset drift advisory against a fresh empirical sample (DATA-03). The
-    # authoritative validation is the human-confirmed checkpoint; a sample
-    # that cannot be taken (e.g. no tick) must not block collection.
-    try:
-        fresh = validate_offset(cfg, cfg.symbols[0])
-        if offset_drift_detected(cfg, fresh):
-            log.warning(
-                "freshly validated broker offset %d differs from configured "
-                "broker_offset_hours %d — confirm and update config.local.toml",
-                fresh,
-                cfg.broker_offset_hours,
+        if args.once:
+            stored = run_poll_cycle(cfg, conn)
+            log.info("poll cycle stored %d new bar row(s)", stored)
+            return 0
+
+        log.info("continuous collection started (poll after each M15 close)")
+        while True:
+            stored = run_poll_cycle(cfg, conn)
+            log.info("poll cycle stored %d new bar row(s)", stored)
+            sleep_seconds = seconds_until_next_close(
+                "M15", datetime.now(UTC), cfg.poll_delay_seconds
             )
-    except MT5DataError as exc:
-        log.warning("offset validation unavailable: %s", exc)
-
-    if args.once:
-        _poll_once_and_report(cfg)
-        return 0
-
-    log.info("continuous collection started (poll after each M15 close)")
-    while True:
-        _poll_once_and_report(cfg)
-        sleep_seconds = seconds_until_next_close(
-            "M15", datetime.now(UTC), cfg.poll_delay_seconds
-        )
-        log.info(
-            "sleeping %.1fs until next M15 close + %ss delay",
-            sleep_seconds,
-            cfg.poll_delay_seconds,
-        )
-        _time.sleep(sleep_seconds)
+            log.info(
+                "sleeping %.1fs until next M15 close + %ss delay",
+                sleep_seconds,
+                cfg.poll_delay_seconds,
+            )
+            _time.sleep(sleep_seconds)
+    finally:
+        conn.close()
 
 
 if __name__ == "__main__":
