@@ -13,7 +13,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **DATA-02**: System collects closed-bar OHLC data for EURUSD, GBPUSD, USDJPY on M15/H1/H4 via the MetaTrader5 Python library
 - [x] **DATA-03**: All stored bar timestamps are UTC-normalized, with the broker server offset held as validated configuration
 - [x] **DATA-04**: Bar collection performs incremental updates with gap backfill and is idempotent across restarts
-- [ ] **DATA-05**: System reports available history depth per symbol/timeframe and persists it for backtest range validation
+- [x] **DATA-05**: System reports available history depth per symbol/timeframe and persists it for backtest range validation
 
 ### SMC Detection
 
@@ -108,7 +108,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DATA-02 | Phase 1 | Complete |
 | DATA-03 | Phase 1 | Complete |
 | DATA-04 | Phase 1 | Complete |
-| DATA-05 | Phase 1 | Pending |
+| DATA-05 | Phase 1 | Complete |
 | SMC-01 | Phase 2 | Pending |
 | SMC-02 | Phase 2 | Pending |
 | SMC-03 | Phase 2 | Pending |
