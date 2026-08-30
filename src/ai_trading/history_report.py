@@ -46,8 +46,12 @@ from ai_trading.stores import bar_store, meta_store
 
 log = logging.getLogger(__name__)
 
-# Safety bound guaranteeing the backward walk terminates (research sketch).
-_MAX_WALK_YEARS = 15
+# Safety bound guaranteeing the backward walk terminates (research sketch:
+# "bound the walk (e.g. 15 years)"). Raised to 30 after live probing showed
+# this broker serves EURUSD H1/H4 back to the 1999 inception era — a 15-year
+# bound truncated discovery at 2011 and reported a walk-bound, not the true
+# available start.
+_MAX_WALK_YEARS = 30
 
 # Gap spans at or above this many hours are candidates for the weekend
 # classification (Fri ~21-22h UTC close -> Sun ~21-22h UTC open is ~47-49h).
@@ -140,19 +144,25 @@ def discover_history_bounds(cfg, symbol: str, timeframe: str, client=mt5_client)
 def compute_gaps(df: pd.DataFrame, timeframe: str) -> list[tuple[pd.Timestamp, pd.Timestamp]]:
     """Aligned-timeframe holes inside the observed range [first_bar, last_bar].
 
-    Builds the expected bar-open grid from floor(min time_utc, tf) to max
-    time_utc stepping TIMEFRAME_MINUTES[timeframe]; contiguous missing slots
-    merge into one (gap_start_utc, gap_end_utc) pair per hole, where gap_end
-    is the first missing slot's open advanced past the last missing slot (the
-    next present bar's open). Returns pairs sorted ascending. Holes outside
-    the observed range are unobservable and therefore not reported.
+    Builds the expected bar-open grid anchored at min time_utc and stepping
+    TIMEFRAME_MINUTES[timeframe]; contiguous missing slots merge into one
+    (gap_start_utc, gap_end_utc) pair per hole, where gap_end is the last
+    missing slot's open advanced by one step (the next present bar's open).
+    Returns pairs sorted ascending. Holes outside the observed range are
+    unobservable and therefore not reported.
+
+    The grid is anchored at the OBSERVED minimum (not floor(min) to midnight
+    UTC): bars are TF-aligned by construction (normalize boundary guarantee),
+    so min lies on the true bar lattice — which for H4 on IC Markets is the
+    21:00-UTC server-midnight anchor {1,5,9,13,17,21}-hour UTC grid, not the
+    midnight-UTC lattice. A midnight-anchored grid would classify every real
+    H4 bar as missing (live-verified correction, 2026-08-30).
     """
     if df.empty:
         return []
     step = TIMEFRAME_MINUTES[timeframe]
     times = pd.DatetimeIndex(df["time_utc"])
-    start = floor_to_timeframe(times.min().to_pydatetime(), timeframe)
-    grid = pd.date_range(start=start, end=times.max(), freq=f"{step}min")
+    grid = pd.date_range(start=times.min(), end=times.max(), freq=f"{step}min")
     present = set(times)
     step_delta = pd.Timedelta(minutes=step)
     missing = [ts for ts in grid if ts not in present]

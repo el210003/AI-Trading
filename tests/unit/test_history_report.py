@@ -385,6 +385,37 @@ def test_classify_gap_short_hole_is_review(tmp_path):
     ) == "review"
 
 
+@pytest.mark.unit
+def test_compute_gaps_on_non_midnight_anchored_h4_lattice():
+    """Regression (live-verified 2026-08-30): IC Markets H4 bars open on the
+    21:00-UTC server-midnight anchor {1,5,9,13,17,21}-hour UTC grid, NOT the
+    midnight-UTC lattice. The expected grid must anchor at the observed
+    minimum so real H4 bars are not all misclassified as missing; the weekend
+    hole (Fri 17:00 -> Sun 21:00 UTC) is the only gap."""
+    # one trading week of H4 bars: Mon 00:00? no — bars at 1,5,9,13,17,21 UTC
+    week_hours = [1, 5, 9, 13, 17, 21]
+    opens = []
+    for day_offset in (0, 1, 2, 3, 4):  # Mon..Fri
+        base = pd.Timestamp("2026-08-24 00:00:00") + pd.Timedelta(days=day_offset)
+        opens.extend(base + pd.Timedelta(hours=h) for h in week_hours)
+    # skip the weekend; next week Monday bars too
+    base = pd.Timestamp("2026-08-31 00:00:00")
+    opens.extend(base + pd.Timedelta(hours=h) for h in week_hours[:2])  # Mon 01:00, 05:00
+    df = _bars_df(len(opens), start=SERVER_START)
+    df["time_utc"] = pd.DatetimeIndex(opens)
+    df["time"] = df["time_utc"] + pd.Timedelta(hours=OFFSET)  # keep raw consistent
+
+    gaps = compute_gaps(df, "H4")
+
+    # one weekend hole expressed as its missing slots: Sat 01:00 (first missing
+    # H4 slot after Fri 21:00) -> Mon 01:00 (next present bar's open)
+    assert len(gaps) == 1
+    assert gaps[0] == (
+        pd.Timestamp("2026-08-29 01:00:00"), pd.Timestamp("2026-08-31 01:00:00")
+    )
+    assert classify_gap(*gaps[0]) == "weekend"
+
+
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
