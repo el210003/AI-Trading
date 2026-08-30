@@ -52,7 +52,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 01-03: Gap backfill + idempotency + history-availability report + timezone/DST validation tests
+- [x] 01-03: Gap backfill + idempotency + history-availability report + timezone/DST validation tests
 
 ### Phase 2: SMC Detection Engine
 
@@ -162,7 +162,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Data Foundation | 3/3 | Complete   | 2026-08-30 |
+| 1. Data Foundation | 3/3 | Complete    | 2026-08-30 |
 | 2. SMC Detection Engine | 0/4 | Not started | - |
 | 3. Backtesting & Labeling | 0/3 | Not started | - |
 | 4. ML Scoring | 0/3 | Not started | - |

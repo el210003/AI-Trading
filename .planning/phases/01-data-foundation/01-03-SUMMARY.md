@@ -308,7 +308,11 @@ None — the MT5 terminal was already running and logged in (IC MarketsSC-Demo) 
 - **Em-dash mojibake** in Windows console log output (known cosmetic issue from 01-02; message content unaffected).
 - Untracked `.planning/research/.cache/*.json` files predate this plan (planning-session residue) — left untouched.
 
-## Phase Gate Status: AWAITING HUMAN APPROVAL
+## Phase Gate Status: APPROVED (2026-08-30)
+
+Human approved via orchestrator checkpoint flow with two explicit responses:
+1. Phase-gate approval: "approved -- close Phase 1" -- 9-combo history report + live demonstrations reviewed against ROADMAP SC 1-4; fail-loud, idempotency, and offset-uniformity evidence accepted.
+2. Stored-history depth decision: accept 501 bars/combo as-is (option: "approved -- close Phase 1 (Recommended)"). Terminal-available depth (250k M15 / ~172k H1 / ~43.7k H4 per symbol) is persisted in history_bounds for Phase 3; deepening to the 90-day window declined for now and can be sanctioned later via purge of data/ + restart backfill.
 
 Task 4 is `checkpoint:human-verify` (`gate="blocking"`). All executor pre-work is complete and the evidence is presented in the structured checkpoint return that accompanies this SUMMARY. Pending items for the human:
 
