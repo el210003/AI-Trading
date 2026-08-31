@@ -14,7 +14,7 @@ This roadmap builds a signals-only AI forex trading system in dependency order: 
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Data Foundation** - MT5 ingestion, UTC normalization, Parquet/SQLite stores, health checks, history report (completed 2026-08-30)
-- [ ] **Phase 2: SMC Detection Engine** - Look-ahead-safe swings, liquidity pools, sweeps, premium/discount zones with lifecycle state
+- [x] **Phase 2: SMC Detection Engine** - Look-ahead-safe swings, liquidity pools, sweeps, premium/discount zones with lifecycle state (completed 2026-08-31)
 - [ ] **Phase 3: Backtesting & Labeling** - Shared-code-path replay, spread-modeled costs, triple-barrier labels, canonical + walk-forward stats
 - [ ] **Phase 4: ML Scoring** - Point-in-time features, calibrated LightGBM probability, walk-forward evaluation, versioned artifacts
 - [ ] **Phase 5: LLM Narrative Layer** - Evidence-grounded confirm/refute reasoning with agreement flag and ML-only fallback
@@ -67,7 +67,7 @@ Plans:
   4. H1/H4 context joins to each M15 decision bar point-in-time (no "latest H4 row" lookahead)
   5. All detectors are pure DataFrame→DataFrame functions with pytest coverage
 
-**Plans**: 3/4 plans executed
+**Plans**: 4/4 plans complete
 
 Plans:
 **Wave 1**
@@ -81,7 +81,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 02-04-PLAN.md — MTF point-in-time context join + detector integration tests
+- [x] 02-04-PLAN.md — MTF point-in-time context join + detector integration tests
 
 ### Phase 3: Backtesting & Labeling
 
@@ -170,7 +170,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Data Foundation | 3/3 | Complete    | 2026-08-30 |
-| 2. SMC Detection Engine | 3/4 | In Progress|  |
+| 2. SMC Detection Engine | 4/4 | Complete   | 2026-08-31 |
 | 3. Backtesting & Labeling | 0/3 | Not started | - |
 | 4. ML Scoring | 0/3 | Not started | - |
 | 5. LLM Narrative Layer | 0/2 | Not started | - |

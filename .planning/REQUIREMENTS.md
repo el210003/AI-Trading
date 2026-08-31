@@ -22,7 +22,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **SMC-03**: System emits sweep events when a pool level is taken out and reclaimed, distinguishing sweeps from pure breakouts
 - [x] **SMC-04**: System derives premium/discount zones from confirmed swing ranges with configurable range-selection rules
 - [x] **SMC-05**: Every pool and zone carries lifecycle state (unmitigated → mitigated → invalidated) updated bar-by-bar
-- [ ] **SMC-06**: Higher-timeframe context (H1/H4) is joined point-in-time as of each M15 decision bar's timestamp
+- [x] **SMC-06**: Higher-timeframe context (H1/H4) is joined point-in-time as of each M15 decision bar's timestamp
 
 ### AI Analysis
 
@@ -114,7 +114,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SMC-03 | Phase 2 | Complete |
 | SMC-04 | Phase 2 | Complete |
 | SMC-05 | Phase 2 | Complete |
-| SMC-06 | Phase 2 | Pending |
+| SMC-06 | Phase 2 | Complete |
 | BT-01 | Phase 3 | Pending |
 | BT-02 | Phase 3 | Pending |
 | BT-03 | Phase 3 | Pending |
