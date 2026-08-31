@@ -117,11 +117,15 @@ def _validate_bars(bars: pd.DataFrame) -> None:
         raise ValueError(
             f"detect_pools invariant violated: bars is missing required columns {missing}"
         )
-    if not bars["time_utc"].is_monotonic_increasing or not bars["time_utc"].is_unique:
-        raise ValueError(
-            "detect_pools invariant violated: bars time_utc must be strictly "
-            "increasing and unique"
-        )
+    # Multi-symbol frames are time-monotonic and unique per symbol, not
+    # globally — combined frames legitimately repeat timestamps across symbols.
+    for _, sym_bars in bars.groupby("symbol", sort=False):
+        t = sym_bars["time_utc"]
+        if not t.is_monotonic_increasing or not t.is_unique:
+            raise ValueError(
+                "detect_pools invariant violated: bars time_utc must be strictly "
+                "increasing and unique within each symbol"
+            )
     for col in ("open", "high", "low", "close"):
         if not bars[col].notna().all():
             raise ValueError(

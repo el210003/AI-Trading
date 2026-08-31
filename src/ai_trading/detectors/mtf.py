@@ -87,11 +87,15 @@ def _validate_m15(m15: pd.DataFrame) -> None:
         raise ValueError(
             f"htf_context invariant violated: m15 is missing required columns {missing}"
         )
-    if not m15["time_utc"].is_monotonic_increasing or not m15["time_utc"].is_unique:
-        raise ValueError(
-            "htf_context invariant violated: m15 time_utc must be strictly "
-            "increasing and unique"
-        )
+    # Multi-symbol frames are time-monotonic and unique per symbol, not
+    # globally — combined frames legitimately repeat timestamps across symbols.
+    for _, sym_bars in m15.groupby("symbol", sort=False):
+        t = sym_bars["time_utc"]
+        if not t.is_monotonic_increasing or not t.is_unique:
+            raise ValueError(
+                "htf_context invariant violated: m15 time_utc must be strictly "
+                "increasing and unique within each symbol"
+            )
     for col in ("open", "high", "low", "close"):
         if not m15[col].notna().all():
             raise ValueError(
@@ -137,8 +141,14 @@ def _payload_for_tf(
                 "invalidated_at",
                 "symbol",
             ]
-        ].sort_values("created_at", kind="mergesort")
-        left = m15s[["symbol", "time_utc", "close"]]
+        ].sort_values("created_at", kind="mergesort").copy()
+        # Pitfall 9: normalize join-key dtypes on both sides (make_bars emits
+        # datetime64[ns]/object symbols; zone frames pin [us]/StringDtype).
+        timeline["symbol"] = timeline["symbol"].astype(_STR_DTYPE)
+        timeline["created_at"] = timeline["created_at"].astype("datetime64[us]")
+        left = m15s[["symbol", "time_utc", "close"]].copy()
+        left["symbol"] = left["symbol"].astype(_STR_DTYPE)
+        left["time_utc"] = left["time_utc"].astype("datetime64[us]")
         joined = pd.merge_asof(
             left,
             timeline,
