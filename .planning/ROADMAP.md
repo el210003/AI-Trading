@@ -67,7 +67,7 @@ Plans:
   4. H1/H4 context joins to each M15 decision bar point-in-time (no "latest H4 row" lookahead)
   5. All detectors are pure DataFrame→DataFrame functions with pytest coverage
 
-**Plans**: 1/4 plans executed
+**Plans**: 2/4 plans executed
 
 Plans:
 **Wave 1**
@@ -76,7 +76,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 02-02-PLAN.md — Liquidity pools (equal highs/lows clustering) + sweep events with reclaim rule
+- [x] 02-02-PLAN.md — Liquidity pools (equal highs/lows clustering) + sweep events with reclaim rule
 - [ ] 02-03-PLAN.md — Premium/discount zones + zone/pool lifecycle state machine
 
 **Wave 3** *(blocked on Wave 2 completion)*
@@ -170,7 +170,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Data Foundation | 3/3 | Complete    | 2026-08-30 |
-| 2. SMC Detection Engine | 1/4 | In Progress|  |
+| 2. SMC Detection Engine | 2/4 | In Progress|  |
 | 3. Backtesting & Labeling | 0/3 | Not started | - |
 | 4. ML Scoring | 0/3 | Not started | - |
 | 5. LLM Narrative Layer | 0/2 | Not started | - |

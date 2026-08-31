@@ -18,10 +18,10 @@ Requirements for initial release. Each maps to roadmap phases.
 ### SMC Detection
 
 - [x] **SMC-01**: System detects swing highs/lows using confirmation-shifted logic (a swing exists only after its confirmation bar — non-repainting)
-- [ ] **SMC-02**: System clusters equal highs/lows into liquidity pools using ATR-relative tolerance per instrument
-- [ ] **SMC-03**: System emits sweep events when a pool level is taken out and reclaimed, distinguishing sweeps from pure breakouts
+- [x] **SMC-02**: System clusters equal highs/lows into liquidity pools using ATR-relative tolerance per instrument
+- [x] **SMC-03**: System emits sweep events when a pool level is taken out and reclaimed, distinguishing sweeps from pure breakouts
 - [ ] **SMC-04**: System derives premium/discount zones from confirmed swing ranges with configurable range-selection rules
-- [ ] **SMC-05**: Every pool and zone carries lifecycle state (unmitigated → mitigated → invalidated) updated bar-by-bar
+- [x] **SMC-05**: Every pool and zone carries lifecycle state (unmitigated → mitigated → invalidated) updated bar-by-bar
 - [ ] **SMC-06**: Higher-timeframe context (H1/H4) is joined point-in-time as of each M15 decision bar's timestamp
 
 ### AI Analysis
@@ -110,10 +110,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DATA-04 | Phase 1 | Complete |
 | DATA-05 | Phase 1 | Complete |
 | SMC-01 | Phase 2 | Complete |
-| SMC-02 | Phase 2 | Pending |
-| SMC-03 | Phase 2 | Pending |
+| SMC-02 | Phase 2 | Complete |
+| SMC-03 | Phase 2 | Complete |
 | SMC-04 | Phase 2 | Pending |
-| SMC-05 | Phase 2 | Pending |
+| SMC-05 | Phase 2 | Complete |
 | SMC-06 | Phase 2 | Pending |
 | BT-01 | Phase 3 | Pending |
 | BT-02 | Phase 3 | Pending |
