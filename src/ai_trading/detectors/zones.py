@@ -203,4 +203,6 @@ def derive_zones(zigzag: pd.DataFrame, bars: pd.DataFrame) -> pd.DataFrame:
     for col in ("created_at", "mitigated_at", "invalidated_at"):
         if col in zones_frame.columns:
             zones_frame[col] = zones_frame[col].astype("datetime64[us]")
-    return zones_frame.sort_values(["symbol", "created_at"], kind="mergesort").reset_index(drop=True)
+    return zones_frame.sort_values(
+        ["symbol", "created_at"], kind="mergesort"
+    ).reset_index(drop=True)
