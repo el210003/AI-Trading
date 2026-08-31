@@ -9,11 +9,11 @@ from datetime import datetime
 
 import pandas as pd
 import pytest
+from _detector_fixtures import swing_spec_bars
 
 from ai_trading.detectors.swings import detect_swings
 from ai_trading.detectors.zigzag import build_zigzag
 from ai_trading.detectors.zones import ZONE_COLUMNS, derive_zones
-from _detector_fixtures import swing_spec_bars
 
 SYMBOL = "EURUSD"
 TIMEFRAME = "M15"
