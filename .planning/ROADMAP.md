@@ -170,7 +170,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Data Foundation | 3/3 | Complete    | 2026-08-30 |
-| 2. SMC Detection Engine | 4/4 | Complete   | 2026-08-31 |
+| 2. SMC Detection Engine | 4/4 | Complete    | 2026-08-31 |
 | 3. Backtesting & Labeling | 0/3 | Not started | - |
 | 4. ML Scoring | 0/3 | Not started | - |
 | 5. LLM Narrative Layer | 0/2 | Not started | - |

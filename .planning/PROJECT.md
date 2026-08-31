@@ -13,6 +13,7 @@ Produce high-probability SMC-based forex trade setups with transparent, reasoned
 ### Validated
 
 - [x] Ingest OHLC data from MT5 for EURUSD, GBPUSD, USDJPY on M15/H1/H4 via MetaTrader5 Python lib — Validated in Phase 1: Data Foundation (9/9 combos storing UTC-normalized bars; offset validated UTC+3, DST-dependent)
+- [x] Detect SMC liquidity concepts: sweeps of equal highs/lows and premium/discount zones (built on swing-point detection) — Validated in Phase 2: SMC Detection Engine (pure deterministic detector chain swings→zigzag→pools→sweeps→zones→MTF context; point-in-time lookahead-safe; 177-test suite green, verification 30/30 must-haves)
 
 ### Active
 
