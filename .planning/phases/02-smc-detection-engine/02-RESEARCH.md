@@ -498,20 +498,23 @@ Test-tier mapping: T1 swings (above), T2 zigzag tail rule, T3 zone/pool/sweep im
 | A10 | Detector state recomputes per cycle (no persistence) for v1; planner owns the final call | Architectural Responsibility Map | Low — recompute is cheap at current scale; persistence can be added later without contract change |
 | A11 | Repaint testing patterns (prefix-vs-visible equality, chunked appends) as designed are the accepted SC1 proof method | Validation Architecture | Low — engineering convention; the SC1 text supports it directly |
 
-## Open Questions
+## Open Questions (RESOLVED — closed by Phase 2 plan tasks)
 
 1. **Does the two-tier repaint contract (Pitfall 2) match user intent for tail replacement?**
    - What we know: D-04 locks replacement among confirmed swings; CONTEXT specifics say it "rewrites unconfirmed tail state only" — the two-tier test design follows directly.
    - What's unclear: whether the user also wants the *swing record list* to expose the replacement (it does not — D-03 records are independent of zigzag).
    - Recommendation: proceed with the two-tier design; it is the only reading consistent with both D-04 and SC1. No user gate needed unless plan review surfaces doubt.
+   - RESOLVED: two-tier contract adopted — encoded as the executable spec in plan 02-01 Task 3 (`tests/unit/test_repaint.py`: T1 swing immutability, T2 zigzag only-tail-may-change, structure-shift stability).
 2. **Which ATR convention to pin for test expectations (A4)?**
    - What we know: Wilder's canonical seed (SMA of first 14 TRs) vs pandas `ewm` seed (first TR) differ only in warmup, decaying geometrically.
    - What's unclear: none material — but tests must hand-compute expectations with the chosen convention.
    - Recommendation: pin `ewm(alpha=1/14, adjust=False, min_periods=14)`; document the seed nuance in the module docstring.
+   - RESOLVED: `ewm(alpha=1/14, adjust=False, min_periods=14)` pinned — implemented by plan 02-01 Tasks 1–2 (`wilders_atr` in atr.py with seed-nuance docstring; hand-computed expectations in test_swings.py).
 3. **Exact-equal highs/lows and pool formation (A6).**
    - What we know: D-02 forbids equal prices from forming swings; D-05 pools cluster swings. Net effect: exactly-equal price pairs produce no pool from those bars.
    - What's unclear: whether the user's "equal level itself surfaces as a liquidity pool" intends direct seeding for exact-equal bars.
    - Recommendation: raise at plan review as a one-line confirmation; default implementation follows the literal D-02+D-05 composition (no special casing).
+   - RESOLVED: literal D-02+D-05 composition default (no direct pool seeding for exact-equal bars) accepted at plan review — recorded via docstring flag in plan 02-02 Task 2.
 
 ## Environment Availability
 
