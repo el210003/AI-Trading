@@ -200,6 +200,9 @@ def derive_zones(zigzag: pd.DataFrame, bars: pd.DataFrame) -> pd.DataFrame:
     for col in ("zone_id", "symbol", "timeframe", "leg_direction", "state"):
         if col in zones_frame.columns:
             zones_frame[col] = zones_frame[col].astype(_STR_DTYPE)
+    for col in ("range_high", "range_low", "equilibrium"):
+        if col in zones_frame.columns:
+            zones_frame[col] = zones_frame[col].astype("float64")
     for col in ("created_at", "mitigated_at", "invalidated_at"):
         if col in zones_frame.columns:
             zones_frame[col] = zones_frame[col].astype("datetime64[us]")
