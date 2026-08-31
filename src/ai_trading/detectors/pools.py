@@ -319,11 +319,18 @@ def detect_pools(
 
     pools_frame = pd.DataFrame(pool_rows, columns=POOL_COLUMNS)
     events_frame = pd.DataFrame(event_rows, columns=EVENT_COLUMNS)
-    for frame, cols in (
-        (pools_frame, ("pool_id", "symbol", "timeframe", "side", "state")),
-        (events_frame, ("event_id", "pool_id", "symbol", "timeframe", "side", "event_type")),
+    for frame, str_cols, ts_cols in (
+        (pools_frame, ("pool_id", "symbol", "timeframe", "side", "state"),
+         ("first_touch_at", "activated_at", "resolved_at")),
+        (events_frame, ("event_id", "pool_id", "symbol", "timeframe", "side", "event_type"),
+         ("pierced_at", "resolved_at")),
     ):
-        for col in cols:
+        for col in str_cols:
             if col in frame.columns:
                 frame[col] = frame[col].astype(_STR_DTYPE)
+        # Pin datetime units — pandas infers [s]/[us] from values, which made
+        # prefix vs full-frame repaint comparisons dtype-unstable.
+        for col in ts_cols:
+            if col in frame.columns:
+                frame[col] = frame[col].astype("datetime64[us]")
     return pools_frame.reset_index(drop=True), events_frame.reset_index(drop=True)
