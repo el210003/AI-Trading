@@ -45,10 +45,10 @@ def _empty_swing_frame() -> pd.DataFrame:
         {
             "symbol": pd.Series(dtype="object"),
             "timeframe": pd.Series(dtype="object"),
-            "bar_time": pd.Series(dtype="datetime64[ns]"),
+            "bar_time": pd.Series(dtype="datetime64[us]"),
             "price": pd.Series(dtype="float64"),
             "side": pd.Series(dtype="object"),
-            "confirmed_at": pd.Series(dtype="datetime64[ns]"),
+            "confirmed_at": pd.Series(dtype="datetime64[us]"),
         }
     )
 
@@ -123,4 +123,10 @@ def detect_swings(bars: pd.DataFrame, timeframe: str) -> pd.DataFrame:
     out = pd.concat([highs, lows], ignore_index=True)
     # A9: deterministic same-bar dual-swing order — "high" sorts before "low".
     out = out.sort_values(["bar_time", "side"], kind="mergesort").reset_index(drop=True)
+    # pandas 3 concat unifies all-string object columns to StringDtype only when
+    # both sides contribute rows — canonicalize so the output dtype never
+    # depends on how many swings each side produced (repaint prefix/full
+    # comparisons are check_exact=True).
+    for col in ("symbol", "timeframe", "side"):
+        out[col] = out[col].astype("str")
     return out[SWING_COLUMNS]
