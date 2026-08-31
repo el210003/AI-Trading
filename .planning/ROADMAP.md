@@ -71,10 +71,10 @@ Plans:
 
 Plans:
 
-- [ ] 02-01: Swing-point detection (confirmation-shifted) + repaint test suite
-- [ ] 02-02: Liquidity pools (equal highs/lows clustering) + sweep events with reclaim rule
-- [ ] 02-03: Premium/discount zones + zone/pool lifecycle state machine
-- [ ] 02-04: MTF point-in-time context join + detector integration tests
+- [ ] 02-01-PLAN.md — Swing-point detection (confirmation-shifted) + repaint test suite
+- [ ] 02-02-PLAN.md — Liquidity pools (equal highs/lows clustering) + sweep events with reclaim rule
+- [ ] 02-03-PLAN.md — Premium/discount zones + zone/pool lifecycle state machine
+- [ ] 02-04-PLAN.md — MTF point-in-time context join + detector integration tests
 
 ### Phase 3: Backtesting & Labeling
 
