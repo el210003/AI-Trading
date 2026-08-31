@@ -46,10 +46,10 @@ def _empty_zigzag_frame() -> pd.DataFrame:
         {
             "symbol": pd.Series(dtype="object"),
             "timeframe": pd.Series(dtype="object"),
-            "bar_time": pd.Series(dtype="datetime64[ns]"),
+            "bar_time": pd.Series(dtype="datetime64[us]"),
             "price": pd.Series(dtype="float64"),
             "side": pd.Series(dtype="object"),
-            "confirmed_at": pd.Series(dtype="datetime64[ns]"),
+            "confirmed_at": pd.Series(dtype="datetime64[us]"),
         }
     )
 
