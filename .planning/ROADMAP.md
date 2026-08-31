@@ -67,12 +67,12 @@ Plans:
   4. H1/H4 context joins to each M15 decision bar point-in-time (no "latest H4 row" lookahead)
   5. All detectors are pure DataFrame→DataFrame functions with pytest coverage
 
-**Plans**: 4 plans
+**Plans**: 1/4 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 02-01-PLAN.md — Swing-point detection (confirmation-shifted) + repaint test suite
+- [x] 02-01-PLAN.md — Swing-point detection (confirmation-shifted) + repaint test suite
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -170,7 +170,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Data Foundation | 3/3 | Complete    | 2026-08-30 |
-| 2. SMC Detection Engine | 0/4 | Not started | - |
+| 2. SMC Detection Engine | 1/4 | In Progress|  |
 | 3. Backtesting & Labeling | 0/3 | Not started | - |
 | 4. ML Scoring | 0/3 | Not started | - |
 | 5. LLM Narrative Layer | 0/2 | Not started | - |

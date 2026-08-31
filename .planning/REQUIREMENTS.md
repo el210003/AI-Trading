@@ -17,7 +17,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### SMC Detection
 
-- [ ] **SMC-01**: System detects swing highs/lows using confirmation-shifted logic (a swing exists only after its confirmation bar — non-repainting)
+- [x] **SMC-01**: System detects swing highs/lows using confirmation-shifted logic (a swing exists only after its confirmation bar — non-repainting)
 - [ ] **SMC-02**: System clusters equal highs/lows into liquidity pools using ATR-relative tolerance per instrument
 - [ ] **SMC-03**: System emits sweep events when a pool level is taken out and reclaimed, distinguishing sweeps from pure breakouts
 - [ ] **SMC-04**: System derives premium/discount zones from confirmed swing ranges with configurable range-selection rules
@@ -109,7 +109,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DATA-03 | Phase 1 | Complete |
 | DATA-04 | Phase 1 | Complete |
 | DATA-05 | Phase 1 | Complete |
-| SMC-01 | Phase 2 | Pending |
+| SMC-01 | Phase 2 | Complete |
 | SMC-02 | Phase 2 | Pending |
 | SMC-03 | Phase 2 | Pending |
 | SMC-04 | Phase 2 | Pending |
