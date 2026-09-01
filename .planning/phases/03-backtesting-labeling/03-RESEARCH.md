@@ -542,29 +542,29 @@ def build_windows(label_times: pd.Series, train_len, test_len):
 | A9 | `point_size` derived as `pip_size/10` holds for the three majors (5-digit/3-digit) | Pattern 4 | Low — same as A3 |
 | A10 | Stats artifacts: labels Parquet + JSON canon + walk-forward Parquet is the recommended format; exact layout is planner discretion per CONTEXT | Pattern 6/7 | Low |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **M15 stored history is below the D-21 gate (~9 days vs 30 required) — run what?**
+1. **M15 stored history is below the D-21 gate (~9 days vs 30 required) — run what?** — **RESOLVED in plan 03-03**: the engine is fully synthetic-tested; the real-data demo run is a phase gate recorded as a `human-decision` `user_setup` item on 03-03, with the runner exposing a `--min-history-days` override (D-21) plus H4-range alternative so the human decides at verification (deepen history vs override). Defaults stay per D-21.
    - What we know: data audit this session: M15 501–541 bars (2026-08-21→08-31), H1 501 (≈29 d), H4 501 (≈115 d); terminal-available 250k M15 bars back to 2016 persisted in `history_bounds`; Phase 1 recorded the sanctioned mechanism (purge data/ + restart backfill under confirmed offset) and a human decision to stay at 501 bars/combo.
    - What's unclear: whether the human wants the history deepened now (real 6mo/1mo walks) or runs on short windows/overrides.
    - Recommendation: plan a `checkpoint:human-verify` for the demo run; defaults stay per D-21; runner supports `--min-history-days` override; all logic verified on synthetic data.
 
-2. **Cost asymmetry convention (which side crosses the spread) — confirm.**
+2. **Cost asymmetry convention (which side crosses the spread) — confirm.** — **RESOLVED in plan 03-01**: A1 (long pays at entry, short at exit) is pinned by the named symmetry test `test_long_short_cost_symmetry` + `test_costs.py` literal-float fill math, and recorded as the 03-01 `user_setup` human-decision item (10-second eyeball at phase verification). If the human flips it, only costs.py and its tests change.
    - What we know: Pattern 4 (long pays at entry, short at exit) is the standard interpretation of bid-side bars; D-14/15/16 lock the rest.
    - What's unclear: whether the user's mental model charges spread on both entry and exit (some systems model "spread = cost per side").
    - Recommendation: land the asymmetric convention with a named symmetry test; flag in plan for a 10-second human confirm at verification.
 
-3. **Win-rate denominator (TIMEOUT inclusion).**
+3. **Win-rate denominator (TIMEOUT inclusion).** — **RESOLVED in plan 03-02**: `win_rate = wins / (wins + losses)`, TIMEOUT excluded from the denominator (A4), TIMEOUT share reported separately as `timeouts_share`, TIMEOUTs included in expectancy/avg R (A5). Pinned in `stats.py` docstring + `test_stats.py` (hand series + denominator test).
    - What we know: D-18 defines three classes; D-16 wants raw/net; A4 recommends wins/(wins+losses).
    - What's unclear: no locked decision on the denominator.
    - Recommendation: pin `timeouts_excluded_from_win_rate=True` in config docs + tests; show TIMEOUT share separately in every report.
 
-4. **Where do PD zones for the candidate come from (M15 zones only, or HTF zones as well)?**
+4. **Where do PD zones for the candidate come from (M15 zones only, or HTF zones as well)?** — **RESOLVED in plan 03-01**: M15 zones for the tap (D-01/D-06 execution-timeframe structure), H1/H4 payload consumed for bias only (D-02), never zone targets from HTF. `candidate_at_bar` takes the full as-of state (including swings15 for the D-09 swing TP) so Phase 6 imports the identical functions (D-03).
    - What we know: D-06 = M15 candidate generation; D-01 = "a PD zone"; Phase 2 produces M15 zones AND HTF zones.
    - What's unclear: CONTEXT leaves the entry-rule's exact inputs to the planner (candidate functions are discretionary in composition, D-03 locked).
    - Recommendation: M15 zones for the tap (execution-timeframe structure) + H1/H4 zone containment via the payload (D-14 ids) as bias corroboration; the entry-rule function signature should accept the full as-of state so Phase 6 can match it exactly.
 
-5. **Phase-4 label overlap/purge contract.**
+5. **Phase-4 label overlap/purge contract.** — **RESOLVED in plans 03-01/03-02**: `LABEL_COLUMNS` persists `entry_time`, `exit_time`, `outcome`, `r_raw`, `r_net` per label; `walkforward.py` exposes the window → label assignment map. The Phase-4 purge obligation (AFML ch. 7 — purge train labels whose outcome interval overlaps a test window) is documented as owned by Phase 4 in 03-02/03-03 verification (deferred item, not dropped).
    - What we know: labels span up to 96 bars (24h); train/test boundaries can cut through a label's life.
    - What's unclear: Phase 3 has no model, so purging is deferred; the harness should still persist entry/exit stamps (Pattern 7).
    - Recommendation: persist `entry_time`, `exit_time`, `outcome`, `R_raw`, `R_net` per label + window assignment map; document the Phase-4 purge obligation (AFML Ch. 7) as a deferred item.

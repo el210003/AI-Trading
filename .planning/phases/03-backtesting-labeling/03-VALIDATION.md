@@ -38,11 +38,15 @@ created: 2026-09-01
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 03-01-01 | 01 | 1 | BT-01 | — | Replay calls same detector chain, no future data | unit | `pytest tests/unit/test_replay.py` | ⬜ W0 | ⬜ pending |
-| 03-01-02 | 01 | 1 | BT-02 | — | Cost = spread + slippage, refuses short history | unit | `pytest tests/unit/test_cost_model.py` | ⬜ W0 | ⬜ pending |
-| 03-02-01 | 02 | 1 | BT-03 | — | Triple-barrier labels, SL-first tie rule | unit | `pytest tests/unit/test_labels.py` | ⬜ W0 | ⬜ pending |
-| 03-02-02 | 02 | 1 | BT-04 | — | Canonical stats reports correct | unit | `pytest tests/unit/test_stats.py` | ⬜ W0 | ⬜ pending |
-| 03-03-01 | 03 | 1 | BT-05 | — | Walk-forward windows chronological, no overlap | unit | `pytest tests/unit/test_walkforward.py` | ⬜ W0 | ⬜ pending |
+| 03-01-T1 | 01 | 1 | BT-01 | T-03-01, T-03-04 | Config knobs fail-fast (12 new keys); conftest/_detector_fixtures untouched | unit | `pytest tests/unit/test_backtest_config.py tests/unit/test_normalize_and_config.py` | ⬜ W0 | ⬜ pending |
+| 03-01-T2 | 01 | 1 | BT-01, BT-02 | T-03-01, T-03-02 | Same detector chain via run_chain (no re-implementation); as-of visibility per tier; spread points->price + fallback + direction-aware fills | unit | `pytest tests/unit/test_asof.py tests/unit/test_costs.py tests/unit/test_detector_integration.py` | ⬜ W0 | ⬜ pending |
+| 03-01-T3 | 01 | 1 | BT-01, BT-02 | T-03-01, T-03-03 | Entry candidates (D-01..D-13 incl. swing TP); one-at-a-time state machine; prefix-equivalence look-ahead proof | unit | `pytest tests/unit/test_candidates.py tests/unit/test_replay.py tests/unit/test_replay_repaint.py` | ⬜ W0 | ⬜ pending |
+| 03-02-T1 | 02 | 2 | BT-03 | T-03-01 | SL-first tie incl. entry bar, gap=open both directions, 96-bar inclusive window, TIMEOUT at final bar close | unit | `pytest tests/unit/test_barriers.py` | ⬜ W0 | ⬜ pending |
+| 03-02-T2 | 02 | 2 | BT-04 | T-03-02 | Win rate / PF guards / expectancy / max DD / avg R / counts, TIMEOUT denominator policy, raw+net delta | unit | `pytest tests/unit/test_stats.py` | ⬜ W0 | ⬜ pending |
+| 03-02-T3 | 02 | 2 | BT-03, BT-04 | T-03-03 | Atomic (tmp+os.replace) deterministic label/canon artifact writes; manifest separation | unit | `pytest tests/unit/test_reports.py` | ⬜ W0 | ⬜ pending |
+| 03-03-T1 | 03 | 3 | BT-05 | T-03-01 | Walk-forward chronological/zero-overlap/expanding-train; small windows; exactly-one-window assignment | unit | `pytest tests/unit/test_walkforward.py` | ⬜ W0 | ⬜ pending |
+| 03-03-T2 | 03 | 3 | BT-05 | T-03-03 | walkforward.parquet byte-determinism; window manifest separation; no .tmp residue | unit | `pytest tests/unit/test_reports.py` | ⬜ W0 | ⬜ pending |
+| 03-03-T3 | 03 | 3 | BT-05 | T-03-02, T-03-04 | Runner exit codes 2/1/0; D-21 gate refusal + --min-history-days override; offset uniformity; MT5-free | unit | `pytest tests/unit/test_runner.py` | ⬜ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -50,12 +54,18 @@ created: 2026-09-01
 
 ## Wave 0 Requirements
 
-- [ ] `tests/unit/test_replay.py` — stubs for BT-01
-- [ ] `tests/unit/test_cost_model.py` — stubs for BT-02
-- [ ] `tests/unit/test_labels.py` — stubs for BT-03
+- [ ] `tests/unit/test_backtest_config.py` — stubs for BT-01/config knobs
+- [ ] `tests/unit/test_asof.py` — stubs for BT-01 (as-of visibility)
+- [ ] `tests/unit/test_costs.py` — stubs for BT-02
+- [ ] `tests/unit/test_candidates.py` — stubs for BT-01 (entry rules D-01..D-13)
+- [ ] `tests/unit/test_replay.py` — stubs for BT-01/BT-02 (state machine)
+- [ ] `tests/unit/test_replay_repaint.py` — stubs for BT-01 (anti-lookahead)
+- [ ] `tests/unit/test_barriers.py` — stubs for BT-03
 - [ ] `tests/unit/test_stats.py` — stubs for BT-04
+- [ ] `tests/unit/test_reports.py` — stubs for BT-03/BT-04/BT-05 (artifact writers)
 - [ ] `tests/unit/test_walkforward.py` — stubs for BT-05
-- [ ] `tests/conftest.py` — shared fixtures (`make_bars`, `FakeMT5Client` already exist — extend)
+- [ ] `tests/unit/test_runner.py` — stubs for BT-05 (CLI)
+- [ ] `tests/unit/_backtest_fixtures.py` — NEW local helper (set_spreads / bt_cfg / write_bars_parquet); `tests/conftest.py` stays UNTOUCHED per Phase 1 contract (make_bars/_make_cfg reused via direct import)
 
 *If none: "Existing infrastructure covers all phase requirements."*
 
