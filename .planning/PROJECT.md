@@ -14,13 +14,12 @@ Produce high-probability SMC-based forex trade setups with transparent, reasoned
 
 - [x] Ingest OHLC data from MT5 for EURUSD, GBPUSD, USDJPY on M15/H1/H4 via MetaTrader5 Python lib — Validated in Phase 1: Data Foundation (9/9 combos storing UTC-normalized bars; offset validated UTC+3, DST-dependent)
 - [x] Detect SMC liquidity concepts: sweeps of equal highs/lows and premium/discount zones (built on swing-point detection) — Validated in Phase 2: SMC Detection Engine (pure deterministic detector chain swings→zigzag→pools→sweeps→zones→MTF context; point-in-time lookahead-safe; 177-test suite green, verification 30/30 must-haves)
+- [x] Backtesting engine validates SMC detection and setup quality on historical MT5 data — Validated in Phase 3: Backtesting & Labeling (MT5-free replay engine calls the identical detector chain; triple-barrier labels with SL-first tie rule; costs = recorded spread + slippage; walk-forward reports; 358-test suite, verification 16/16 must-haves)
 
 ### Active
 
-- [ ] Detect SMC liquidity concepts: sweeps of equal highs/lows and premium/discount zones (built on swing-point detection)
 - [ ] ML model scores each setup's probability
 - [ ] LLM produces narrative/confirmation reasoning per setup
-- [ ] Backtesting engine validates SMC detection and setup quality on historical MT5 data
 - [ ] Web dashboard presents setups: direction, entry, SL, TP, probability, rationale
 
 ### Out of Scope
@@ -54,7 +53,8 @@ Produce high-probability SMC-based forex trade setups with transparent, reasoned
 | v1 is signals-only; execution deferred to next milestone | Build trust in signal quality before automating risk | — Pending |
 | Hybrid AI (ML scoring + LLM reasoning) | Combines quantitative probability with interpretable narrative confirmation | — Pending |
 | MetaTrader5 Python lib for data feed | Official, reliable OHLC source from the user's local terminal | — Pending |
-| Backtesting included in v1 | Validate SMC detection and setup quality on historical data before live use | — Pending |
+| Backtesting included in v1 | Validate SMC detection and setup quality on historical data before live use | — Proven in Phase 3 (identical-pipeline replay, walk-forward harness) |
+| Backtest labeling conventions: triple-barrier with SL-first intrabar tie; entry candidates = sweep + zone tap | Conservative, reproducible labels (D-01…D-22 in Phase 3 CONTEXT.md) | — Validated in Phase 3 |
 | SMC scope: liquidity sweeps + premium/discount zones | User-selected v1 focus; swing detection built as internal dependency | — Pending |
 | Web dashboard as delivery interface | Rich presentation of setups, history, and stats | — Pending |
 
@@ -76,4 +76,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-08-30 after Phase 1 (Data Foundation) completion*
+*Last updated: 2026-09-02 after Phase 3 (Backtesting & Labeling) completion*
