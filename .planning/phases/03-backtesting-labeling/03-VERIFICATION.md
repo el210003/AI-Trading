@@ -1,7 +1,7 @@
 ---
 phase: 03-backtesting-labeling
 verified: 2026-09-02T15:31:15Z
-status: human_needed
+status: passed
 score: 16/16 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
@@ -12,12 +12,15 @@ re_verification:
   gaps_remaining: []
   regressions: []
 human_verification:
+
   - test: "Confirm the A1 cost-asymmetry convention (plan 03-01 user_setup): read costs.py entry_fill_price/exit_fill_price and test_costs.py::test_long_short_cost_symmetry — confirm bid-side bars mean a LONG crosses the spread at ENTRY and a SHORT at EXIT (net round-trip = spread_px + 2*slip for both directions)."
     expected: "The convention matches your mental model of bid-side OHLC bars. If you model 'spread = cost per side' instead, only costs.py + its tests change (RESEARCH Open Question 2)."
     why_human: "Convention choice, not machine-verifiable — the symmetric cost MATH is unit-proven; whether the convention is the intended one is a human call (plan-declared 10-second eyeball at phase verification)."
+
   - test: "Confirm the D-10 SL-first intrabar tie convention (plan 03-02 coverage D8, human_judgment): read barriers.py module docstring + test_barriers.py::test_tie_sl_first_including_entry_bar — confirm SL-first on every bar (entry bar included) is the intended conservative labeling rule."
     expected: "The conservative SL-first rule matches intent (intrabar path unknowable from OHLC; no tie heuristic that flatters win rates)."
     why_human: "Convention choice per D-10; the implementation is pinned by a named test, the intent-match is a human judgment."
+
   - test: "Real-data demo run with the history-depth decision (plan 03-03 user_setup, Phase gate Open Question 1): stored M15 history is ~9 days, below D-21's 30-day gate. Decide ONE of: (1) deepen stored history via Phase 1 purge+backfill, (2) run with --min-history-days override + shorter --range, or (3) demo on H4-range depth. Then run: uv run python -m ai_trading.backtest --config config.toml --range last-ND --write"
     expected: "Gate refusal (exit 1, actionable remedy message, no artifacts) if run below the gate without override; a successful run (exit 0) writes data/labels/{SYMBOL}_M15.parquet, canonical_stats.json, run_manifest.json, data/reports/walkforward.parquet, walkforward_manifest.json; zero candidates is a valid exit-0 outcome with schema-correct empty artifacts."
     why_human: "Requires the running MT5 terminal / stored-data depth decision (real external service + a business call on demo depth); the engine itself is fully synthetic-tested either way."
