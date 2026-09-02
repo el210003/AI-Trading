@@ -378,16 +378,19 @@ def test_sortedness_invariants_on_all_outputs():
 
 @pytest.mark.unit
 def test_no_vendor_imports_in_detector_sources():
-    """No module under src/ai_trading/detectors/ contains an adapter-tier
-    vendor-package import statement (file-content assertion)."""
-    detectors_dir = Path(__file__).resolve().parents[2] / "src" / "ai_trading" / "detectors"
-    sources = sorted(detectors_dir.glob("*.py"))
+    """No module under src/ai_trading/detectors/ or src/ai_trading/backtest/
+    contains an adapter-tier vendor-package import statement (file-content
+    assertion; prose docstring mentions are allowed, imports are not)."""
+    src = Path(__file__).resolve().parents[2] / "src" / "ai_trading"
+    sources = sorted((src / "detectors").glob("*.py"))
+    sources.extend(sorted((src / "backtest").glob("*.py")))
     assert len(sources) >= 6
     for path in sources:
         text = path.read_text(encoding="utf-8")
         assert "import MetaTrader5" not in text, f"vendor import in {path.name}"
         assert "from MetaTrader5" not in text, f"vendor import in {path.name}"
-        assert "floor_to_timeframe" not in text, f"grid re-flooring in {path.name}"
+        if path.parent.name == "detectors":
+            assert "floor_to_timeframe" not in text, f"grid re-flooring in {path.name}"
 
 
 # ---------------------------------------------------------------------------
