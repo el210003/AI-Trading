@@ -5,8 +5,8 @@ milestone_name: milestone
 current_phase: 03
 current_phase_name: backtesting-labeling
 status: executing
-stopped_at: Completed 03-01-PLAN.md (replay engine core; 3 tasks, 261 tests green)
-last_updated: "2026-09-02T03:14:10.688Z"
+stopped_at: Completed 03-02-PLAN.md (barrier walk, canonical stats, artifact writers; 320 tests green)
+last_updated: "2026-09-02T04:56:38.951Z"
 last_activity: 2026-09-02
 last_activity_desc: Phase 03 execution started
 progress:
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 03 (backtesting-labeling) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-09-02 — Phase 03 execution started
 
@@ -63,6 +63,7 @@ Progress: [███████░░░] 67%
 | Phase 2 P03 | 30 min | 3 tasks | 3 files |
 | Phase 2 P04 | 60 min | 3 tasks | 7 files |
 | Phase 03 P01 | 82min | 3 tasks | 17 files |
+| Phase 03 P02 | 20min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -85,6 +86,7 @@ Recent decisions affecting current work:
 - [Phase 03]: run_chain derives zones15 (M15 zones) alongside the Phase 2 composition - the D-01 zone tap consumes chain[zones15] — Plan 03-01 replay spec requires M15 zones for the tap; same derive_zones export keeps BT-01 intact
 - [Phase 03]: Cost convention A1 pinned: bid-side bars, long crosses spread at entry, short at exit; slippage adversely on both fills — Locked by test_long_short_cost_symmetry; human eyeball recorded in 03-USER-SETUP.md
 - [Phase 03]: D-09 TP liveness convention: opposite pools resolved at/before the decision bar are excluded from TP candidates; ties resolve to the pool — D-09 silent on liveness - planner convention documented in candidates.py docstring
+- [Phase 03]: profit_factor pinned as a decided-trade ratio (TIMEOUT rows excluded from both R-sign sums) — the plan hand-pinned PF == 1.5 on a series whose all-rows sum would give 1.5/1.1; A4-consistent reading chosen, documented in stats.py
 
 ### Pending Todos
 
@@ -106,6 +108,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-02T03:14:10.675Z
-Stopped at: Completed 03-01-PLAN.md (replay engine core; 3 tasks, 261 tests green)
+Last session: 2026-09-02T04:56:38.942Z
+Stopped at: Completed 03-02-PLAN.md (barrier walk, canonical stats, artifact writers; 320 tests green)
 Resume file: None
