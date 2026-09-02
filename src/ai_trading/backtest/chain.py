@@ -31,11 +31,18 @@ H4 = "H4"
 def run_chain(m15: pd.DataFrame, h1: pd.DataFrame, h4: pd.DataFrame) -> dict[str, pd.DataFrame]:
     """Run the production detector chain over the loaded frames and return
     the dict of tier outputs keyed: swings15, zigzag15, pools15, events15,
-    swings_h1, zigzag_h1, zones_h1, swings_h4, zigzag_h4, zones_h4, payload.
+    zones15, swings_h1, zigzag_h1, zones_h1, swings_h4, zigzag_h4, zones_h4,
+    payload.
+
+    Note: M15 zones (zones15) are derived here even though the Phase 2
+    integration composition omitted them — the replay's D-01 zone tap
+    consumes them, and derive_zones is the same exported detector function
+    (BT-01 preserved).
     """
     swings15 = detect_swings(m15, M15)
     zigzag15 = build_zigzag(swings15)
     pools15, events15 = detect_pools(m15, swings15)
+    zones15 = derive_zones(zigzag15, m15)
     swings_h1 = detect_swings(h1, H1)
     zigzag_h1 = build_zigzag(swings_h1)
     zones_h1 = derive_zones(zigzag_h1, h1)
@@ -48,6 +55,7 @@ def run_chain(m15: pd.DataFrame, h1: pd.DataFrame, h4: pd.DataFrame) -> dict[str
         "zigzag15": zigzag15,
         "pools15": pools15,
         "events15": events15,
+        "zones15": zones15,
         "swings_h1": swings_h1,
         "zigzag_h1": zigzag_h1,
         "zones_h1": zones_h1,
