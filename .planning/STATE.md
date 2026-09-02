@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 3
-current_phase_name: Backtesting & Labeling
+current_phase: 03
+current_phase_name: backtesting-labeling
 status: executing
-stopped_at: Phase 3 context gathered
-last_updated: "2026-09-02T01:09:52.090Z"
-last_activity: 2026-08-31
-last_activity_desc: Phase 2 complete, transitioned to Phase 3
+stopped_at: Completed 03-01-PLAN.md (replay engine core; 3 tasks, 261 tests green)
+last_updated: "2026-09-02T03:14:10.688Z"
+last_activity: 2026-09-02
+last_activity_desc: Phase 03 execution started
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 10
+  completed_plans: 8
   percent: 33
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-29)
 
 **Core value:** Produce high-probability SMC-based forex trade setups with transparent, reasoned evidence the user can trust and verify
-**Current focus:** Phase 2 — SMC Detection Engine
+**Current focus:** Phase 03 — backtesting-labeling
 
 ## Current Position
 
-Phase: 3 — Backtesting & Labeling
-Plan: Not started
+Phase: 03 (backtesting-labeling) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-08-31 — Phase 2 complete, transitioned to Phase 3
+Last activity: 2026-09-02 — Phase 03 execution started
 
 Progress: [███████░░░] 67%
 
@@ -62,6 +62,7 @@ Progress: [███████░░░] 67%
 | Phase 2 P02 | 30 min | 3 tasks | 3 files |
 | Phase 2 P03 | 30 min | 3 tasks | 3 files |
 | Phase 2 P04 | 60 min | 3 tasks | 7 files |
+| Phase 03 P01 | 82min | 3 tasks | 17 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,9 @@ Recent decisions affecting current work:
 - [Phase 01]: Broker offset human-confirmed UTC+3 (2026-08-30) and persisted with validated_at; DST-dependent - expected +2 after US summer time ends (early November); re-validate at DST transitions
 - [Phase 01]: Task 4 weekend rule applied - poisoned -36 weekend tick sample flagged by offset_drift_detected and NOT persisted; human confirmation replaced the weekday sample; H4 21:00-UTC grid anchor independently corroborates +3
 - [Phase 01]: FakeMT5Client recording + per-(symbol, timeframe) deque hooks fixed in conftest so plan 01-03 tests consume them without extending conftest
+- [Phase 03]: run_chain derives zones15 (M15 zones) alongside the Phase 2 composition - the D-01 zone tap consumes chain[zones15] — Plan 03-01 replay spec requires M15 zones for the tap; same derive_zones export keeps BT-01 intact
+- [Phase 03]: Cost convention A1 pinned: bid-side bars, long crosses spread at entry, short at exit; slippage adversely on both fills — Locked by test_long_short_cost_symmetry; human eyeball recorded in 03-USER-SETUP.md
+- [Phase 03]: D-09 TP liveness convention: opposite pools resolved at/before the decision bar are excluded from TP candidates; ties resolve to the pool — D-09 silent on liveness - planner convention documented in candidates.py docstring
 
 ### Pending Todos
 
@@ -102,6 +106,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-01T13:50:54.612Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-backtesting-labeling/03-CONTEXT.md
+Last session: 2026-09-02T03:14:10.675Z
+Stopped at: Completed 03-01-PLAN.md (replay engine core; 3 tasks, 261 tests green)
+Resume file: None

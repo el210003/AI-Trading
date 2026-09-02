@@ -95,12 +95,17 @@ Plans:
   3. Labels follow the documented triple-barrier spec with the documented intrabar tie rule and are reproducible from raw setup + bar data
   4. Reports include win rate, PF, expectancy, max DD, avg R, trade count per symbol/timeframe, plus per-window walk-forward breakdowns
 
-**Plans**: 3 plans
+**Plans**: 1/3 plans executed
 
 Plans:
+
+- [x] 03-01-PLAN.md
+- [ ] 03-02-PLAN.md
+- [ ] 03-03-PLAN.md
+
 **Wave 1**
 
-- [ ] 03-01: Replay engine (bar-by-bar, historical-range validation) + cost model (spread + slippage)
+- [x] 03-01: Replay engine (bar-by-bar, historical-range validation) + cost model (spread + slippage)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -178,7 +183,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Data Foundation | 3/3 | Complete    | 2026-08-30 |
 | 2. SMC Detection Engine | 4/4 | Complete    | 2026-08-31 |
-| 3. Backtesting & Labeling | 0/3 | Not started | - |
+| 3. Backtesting & Labeling | 1/3 | In Progress|  |
 | 4. ML Scoring | 0/3 | Not started | - |
 | 5. LLM Narrative Layer | 0/2 | Not started | - |
 | 6. Setups & Dashboard | 0/3 | Not started | - |

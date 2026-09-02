@@ -43,8 +43,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Backtesting
 
-- [ ] **BT-01**: The backtester replays the identical pipeline bar-by-bar used by live analysis (one shared code path)
-- [ ] **BT-02**: Backtest outcomes model spread (from recorded bar spread) plus a slippage buffer; metrics reported net of costs
+- [x] **BT-01**: The backtester replays the identical pipeline bar-by-bar used by live analysis (one shared code path)
+- [x] **BT-02**: Backtest outcomes model spread (from recorded bar spread) plus a slippage buffer; metrics reported net of costs
 - [ ] **BT-03**: Outcomes are labeled with triple-barrier logic and a documented intrabar tie rule (SL-first conservative default)
 - [ ] **BT-04**: Backtests report canonical stats (win rate, profit factor, expectancy, max drawdown, avg R, trade count) per symbol/timeframe
 - [ ] **BT-05**: Backtests produce per-time-window (walk-forward) reports to expose regime shifts
@@ -115,8 +115,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SMC-04 | Phase 2 | Complete |
 | SMC-05 | Phase 2 | Complete |
 | SMC-06 | Phase 2 | Complete |
-| BT-01 | Phase 3 | Pending |
-| BT-02 | Phase 3 | Pending |
+| BT-01 | Phase 3 | Complete |
+| BT-02 | Phase 3 | Complete |
 | BT-03 | Phase 3 | Pending |
 | BT-04 | Phase 3 | Pending |
 | BT-05 | Phase 3 | Pending |

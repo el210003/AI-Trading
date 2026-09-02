@@ -237,3 +237,7 @@ Each task was committed atomically:
 ---
 *Phase: 03-backtesting-labeling*
 *Completed: 2026-09-02*
+
+## Self-Check: PASSED
+
+All 13 created files verified on disk; all 4 commits (7af3685, d8982a7, 5fbba0c, f259af6) verified in git log. Full suite 261 passed / 3 mt5-deselected; ruff clean; conftest and _detector_fixtures byte-identical (Wave-0 gate).
