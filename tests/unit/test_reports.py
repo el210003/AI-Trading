@@ -18,7 +18,10 @@ from ai_trading.backtest.reports import (
     write_canonical_stats,
     write_labels,
     write_run_manifest,
+    write_walkforward,
+    write_window_manifest,
 )
+from ai_trading.backtest.walkforward import WINDOW_STATS_COLUMNS
 
 SYMBOL = "EURUSD"
 TIMEFRAME = "M15"
@@ -279,3 +282,201 @@ def test_config_hash_is_hex_digest():
     digest = config_hash(bt_cfg())
     assert len(digest) == 64
     int(digest, 16)  # parses as hex
+
+
+# ---------------------------------------------------------------------------
+# Walk-forward writers (plan 03-03): deterministic parquet + separate manifest
+# ---------------------------------------------------------------------------
+
+
+def _window_stats_frame() -> pd.DataFrame:
+    """Three window-stat rows over 2 windows x 2 symbols (one window only
+    carries GBPUSD) in NON-sorted order — the writer must sort internally."""
+    rows = [
+        {
+            "window_id": 1,
+            "window_start": pd.Timestamp("2026-08-21 02:00"),
+            "window_end": pd.Timestamp("2026-08-21 05:00"),
+            "symbol": "EURUSD",
+            "timeframe": "M15",
+            "trades": 1,
+            "wins": 0,
+            "losses": 1,
+            "timeouts": 0,
+            "raw_win_rate": 0.0,
+            "net_win_rate": 0.0,
+            "raw_profit_factor": 0.0,
+            "net_profit_factor": 0.0,
+            "raw_expectancy": -1.0,
+            "net_expectancy": -1.2,
+            "raw_avg_r": -1.0,
+            "net_avg_r": -1.2,
+            "raw_max_dd": -1.0,
+            "net_max_dd": -1.0,
+            "cost_delta_expectancy": -0.2,
+        },
+        {
+            "window_id": 0,
+            "window_start": pd.Timestamp("2026-08-20 00:00"),
+            "window_end": pd.Timestamp("2026-08-20 09:00"),
+            "symbol": "GBPUSD",
+            "timeframe": "M15",
+            "trades": 2,
+            "wins": 2,
+            "losses": 0,
+            "timeouts": 0,
+            "raw_win_rate": 1.0,
+            "net_win_rate": 1.0,
+            "raw_profit_factor": 3.0,
+            "net_profit_factor": 2.7,
+            "raw_expectancy": 0.75,
+            "net_expectancy": 0.675,
+            "raw_avg_r": 0.75,
+            "net_avg_r": 0.675,
+            "raw_max_dd": 0.0,
+            "net_max_dd": 0.0,
+            "cost_delta_expectancy": -0.075,
+        },
+        {
+            "window_id": 0,
+            "window_start": pd.Timestamp("2026-08-20 00:00"),
+            "window_end": pd.Timestamp("2026-08-20 12:00"),
+            "symbol": "EURUSD",
+            "timeframe": "M15",
+            "trades": 3,
+            "wins": 1,
+            "losses": 1,
+            "timeouts": 1,
+            "raw_win_rate": 0.5,
+            "net_win_rate": 0.5,
+            "raw_profit_factor": 1.0,
+            "net_profit_factor": 0.818,
+            "raw_expectancy": -0.0333,
+            "net_expectancy": -0.1167,
+            "raw_avg_r": -0.0333,
+            "net_avg_r": -0.1167,
+            "raw_max_dd": -1.1,
+            "net_max_dd": -1.15,
+            "cost_delta_expectancy": -0.0834,
+        },
+    ]
+    return pd.DataFrame(rows, columns=WINDOW_STATS_COLUMNS)
+
+
+def _window_meta() -> dict:
+    return {
+        "windows": [
+            {
+                "window_id": 0,
+                "test_start": pd.Timestamp("2026-08-20 00:00:00"),
+                "test_end": pd.Timestamp("2026-08-21 00:00:00"),
+                "train_days": 180,
+                "test_days": 1,
+            },
+            {
+                "window_id": 1,
+                "test_start": pd.Timestamp("2026-08-21 00:00:00"),
+                "test_end": pd.Timestamp("2026-08-22 00:00:00"),
+                "train_days": 180,
+                "test_days": 1,
+            },
+        ],
+        "config_hash": "cafe01",
+        "range_start": "2026-08-20T00:00:00",
+        "range_end": "2026-08-22T00:00:00",
+        "min_history_days": 30,
+        "created_at": "2026-09-02T13:00:00Z",
+    }
+
+
+@pytest.mark.unit
+def test_walkforward_write_creates_parquet_without_tmp_residue(tmp_path):
+    path = write_walkforward(_window_stats_frame(), tmp_path / "reports")
+    assert path == tmp_path / "reports" / "walkforward.parquet"
+    assert path.exists()
+    assert list(tmp_path.rglob("*.tmp")) == []
+
+
+@pytest.mark.unit
+def test_walkforward_write_is_byte_deterministic_and_sort_insensitive(tmp_path):
+    stats = _window_stats_frame()
+    path_a = write_walkforward(stats, tmp_path / "a")
+    shuffled = stats.sample(frac=1.0, random_state=3)  # writer sorts internally
+    path_b = write_walkforward(shuffled, tmp_path / "b")
+    assert path_a.read_bytes() == path_b.read_bytes()
+    stored = pd.read_parquet(path_a)
+    keys = list(zip(stored["window_id"], stored["symbol"], strict=True))
+    assert keys == sorted(keys)  # (window_id, symbol, timeframe) order pinned
+
+
+@pytest.mark.unit
+def test_window_manifest_roundtrip_and_separation(tmp_path):
+    reports_dir = tmp_path / "reports"
+    parquet_path = write_walkforward(_window_stats_frame(), reports_dir)
+    before = parquet_path.read_bytes()
+
+    write_window_manifest(_window_meta(), reports_dir)
+    write_window_manifest(_window_meta(), reports_dir)  # regenerate
+
+    assert parquet_path.read_bytes() == before  # manifest never perturbs data bytes
+    parsed = json.loads((reports_dir / "walkforward_manifest.json").read_text("utf-8"))
+    assert parsed["config_hash"] == "cafe01"
+    assert parsed["min_history_days"] == 30
+    assert parsed["created_at"] == "2026-09-02T13:00:00Z"  # timestamps live HERE only
+    assert len(parsed["windows"]) == 2
+    first = parsed["windows"][0]
+    assert first["window_id"] == 0
+    assert first["test_start"] == "2026-08-20T00:00:00"  # pd.Timestamp -> ISO
+    assert first["test_end"] == "2026-08-21T00:00:00"
+    assert first["train_days"] == 180 and first["test_days"] == 1
+
+
+@pytest.mark.unit
+def test_window_manifest_key_contract(tmp_path):
+    meta = _window_meta()
+    del meta["config_hash"]
+    with pytest.raises(ValueError, match="invariant violated"):
+        write_window_manifest(meta, tmp_path / "reports")
+    meta = _window_meta()
+    meta["sneaky_extra"] = 1
+    with pytest.raises(ValueError, match="invariant violated"):
+        write_window_manifest(meta, tmp_path / "reports")
+    meta = _window_meta()
+    meta["windows"] = [{"window_id": 0}]  # entry missing required keys
+    with pytest.raises(ValueError, match="invariant violated"):
+        write_window_manifest(meta, tmp_path / "reports")
+
+
+@pytest.mark.unit
+def test_walkforward_missing_column_raises(tmp_path):
+    bad = _window_stats_frame().drop(columns=["window_id"])
+    with pytest.raises(ValueError, match="invariant violated"):
+        write_walkforward(bad, tmp_path / "reports")
+
+
+@pytest.mark.unit
+def test_walkforward_empty_roundtrip_preserves_schema(tmp_path):
+    empty = pd.DataFrame({col: pd.Series(dtype="object") for col in WINDOW_STATS_COLUMNS})
+    # rebuild with the pinned dtypes the harness emits on the empty path
+    empty = empty.astype(
+        {
+            "window_id": "int64",
+            "window_start": "datetime64[us]",
+            "window_end": "datetime64[us]",
+            "symbol": pd.StringDtype(),
+            "timeframe": pd.StringDtype(),
+            "trades": "int64",
+            "wins": "int64",
+            "losses": "int64",
+            "timeouts": "int64",
+        }
+    )
+    for col in WINDOW_STATS_COLUMNS:
+        if col not in empty.columns or empty[col].dtype == object:
+            empty[col] = pd.Series(dtype="float64")
+    path = write_walkforward(empty, tmp_path / "reports")
+    stored = pd.read_parquet(path)
+    assert len(stored) == 0
+    assert list(stored.columns) == list(WINDOW_STATS_COLUMNS)
+    assert stored["window_id"].dtype == "int64"
+    assert stored["net_expectancy"].dtype == "float64"

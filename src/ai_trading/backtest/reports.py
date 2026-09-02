@@ -16,8 +16,18 @@ makes re-runs idempotent overwrites.
 Path safety (ASVS V4 partial / threat T-03-05): every writer receives an
 explicit caller-supplied directory under the data root (canonical layout:
 data/labels/{SYMBOL}_{TF}.parquet, data/labels/canonical_stats.json,
-data/labels/run_manifest.json) and builds fixed config-driven filenames —
-no user-supplied filenames; paths resolve under the data/ root only.
+data/labels/run_manifest.json, data/reports/walkforward.parquet,
+data/reports/walkforward_manifest.json) and builds fixed config-driven
+filenames — no user-supplied filenames; paths resolve under the data/ root
+only.
+
+Walk-forward persistence (plan 03-03): per-window artifacts must stay
+BYTE-IDENTICAL across same-input re-runs for Phase 4 content-versioning —
+walkforward.parquet has a deterministic filename (no timestamp/run-id,
+Pitfall 11) and a stable (window_id, symbol, timeframe) sort, while all run
+metadata (window boundaries, config hash, range, min_history_days,
+created_at) lives ONLY in walkforward_manifest.json; regenerating the
+manifest never perturbs the parquet bytes.
 
 Pure persistence: no MetaTrader5 import, no detector calls, inputs never
 mutated.
@@ -35,6 +45,7 @@ from pathlib import Path
 import pandas as pd
 
 from ai_trading.backtest.replay import LABEL_COLUMNS
+from ai_trading.backtest.walkforward import WINDOW_STATS_COLUMNS
 
 #: Exact run-manifest key set — run metadata ONLY, never merged into label
 #: or canonical-stat bytes (determinism contract above).
@@ -181,3 +192,94 @@ def config_hash(cfg) -> str:
         fields[f.name] = value
     payload = json.dumps(fields, sort_keys=True, default=str)
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+# ---------------------------------------------------------------------------
+# Walk-forward artifact writers (plan 03-03) — same atomic helpers, same
+# determinism contract: data bytes carry no run metadata, ever.
+# ---------------------------------------------------------------------------
+
+#: Exact walkforward-manifest key set — window/run metadata ONLY, never
+#: merged into walkforward.parquet bytes (same separation discipline as
+#: MANIFEST_KEYS above).
+WINDOW_MANIFEST_KEYS = (
+    "windows",
+    "config_hash",
+    "range_start",
+    "range_end",
+    "min_history_days",
+    "created_at",
+)
+
+_WINDOW_ENTRY_KEYS = ("window_id", "test_start", "test_end", "train_days", "test_days")
+
+
+def _json_safe_ts(value):
+    """JSON-safe timestamp: pd.Timestamp -> ISO string; rest via _json_safe."""
+    if isinstance(value, pd.Timestamp):
+        return value.isoformat()
+    return _json_safe(value)
+
+
+def write_walkforward(window_stats: pd.DataFrame, reports_dir: Path) -> Path:
+    """Persist the per-(window_id, symbol, timeframe) stats table to
+    ``reports_dir/walkforward.parquet`` atomically.
+
+    The FILENAME is deterministic — no timestamp or run id (Pitfall 11) —
+    and rows are sorted by (window_id, symbol, timeframe) inside the writer,
+    so same-input re-runs are byte-identical for Phase 4 content-versioning
+    regardless of the caller's row order. Missing schema columns fail fast.
+    """
+    missing = [col for col in WINDOW_STATS_COLUMNS if col not in window_stats.columns]
+    if missing:
+        raise ValueError(
+            f"write_walkforward invariant violated: window_stats is missing "
+            f"required columns {missing}"
+        )
+    frame = window_stats.sort_values(["window_id", "symbol", "timeframe"]).reset_index(
+        drop=True
+    )
+    path = Path(reports_dir) / "walkforward.parquet"
+    _atomic_parquet(frame, path)
+    return path
+
+
+def write_window_manifest(windows_meta: dict, reports_dir: Path) -> Path:
+    """Persist window/run metadata ONLY to
+    ``reports_dir/walkforward_manifest.json`` atomically.
+
+    ``windows_meta`` must carry exactly WINDOW_MANIFEST_KEYS: ``windows`` (a
+    list of {window_id, test_start, test_end, train_days, test_days} entries;
+    pd.Timestamp bounds serialize as ISO strings), plus config_hash, range
+    start/end, min_history_days and created_at. Keeping this separate from
+    walkforward.parquet is what keeps the data bytes identical across
+    re-runs — created_at lives here and nowhere else.
+    """
+    missing = [key for key in WINDOW_MANIFEST_KEYS if key not in windows_meta]
+    if missing:
+        raise ValueError(
+            f"write_window_manifest invariant violated: meta is missing required "
+            f"keys {missing}"
+        )
+    unknown = [key for key in windows_meta if key not in WINDOW_MANIFEST_KEYS]
+    if unknown:
+        raise ValueError(
+            f"write_window_manifest invariant violated: unknown meta keys {unknown} "
+            f"(window metadata ONLY: {WINDOW_MANIFEST_KEYS})"
+        )
+    windows_out: list[dict] = []
+    for entry in windows_meta["windows"]:
+        entry_missing = [key for key in _WINDOW_ENTRY_KEYS if key not in entry]
+        if entry_missing:
+            raise ValueError(
+                f"write_window_manifest invariant violated: window entry is "
+                f"missing keys {entry_missing}"
+            )
+        windows_out.append({key: _json_safe_ts(entry[key]) for key in _WINDOW_ENTRY_KEYS})
+    payload = {
+        key: (windows_out if key == "windows" else _json_safe(windows_meta[key]))
+        for key in WINDOW_MANIFEST_KEYS
+    }
+    path = Path(reports_dir) / "walkforward_manifest.json"
+    _atomic_json(payload, path)
+    return path
