@@ -98,9 +98,16 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
+**Wave 1**
 
 - [ ] 03-01: Replay engine (bar-by-bar, historical-range validation) + cost model (spread + slippage)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 03-02: Triple-barrier labeling with intrabar tie rule + canonical stats reports
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 03-03: Walk-forward harness + per-window reports
 
 ### Phase 4: ML Scoring
