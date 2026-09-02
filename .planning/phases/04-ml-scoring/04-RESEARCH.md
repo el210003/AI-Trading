@@ -550,22 +550,25 @@ for k in prefix_points:                       # 1-by-1 and chunked appends
 | A7 | Session/time-of-day features keyed on `time_utc` (UTC hour) — not broker-local time — are the right session encoding | Pattern 1 feature list | If sessions matter via broker-local hours, feature utility drops; DST caveat noted; feature list is versioned so changeable without breaking artifacts |
 | A8 | `sklearn.calibration.calibration_curve` remains the reliability-data API in the pinned 1.9 line (verified in smoke); `CalibrationDisplay` is plot-only | Pattern 3 | Trivial rename/migration risk; would surface immediately in tests |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **When can a REAL training run happen?**
    - What we know: pipeline can be fully proven on synthetic data now; `data/labels/` doesn't exist; M15 store is 7–10 days; Phase 3 UAT deferral makes backfill a human data task (MT5 terminal required).
    - What's unclear: whether the user will backfill (and to what depth) before, during, or after Phase 4 execution.
    - Recommendation: plan 04-02/04-03 gate real training behind the label-count gate and document the backfill command path; the phase succeeds on synthetic + harness evidence regardless (matches SC wording and the deferred-items framing).
+   - **RESOLVED:** Adopted — the preflight skip-with-reason contract lives in 04-02 Task 2 (starvation never fabricates a model), and the label-count gate with the actionable backtest-plus-backfill remedy plus the synthetic-first end-to-end CLI proof live in 04-03 Task 3; the phase succeeds on synthetic + harness evidence.
 
 2. **Calibration fold sizing on thin data (post-backfill tuning)?**
    - What we know: folds derive from `build_windows` (day-based, e.g., 2d test blocks on tiny stores); sigmoid needs both classes per fold.
    - What's unclear: optimal fold granularity once real history exists (bars vs days vs count-based blocks).
    - Recommendation: keep day-based (harness-native) with config knobs; revisit with real data; document the constraint that folds must remain expanding + purged.
+   - **RESOLVED:** Adopted — 04-02 Task 1 (`calibration_folds`) derives folds exclusively from `build_windows` with day-based config knobs (`ml_cal_train_days`/`ml_cal_test_days`/`ml_embargo_bars`), expanding + purged; granularity is revisited only after deep backfill.
 
 3. **Heuristic acceptance criteria?**
    - What we know: deterministic, [0,1], flagged; weighted contributors mirror feature semantics.
    - What's unclear: how "good" it must be to be useful downstream (Phase 5 agreement flags will consume it).
    - Recommendation: pin determinism + range + flag tests now; defer quality criteria to Phase 5/6 feedback; record `score_source` everywhere so impact is auditable.
+   - **RESOLVED:** Adopted — 04-03 Task 1 pins determinism, [0,1] range, missing-safety, and spec-keyed tests; quality criteria deferred to Phase 5/6 feedback with `score_source`/`provenance` recorded on every score row (04-03 Task 2).
 
 ## Environment Availability
 

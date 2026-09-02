@@ -36,14 +36,19 @@ created: 2026-09-02
 
 ## Per-Task Verification Map
 
+Regenerated from the final plans (04-01/02/03, 3 tasks each) and the RESEARCH.md Validation Architecture.
+
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 04-01-01 | 01 | 1 | AI-01 | — | Features point-in-time only; three-layer audit (prefix-equivalence, provenance manifest, forbidden-column guard) | unit | `pytest tests/unit/test_features.py tests/unit/test_feature_audit.py` | ⬜ W0 | ⬜ pending |
-| 04-02-01 | 02 | 1 | AI-02 | — | LightGBM P(WIN) binary target, pooled model, deterministic training | unit | `pytest tests/unit/test_train.py` | ⬜ W0 | ⬜ pending |
-| 04-02-02 | 02 | 1 | AI-03 | — | Calibration via CalibratedClassifierCV with explicit chronological folds; no shuffled CV | unit | `pytest tests/unit/test_calibrate.py` | ⬜ W0 | ⬜ pending |
-| 04-02-03 | 02 | 1 | AI-02/03 | — | Versioned artifacts (model + calibrator + feature metadata) loadable by scorer | unit | `pytest tests/unit/test_artifacts.py` | ⬜ W0 | ⬜ pending |
-| 04-03-01 | 03 | 1 | AI-04 | — | Walk-forward reuse, OQ5 purge (exit_time >= test_start dropped), no shuffled splits | unit | `pytest tests/unit/test_walkforward_eval.py` | ⬜ W0 | ⬜ pending |
-| 04-03-02 | 03 | 1 | AI-02 | — | Heuristic bootstrap flagged score_source="heuristic"; label-count gate refusal | unit | `pytest tests/unit/test_bootstrap.py` | ⬜ W0 | ⬜ pending |
+| 04-01-01 | 01 | 1 | AI-01 (W0 enabler) | T-04-04, T-04-SC | Pinned stack verified (lightgbm 4.7.0 / sklearn 1.9.0 / joblib 1.6.x); thirteen ml_* keys fail-fast validated in frozen Config; Phase 4 fixture module created | unit | `uv run python -c "import lightgbm, sklearn, joblib; print(lightgbm.__version__, sklearn.__version__, joblib.__version__)" && uv run pytest tests/unit -q` | ✅ (test_backtest_config.py extended in W0) | ⬜ pending |
+| 04-01-02 | 01 | 1 | AI-01 | T-04-02 | Point-in-time feature builder through visible_mask anchors; decision-close R:R never the fill-based column; session-gap-robust decision-bar location | unit | `uv run pytest tests/unit/test_ml_features.py -q` | ⬜ W0 | ⬜ pending |
+| 04-01-03 | 01 | 1 | AI-01 / SC1 | T-04-02 | Three-layer audit falsifiable (L1 prefix-equivalence mutation test, L2 spec manifest, L3 forbidden-column + ml/-wide vendor purity) + atomic feature_audit.json | unit | `uv run pytest tests/unit/test_ml_feature_audit.py tests/unit/test_ml_features.py -q` | ⬜ W0 | ⬜ pending |
+| 04-02-01 | 02 | 2 | AI-04 (OQ5/SC3) | T-04-02 | Boundary purge pinned both sides; embargo knob moves boundary by whole bars; folds derive exclusively from build_windows (no second splitter) | unit | `uv run pytest tests/unit/test_ml_purge.py tests/unit/test_ml_folds.py -q` | ⬜ W0 | ⬜ pending |
+| 04-02-02 | 02 | 2 | AI-02/AI-03 | T-04-05, T-04-08, T-04-09 | Deterministic decided-only LightGBM (no imbalance flags); CalibratedClassifierCV with structurally-required explicit folds (ensemble=True); preflight stable prefixes; reliability helper | unit | `uv run pytest tests/unit/test_ml_train.py -q` | ⬜ W0 | ⬜ pending |
+| 04-02-03 | 02 | 2 | AI-02/AI-03 / SC4 | T-04-01 | Versioned bundle + manifest (incl. reliability summary) + LATEST pointer, atomic writes; loader validates schema/feature-list/library majors; scorer restores categories | unit | `uv run pytest tests/unit/test_ml_artifact.py tests/unit/test_ml_scorer.py -q` | ⬜ W0 | ⬜ pending |
+| 04-03-01 | 03 | 3 | AI-02 | T-04-10 | Deterministic [0,1] heuristic keyed to FEATURE_SPEC and versioned; flagged non-ML; missing-safe | unit | `uv run pytest tests/unit/test_ml_heuristic.py -q` | ⬜ W0 | ⬜ pending |
+| 04-03-02 | 03 | 3 | AI-04/AI-02 (D-01/D-02) | T-04-03, T-04-02, T-04-10 | Decided-only headline metrics; TIMEOUT scored-and-flagged excluded; skip-and-record starvation; score_source + provenance on every score row | unit | `uv run pytest tests/unit/test_ml_evaluate.py -q` | ⬜ W0 | ⬜ pending |
+| 04-03-03 | 03 | 3 | AI-04/AI-02 (D-05) | T-04-06, T-04-04 | Label-count gate refusal names counts/threshold/remedy; {2,1,0} exit-code contract; end-to-end synthetic train run writes bundle + reports | unit | `uv run pytest tests/unit/test_ml_runner.py -q && uv run pytest tests/unit -q` | ⬜ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -52,11 +57,9 @@ created: 2026-09-02
 ## Wave 0 Requirements
 
 - [ ] `uv add lightgbm scikit-learn` — the only Wave-0 install (versions verified by research smoke: lightgbm 4.7.0, scikit-learn 1.9.0, joblib 1.6.0)
-- [ ] `tests/unit/test_features.py` — stubs for AI-01
-- [ ] `tests/unit/test_feature_audit.py` — stubs for AI-01 audit
-- [ ] `tests/unit/test_train.py`, `test_calibrate.py`, `test_artifacts.py` — stubs for AI-02/03
-- [ ] `tests/unit/test_walkforward_eval.py`, `test_bootstrap.py` — stubs for AI-04
-- [ ] Extend `tests/unit/_backtest_fixtures.py` with labeled-frame fixtures (reuse, do not fork)
+- [ ] Create `tests/unit/_ml_fixtures.py` — NEW Phase 4 local helper following the direct-import convention: imports from `_backtest_fixtures.py` / `conftest.py`, NEVER modifies either file (04-01 Task 1 provides ml_cfg / make_labels / sculpted_label_world; 04-01 Task 2 appends synthetic_feature_frame once FEATURE_SPEC exists)
+- [ ] Extend `tests/unit/test_backtest_config.py` (existing Phase 3 config-test home) with the thirteen ml_* key validation cases — extend the module, never fork
+- [ ] Test modules are created test-first by their owning task (no separate stub pass): 04-01 → `test_ml_features.py`, `test_ml_feature_audit.py`; 04-02 → `test_ml_purge.py`, `test_ml_folds.py`, `test_ml_train.py`, `test_ml_artifact.py`, `test_ml_scorer.py`; 04-03 → `test_ml_heuristic.py`, `test_ml_evaluate.py`, `test_ml_runner.py`
 
 ---
 
