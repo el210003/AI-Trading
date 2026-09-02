@@ -47,7 +47,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **BT-02**: Backtest outcomes model spread (from recorded bar spread) plus a slippage buffer; metrics reported net of costs
 - [x] **BT-03**: Outcomes are labeled with triple-barrier logic and a documented intrabar tie rule (SL-first conservative default)
 - [x] **BT-04**: Backtests report canonical stats (win rate, profit factor, expectancy, max drawdown, avg R, trade count) per symbol/timeframe
-- [ ] **BT-05**: Backtests produce per-time-window (walk-forward) reports to expose regime shifts
+- [x] **BT-05**: Backtests produce per-time-window (walk-forward) reports to expose regime shifts
 
 ### Dashboard
 
@@ -119,7 +119,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BT-02 | Phase 3 | Complete |
 | BT-03 | Phase 3 | Complete |
 | BT-04 | Phase 3 | Complete |
-| BT-05 | Phase 3 | Pending |
+| BT-05 | Phase 3 | Complete |
 | AI-01 | Phase 4 | Pending |
 | AI-02 | Phase 4 | Pending |
 | AI-03 | Phase 4 | Pending |

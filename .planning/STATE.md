@@ -4,16 +4,16 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 03
 current_phase_name: backtesting-labeling
-status: executing
-stopped_at: Completed 03-02-PLAN.md (barrier walk, canonical stats, artifact writers; 320 tests green)
-last_updated: "2026-09-02T04:56:38.951Z"
+status: verifying
+stopped_at: Completed 03-03-PLAN.md (walk-forward harness + runner CLI; 358 tests green)
+last_updated: "2026-09-02T07:09:14.179Z"
 last_activity: 2026-09-02
 last_activity_desc: Phase 03 execution started
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 10
-  completed_plans: 8
+  completed_plans: 9
   percent: 33
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 
 Phase: 03 (backtesting-labeling) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-09-02 — Phase 03 execution started
 
 Progress: [███████░░░] 67%
@@ -64,6 +64,7 @@ Progress: [███████░░░] 67%
 | Phase 2 P04 | 60 min | 3 tasks | 7 files |
 | Phase 03 P01 | 82min | 3 tasks | 17 files |
 | Phase 03 P02 | 20min | 3 tasks | 6 files |
+| Phase 03 P03 | 66min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -87,6 +88,9 @@ Recent decisions affecting current work:
 - [Phase 03]: Cost convention A1 pinned: bid-side bars, long crosses spread at entry, short at exit; slippage adversely on both fills — Locked by test_long_short_cost_symmetry; human eyeball recorded in 03-USER-SETUP.md
 - [Phase 03]: D-09 TP liveness convention: opposite pools resolved at/before the decision bar are excluded from TP candidates; ties resolve to the pool — D-09 silent on liveness - planner convention documented in candidates.py docstring
 - [Phase 03]: profit_factor pinned as a decided-trade ratio (TIMEOUT rows excluded from both R-sign sums) — the plan hand-pinned PF == 1.5 on a series whose all-rows sum would give 1.5/1.1; A4-consistent reading chosen, documented in stats.py
+- [Phase ?]: Phase 03 plan 03: walk-forward windows derive over the COMBINED label domain so window_id boundaries are shared across symbols and the D-22 per-window aggregate is well-defined (identical to per-symbol derivation for single-symbol runs)
+- [Phase ?]: Phase 03 plan 03: build_windows loop bound b_k <= end so a boundary-aligned max entry_time is still covered by the half-open window - required by the exactly-one-window contract, never emits empty trailing windows
+- [Phase ?]: Phase 03 plan 03: --min-history-days override rebuilds the frozen Config via dataclasses.replace (never setattr, no signature threading); zero-candidate runs exit 0 with schema-correct empty artifacts per the exit-code contract
 
 ### Pending Todos
 
@@ -108,6 +112,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-02T04:56:38.942Z
-Stopped at: Completed 03-02-PLAN.md (barrier walk, canonical stats, artifact writers; 320 tests green)
+Last session: 2026-09-02T07:09:14.168Z
+Stopped at: Completed 03-03-PLAN.md (walk-forward harness + runner CLI; 358 tests green)
 Resume file: None

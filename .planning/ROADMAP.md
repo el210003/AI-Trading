@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Data Foundation** - MT5 ingestion, UTC normalization, Parquet/SQLite stores, health checks, history report (completed 2026-08-30)
 - [x] **Phase 2: SMC Detection Engine** - Look-ahead-safe swings, liquidity pools, sweeps, premium/discount zones with lifecycle state (completed 2026-08-31)
-- [ ] **Phase 3: Backtesting & Labeling** - Shared-code-path replay, spread-modeled costs, triple-barrier labels, canonical + walk-forward stats
+- [x] **Phase 3: Backtesting & Labeling** - Shared-code-path replay, spread-modeled costs, triple-barrier labels, canonical + walk-forward stats (completed 2026-09-02)
 - [ ] **Phase 4: ML Scoring** - Point-in-time features, calibrated LightGBM probability, walk-forward evaluation, versioned artifacts
 - [ ] **Phase 5: LLM Narrative Layer** - Evidence-grounded confirm/refute reasoning with agreement flag and ML-only fallback
 - [ ] **Phase 6: Setups & Dashboard** - Setup assembly/lifecycle, Streamlit dashboard with charts, evidence traces, history, stats, health
@@ -95,13 +95,13 @@ Plans:
   3. Labels follow the documented triple-barrier spec with the documented intrabar tie rule and are reproducible from raw setup + bar data
   4. Reports include win rate, PF, expectancy, max DD, avg R, trade count per symbol/timeframe, plus per-window walk-forward breakdowns
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans complete
 
 Plans:
 
 - [x] 03-01-PLAN.md
 - [x] 03-02-PLAN.md
-- [ ] 03-03-PLAN.md
+- [x] 03-03-PLAN.md
 
 **Wave 1**
 
@@ -109,7 +109,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 03-02: Triple-barrier labeling with intrabar tie rule + canonical stats reports
+- [x] 03-02: Triple-barrier labeling with intrabar tie rule + canonical stats reports
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -183,7 +183,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Data Foundation | 3/3 | Complete    | 2026-08-30 |
 | 2. SMC Detection Engine | 4/4 | Complete    | 2026-08-31 |
-| 3. Backtesting & Labeling | 2/3 | In Progress|  |
+| 3. Backtesting & Labeling | 3/3 | Complete   | 2026-09-02 |
 | 4. ML Scoring | 0/3 | Not started | - |
 | 5. LLM Narrative Layer | 0/2 | Not started | - |
 | 6. Setups & Dashboard | 0/3 | Not started | - |
