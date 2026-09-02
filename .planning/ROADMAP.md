@@ -130,9 +130,16 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
+**Wave 1**
 
 - [ ] 04-01-PLAN.md — Feature builder from SMC state + point-in-time feature audit (AI-01, Wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 04-02-PLAN.md — LightGBM training + calibration + artifact versioning (AI-02/AI-03, Wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 04-03-PLAN.md — Walk-forward evaluation reports + heuristic-score bootstrap for unlabeled periods (AI-04/AI-02, Wave 3)
 
 ### Phase 5: LLM Narrative Layer
