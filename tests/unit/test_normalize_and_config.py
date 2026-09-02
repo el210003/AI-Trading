@@ -46,7 +46,14 @@ def _rates(times: list[datetime]) -> np.ndarray:
 
 
 def _write_config(tmp: Path, values: dict, name: str = "config.toml") -> Path:
-    lines = [f"{key} = {json.dumps(val)}" for key, val in values.items()]
+    def toml_value(val: object) -> str:
+        # dict -> TOML inline table ("{ K = V }"); json.dumps alone emits JSON
+        # object syntax ("K": V) which tomllib rejects (plan 03-01 fix).
+        if isinstance(val, dict):
+            return "{ " + ", ".join(f"{k} = {json.dumps(v)}" for k, v in val.items()) + " }"
+        return json.dumps(val)
+
+    lines = [f"{key} = {toml_value(val)}" for key, val in values.items()]
     path = tmp / name
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return path
@@ -72,6 +79,20 @@ def _base_values(tmp: Path, **overrides: object) -> dict:
         "backfill_max_rounds": 12,
         "backfill_pause_seconds": 0.7,
         "initial_backfill_days": 90,
+        # Phase-3 backtest knobs (same values as config.toml) — required since
+        # plan 03-01 extended _REQUIRED_KEYS.
+        "slippage_pips": 0.5,
+        "slippage_pips_by_symbol": {},
+        "default_spread_points": 20,
+        "default_spread_points_by_symbol": {},
+        "pip_size": {"EURUSD": 0.0001, "GBPUSD": 0.0001, "USDJPY": 0.01},
+        "min_rr": 1.0,
+        "time_barrier_bars": 96,
+        "wf_train_days": 180,
+        "wf_test_days": 30,
+        "min_history_days": 30,
+        "warmup_bars": 0,
+        "htf_warmup_days": 30,
     }
     values.update(overrides)
     return values

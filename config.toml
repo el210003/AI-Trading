@@ -26,3 +26,29 @@ min_maxbars = 100000
 backfill_max_rounds = 12
 backfill_pause_seconds = 0.7
 initial_backfill_days = 90
+
+# Backtest / labeling knobs (Phase 3)
+# slippage_pips: fixed slippage buffer charged on BOTH entry and exit fills (D-14);
+#   per-symbol override map wins over the scalar (keyed by configured symbol).
+# default_spread_points: fallback spread in POINTS (not pips, not price) used when a
+#   bar's recorded spread is 0/absent (D-15 — the dominant path in stored data).
+# pip_size: price units of one pip per symbol (0.0001 majors / 0.01 JPY); one point
+#   = pip_size / 10 (5-digit quotes).
+# min_rr: discard candidates whose fill-time R:R is below this (D-12).
+# time_barrier_bars: inclusive time-barrier window in detector-TF bars (96 x M15 = 24h, D-17).
+# wf_train_days / wf_test_days: expanding train / rolling test window defaults (D-19/D-20).
+# min_history_days: history gate — refuse runs below this stored depth (D-21).
+# warmup_bars: replay warmup; 0 = auto-compute (ATR(14) + fractal + zigzag leg margin, D-07).
+# htf_warmup_days: HTF lead-in loaded before the range start for as-of bias joins (A8).
+slippage_pips = 0.5
+slippage_pips_by_symbol = {}
+default_spread_points = 20
+default_spread_points_by_symbol = {}
+pip_size = { EURUSD = 0.0001, GBPUSD = 0.0001, USDJPY = 0.01 }
+min_rr = 1.0
+time_barrier_bars = 96
+wf_train_days = 180
+wf_test_days = 30
+min_history_days = 30
+warmup_bars = 0
+htf_warmup_days = 30
