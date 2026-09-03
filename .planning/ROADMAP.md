@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Data Foundation** - MT5 ingestion, UTC normalization, Parquet/SQLite stores, health checks, history report (completed 2026-08-30)
 - [x] **Phase 2: SMC Detection Engine** - Look-ahead-safe swings, liquidity pools, sweeps, premium/discount zones with lifecycle state (completed 2026-08-31)
 - [x] **Phase 3: Backtesting & Labeling** - Shared-code-path replay, spread-modeled costs, triple-barrier labels, canonical + walk-forward stats (completed 2026-09-02)
-- [ ] **Phase 4: ML Scoring** - Point-in-time features, calibrated LightGBM probability, walk-forward evaluation, versioned artifacts
+- [x] **Phase 4: ML Scoring** - Point-in-time features, calibrated LightGBM probability, walk-forward evaluation, versioned artifacts (completed 2026-09-03)
 - [ ] **Phase 5: LLM Narrative Layer** - Evidence-grounded confirm/refute reasoning with agreement flag and ML-only fallback
 - [ ] **Phase 6: Setups & Dashboard** - Setup assembly/lifecycle, Streamlit dashboard with charts, evidence traces, history, stats, health
 
@@ -127,7 +127,7 @@ Plans:
   3. Training/evaluation uses the walk-forward harness from Phase 3 — no shuffled splits anywhere
   4. Model artifacts (model + calibrator + feature metadata) are versioned and loadable by the scorer
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans complete
 
 Plans:
 **Wave 1**
@@ -140,7 +140,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 04-03-PLAN.md — Walk-forward evaluation reports + heuristic-score bootstrap for unlabeled periods (AI-04/AI-02, Wave 3)
+- [x] 04-03-PLAN.md — Walk-forward evaluation reports + heuristic-score bootstrap for unlabeled periods (AI-04/AI-02, Wave 3)
 
 ### Phase 5: LLM Narrative Layer
 
@@ -191,6 +191,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Data Foundation | 3/3 | Complete    | 2026-08-30 |
 | 2. SMC Detection Engine | 4/4 | Complete    | 2026-08-31 |
 | 3. Backtesting & Labeling | 3/3 | Complete    | 2026-09-02 |
-| 4. ML Scoring | 2/3 | In Progress|  |
+| 4. ML Scoring | 3/3 | Complete   | 2026-09-03 |
 | 5. LLM Narrative Layer | 0/2 | Not started | - |
 | 6. Setups & Dashboard | 0/3 | Not started | - |

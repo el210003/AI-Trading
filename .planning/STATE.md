@@ -4,17 +4,17 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 4
 current_phase_name: ML Scoring
-status: executing
+status: verifying
 stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-09-03T15:51:24.643Z"
+last_updated: "2026-09-03T16:41:49.148Z"
 last_activity: 2026-09-03
 last_activity_desc: Phase 4 execution started
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 13
-  completed_plans: 12
-  percent: 50
+  completed_plans: 13
+  percent: 67
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 
 Phase: 4 (ML Scoring) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-09-03 — Phase 4 execution started
 
 Progress: [███████░░░] 67%
@@ -68,6 +68,7 @@ Progress: [███████░░░] 67%
 | Phase 03 P03 | 66min | 3 tasks | 7 files |
 | Phase 04-ml-scoring P01 | 1h 50m | 3 tasks | 12 files |
 | Phase 04-ml-scoring P02 | ~40m | 3 tasks | 11 files |
+| Phase 04-ml-scoring P03 | 40 min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -99,6 +100,7 @@ Recent decisions affecting current work:
 - [Phase 04-ml-scoring]: Embargo default 0 (purge-only) in ml/purge.py: the 96-bar barrier already removes every overlapping label, so embargo only guards regime continuity and costs train depth on the tiny store; ml_embargo_bars knob keeps it reversible after deep backfill — OQ5 purge semantics with the exit-bar OPEN-time boundary; documented in the module docstring (A1 rationale)
 - [Phase 04-ml-scoring]: FEATURE_LIST_VERSION=1 added to ml/features.py as the loader's current-FEATURE_SPEC source of truth; model bundles are not byte-deterministic (pickle framing) - determinism pinned at the probability and manifest (config_hash) levels — Pitfall 10 + research determinism deviation note: version gates at the artifact boundary, probability-level reproducibility
 - [Phase 04-ml-scoring]: fit_calibrated takes folds as a REQUIRED positional argument (no default) passing cv=folds + ensemble=True; refuses fewer than 2 explicit folds with a skip reason rather than silent uncalibrated fallback — SC3 no-shuffled-splits rule made structural (AST-pinned) and SC2 never-fabricate-a-model
+- [Phase ?]: All-positive WEIGHTS on normalized goodness (inversion encodes smaller-is-better); EvalResult as singular eval surface; artifact save gated on --write; per-symbol audit aggregation; heuristic quality deferred to Phase 5/6
 
 ### Pending Todos
 
@@ -120,6 +122,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-03T15:50:41.694Z
+Last session: 2026-09-03T16:41:14.248Z
 Stopped at: Completed 04-02-PLAN.md
 Resume file: None
