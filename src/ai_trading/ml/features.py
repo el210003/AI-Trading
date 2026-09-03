@@ -36,6 +36,15 @@ from ai_trading.detectors.atr import wilders_atr
 #: The three legal ``stamp_kind`` values (as-of anchor, or payload-as-is).
 STAMP_PAYLOAD = "payload-as-is"
 
+#: Canonical current feature-list version — the FEATURE_SPEC below is version 1
+#: (04-01 decision: FEATURE_SPEC is the ordered source of truth for
+#: ``ml_feature_list_version``). ``ml/artifact.load_artifact`` validates a
+#: bundle's ``feature_list_version`` against this before returning a Scorer —
+#: a future feature-spec change MUST bump this constant *and* the config knob
+#: together (Pitfall 10: never let schema/feature drift between training and
+#: scoring).
+FEATURE_LIST_VERSION = 1
+
 #: Ordered source of truth for the feature list version (cfg.ml_feature_list_version).
 #: Each entry: name, dtype (categorical|float64), source_tier, source_columns, stamp_kind.
 FEATURE_SPEC = (
