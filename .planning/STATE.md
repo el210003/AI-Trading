@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 4
 current_phase_name: ML Scoring
 status: executing
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-09-03T15:07:50.704Z"
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-09-03T15:51:24.643Z"
 last_activity: 2026-09-03
 last_activity_desc: Phase 4 execution started
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 13
-  completed_plans: 11
+  completed_plans: 12
   percent: 50
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 4 (ML Scoring) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-09-03 — Phase 4 execution started
 
@@ -67,6 +67,7 @@ Progress: [███████░░░] 67%
 | Phase 03 P02 | 20min | 3 tasks | 6 files |
 | Phase 03 P03 | 66min | 3 tasks | 7 files |
 | Phase 04-ml-scoring P01 | 1h 50m | 3 tasks | 12 files |
+| Phase 04-ml-scoring P02 | ~40m | 3 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,9 @@ Recent decisions affecting current work:
 - [Phase ?]: Phase 03 plan 03: --min-history-days override rebuilds the frozen Config via dataclasses.replace (never setattr, no signature threading); zero-candidate runs exit 0 with schema-correct empty artifacts per the exit-code contract
 - [Phase ?]: FEATURE_SPEC is the ordered source of truth for ml_feature_list_version (18 features: 5 categorical + 13 numeric), each declaring dtype/source_tier/source_columns/stamp_kind
 - [Phase ?]: build_feature_frame emits a 20-col frame (18 FEATURE_SPEC names + entry_time + decision_close_time); decision-close R:R recomputed (never fill-based rr); decision bar located via searchsorted-minus-one (session-gap robust); L1 audit uses non-strict decision_close_time<=prefix_close horizon
+- [Phase 04-ml-scoring]: Embargo default 0 (purge-only) in ml/purge.py: the 96-bar barrier already removes every overlapping label, so embargo only guards regime continuity and costs train depth on the tiny store; ml_embargo_bars knob keeps it reversible after deep backfill — OQ5 purge semantics with the exit-bar OPEN-time boundary; documented in the module docstring (A1 rationale)
+- [Phase 04-ml-scoring]: FEATURE_LIST_VERSION=1 added to ml/features.py as the loader's current-FEATURE_SPEC source of truth; model bundles are not byte-deterministic (pickle framing) - determinism pinned at the probability and manifest (config_hash) levels — Pitfall 10 + research determinism deviation note: version gates at the artifact boundary, probability-level reproducibility
+- [Phase 04-ml-scoring]: fit_calibrated takes folds as a REQUIRED positional argument (no default) passing cv=folds + ensemble=True; refuses fewer than 2 explicit folds with a skip reason rather than silent uncalibrated fallback — SC3 no-shuffled-splits rule made structural (AST-pinned) and SC2 never-fabricate-a-model
 
 ### Pending Todos
 
@@ -116,6 +120,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-03T15:07:50.695Z
-Stopped at: Completed 04-01-PLAN.md
+Last session: 2026-09-03T15:50:41.694Z
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None
