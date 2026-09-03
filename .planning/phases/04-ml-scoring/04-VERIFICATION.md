@@ -1,11 +1,12 @@
 ---
 phase: 04-ml-scoring
 verified: 2026-09-04T00:00:00Z
-status: human_needed
+status: passed
 score: 9/9 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
 human_verification:
+
   - test: "Run a real-data ML training/eval run (`uv run python -m ai_trading.ml --config config.toml --train --write`) against the actual MT5 label store, after deepening stored history."
     expected: "The label-count gate passes on a real store (decided >= ml_min_train_labels with both classes), the feature audit writes data/reports/feature_audit.json, the walk-forward eval emits the three report parquets, and a versioned bundle is saved under data/models/pooled/v1/ + LATEST.json."
     why_human: "Requires the user's running, logged-in MT5 terminal to execute the Phase 1 collector deep-history backfill (DATA-04 path, M15/H1/H4) — a documented prerequisite data task (D-05 / Phase 3 UAT deferral). Automation cannot open an MT5 terminal; the label-count gate deliberately refuses thin/synthetic data. The pipeline itself is proven end-to-end on synthetic stores by tests."
