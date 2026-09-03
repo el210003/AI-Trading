@@ -127,12 +127,12 @@ Plans:
   3. Training/evaluation uses the walk-forward harness from Phase 3 — no shuffled splits anywhere
   4. Model artifacts (model + calibrator + feature metadata) are versioned and loadable by the scorer
 
-**Plans**: 3 plans
+**Plans**: 1/3 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 04-01-PLAN.md — Feature builder from SMC state + point-in-time feature audit (AI-01, Wave 1)
+- [x] 04-01-PLAN.md — Feature builder from SMC state + point-in-time feature audit (AI-01, Wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -191,6 +191,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Data Foundation | 3/3 | Complete    | 2026-08-30 |
 | 2. SMC Detection Engine | 4/4 | Complete    | 2026-08-31 |
 | 3. Backtesting & Labeling | 3/3 | Complete    | 2026-09-02 |
-| 4. ML Scoring | 0/3 | Not started | - |
+| 4. ML Scoring | 1/3 | In Progress|  |
 | 5. LLM Narrative Layer | 0/2 | Not started | - |
 | 6. Setups & Dashboard | 0/3 | Not started | - |

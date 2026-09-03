@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 4
 current_phase_name: ML Scoring
 status: executing
-stopped_at: Phase 4 context gathered
-last_updated: "2026-09-02T16:19:30.692Z"
-last_activity: 2026-09-02
-last_activity_desc: Phase 03 complete, transitioned to Phase 4
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-09-03T15:07:50.704Z"
+last_activity: 2026-09-03
+last_activity_desc: Phase 4 execution started
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 10
-  completed_plans: 10
+  total_plans: 13
+  completed_plans: 11
   percent: 50
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-29)
 
 **Core value:** Produce high-probability SMC-based forex trade setups with transparent, reasoned evidence the user can trust and verify
-**Current focus:** Phase 03 — backtesting-labeling
+**Current focus:** Phase 4 — ML Scoring
 
 ## Current Position
 
-Phase: 4 — ML Scoring
-Plan: Not started
+Phase: 4 (ML Scoring) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-09-02 — Phase 03 complete, transitioned to Phase 4
+Last activity: 2026-09-03 — Phase 4 execution started
 
 Progress: [███████░░░] 67%
 
@@ -66,6 +66,7 @@ Progress: [███████░░░] 67%
 | Phase 03 P01 | 82min | 3 tasks | 17 files |
 | Phase 03 P02 | 20min | 3 tasks | 6 files |
 | Phase 03 P03 | 66min | 3 tasks | 7 files |
+| Phase 04-ml-scoring P01 | 1h 50m | 3 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -92,6 +93,8 @@ Recent decisions affecting current work:
 - [Phase ?]: Phase 03 plan 03: walk-forward windows derive over the COMBINED label domain so window_id boundaries are shared across symbols and the D-22 per-window aggregate is well-defined (identical to per-symbol derivation for single-symbol runs)
 - [Phase ?]: Phase 03 plan 03: build_windows loop bound b_k <= end so a boundary-aligned max entry_time is still covered by the half-open window - required by the exactly-one-window contract, never emits empty trailing windows
 - [Phase ?]: Phase 03 plan 03: --min-history-days override rebuilds the frozen Config via dataclasses.replace (never setattr, no signature threading); zero-candidate runs exit 0 with schema-correct empty artifacts per the exit-code contract
+- [Phase ?]: FEATURE_SPEC is the ordered source of truth for ml_feature_list_version (18 features: 5 categorical + 13 numeric), each declaring dtype/source_tier/source_columns/stamp_kind
+- [Phase ?]: build_feature_frame emits a 20-col frame (18 FEATURE_SPEC names + entry_time + decision_close_time); decision-close R:R recomputed (never fill-based rr); decision bar located via searchsorted-minus-one (session-gap robust); L1 audit uses non-strict decision_close_time<=prefix_close horizon
 
 ### Pending Todos
 
@@ -113,6 +116,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-02T12:40:49.487Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-ml-scoring/04-CONTEXT.md
+Last session: 2026-09-03T15:07:50.695Z
+Stopped at: Completed 04-01-PLAN.md
+Resume file: None

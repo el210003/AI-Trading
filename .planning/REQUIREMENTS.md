@@ -26,7 +26,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### AI Analysis
 
-- [ ] **AI-01**: ML features are assembled point-in-time from SMC state (no information after the decision bar)
+- [x] **AI-01**: ML features are assembled point-in-time from SMC state (no information after the decision bar)
 - [ ] **AI-02**: Each candidate setup receives an ML probability score from a gradient-boosted model
 - [ ] **AI-03**: ML scores are calibrated (isotonic/Platt) so displayed probabilities are honest
 - [ ] **AI-04**: ML training/evaluation follows a walk-forward protocol with no shuffled splits on time series
@@ -120,7 +120,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BT-03 | Phase 3 | Complete |
 | BT-04 | Phase 3 | Complete |
 | BT-05 | Phase 3 | Complete |
-| AI-01 | Phase 4 | Pending |
+| AI-01 | Phase 4 | Complete |
 | AI-02 | Phase 4 | Pending |
 | AI-03 | Phase 4 | Pending |
 | AI-04 | Phase 4 | Pending |
