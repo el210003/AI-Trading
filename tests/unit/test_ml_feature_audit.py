@@ -66,7 +66,6 @@ def _leaky_build_feature_frame(labels, chain, bars):
     """Reimplementation of features.build_feature_frame whose M15 slice for
     each label includes ONE bar past the decision index (the fill bar S+1) —
     a genuine future leak the L1 prefix-equivalence layer must catch."""
-    import numpy as np
 
     from ai_trading.backtest.asof import STAMP_BAR, STAMP_CLOSE, close_time_of, visible_mask
     from ai_trading.backtest.candidates import CandidateState
@@ -237,11 +236,18 @@ def test_l3_forbidden_column_access_in_tmp_raises_naming_it(tmp_path):
 
 @pytest.mark.unit
 def test_l3_vendor_purity_no_mt5_import():
+    """No .py under src/ai_trading/ml/ declares a MetaTrader5 import (module
+    docstrings legitimately mention the rule in prose — the check parses import
+    statements, not prose)."""
     offenders = []
     for path in SRC_ML.glob("*.py"):
-        text = path.read_text(encoding="utf-8")
-        if "MetaTrader5" in text or "import MetaTrader5" in text:
-            offenders.append(path.name)
+        tree = ast.parse(Path(path).read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                if any("MetaTrader5" in (alias.name or "") for alias in node.names):
+                    offenders.append(path.name)
+            elif isinstance(node, ast.ImportFrom) and "MetaTrader5" in (node.module or ""):
+                offenders.append(path.name)
     assert offenders == [], f"ml/ modules must stay MT5-free: {offenders}"
 
 

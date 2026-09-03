@@ -90,18 +90,6 @@ _NUMERIC_NAMES = frozenset(
 
 _REQUIRED_BARS = ("symbol", "time_utc", "open", "high", "low", "close", "spread")
 
-_EXIT_COLS = ("exit_time", "exit_price", "exit_idx", "outcome")
-_R_VARIANTS = ("r_gross", "r_raw", "r_net")
-
-#: FORBIDDEN label-side post-decision columns (L3 static guard + the docstring
-#: rule above). Never read as a feature source.
-FORBIDDEN_LABEL_COLUMNS = (
-    "entry_price",
-    "rr",
-    *_EXIT_COLS,
-    *_R_VARIANTS,
-)
-
 
 def _validate_bars(bars: pd.DataFrame) -> None:
     """Per-symbol bars validation (mirrors replay._validate_bars): required
