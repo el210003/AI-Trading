@@ -30,10 +30,12 @@ from ai_trading.ml.purge import purged_train_mask
 TF_MIN = 15
 
 
-def _hourly_labels(start: pd.Timestamp, periods: int, exit_minutes: int = 60) -> pd.DataFrame:
-    """Positionally-indexed label frame with hourly entries and an ``exit_minutes``
-    offset for every exit (those needing a custom exit are added per-test)."""
-    idx = pd.date_range(start, periods=periods, freq="h")
+def _freq_labels(
+    start: pd.Timestamp, periods: int, freq: str = "h", exit_minutes: int = 60
+) -> pd.DataFrame:
+    """Positionally-indexed label frame with ``freq``-spaced entries and an
+    ``exit_minutes`` offset for every exit (custom exits are added per-test)."""
+    idx = pd.date_range(start, periods=periods, freq=freq)
     rows = [
         {
             "symbol": "EURUSD",
@@ -45,6 +47,11 @@ def _hourly_labels(start: pd.Timestamp, periods: int, exit_minutes: int = 60) ->
         for e in idx
     ]
     return make_labels(rows)
+
+
+def _hourly_labels(start: pd.Timestamp, periods: int, exit_minutes: int = 60) -> pd.DataFrame:
+    """Hourly-spaced variant of :func:`_freq_labels` (the common case)."""
+    return _freq_labels(start, periods, freq="h", exit_minutes=exit_minutes)
 
 
 def _custom_labels(rows: list[tuple[pd.Timestamp, pd.Timestamp]]) -> pd.DataFrame:
@@ -88,13 +95,15 @@ def test_folds_derived_from_build_windows_expanding():
     assert folds == _expected_folds(entry, exit_, 2, 2, 0)
 
     train_sets = [set(t) for t, _ in folds]
-    test_sets = [set(u) for _, u in folds]
     # Expanding: each fold's train is a superset of the previous fold's.
-    for prev, cur in zip(train_sets, train_sets[1:]):
-        assert prev <= cur, "train positions must expand monotonically"
+    for i in range(len(train_sets) - 1):
+        assert train_sets[i] <= train_sets[i + 1], "train positions must expand monotonically"
     # Sequential, non-overlapping, ascending test blocks (D-19).
-    for (_, u1), (_, u2) in zip(folds, folds[1:]):
-        assert max(u1) < min(u2), "test blocks must be sequential and non-overlapping"
+    for i in range(len(folds) - 1):
+        # folds[i] is (train_positions, test_positions).
+        assert max(folds[i][1]) < min(folds[i + 1][1]), (
+            "test blocks must be sequential and non-overlapping"
+        )
 
 
 @pytest.mark.unit
@@ -102,7 +111,7 @@ def test_folds_purge_applied_at_every_boundary():
     # Entry 01-02 20:00 exits 01-03 06:00: at the 01-03 test_start its outcome
     # resolves inside the test window (exit >= test_start) -> purged from that
     # fold's train; at the later 01-05 test_start (beyond its exit) it trains.
-    labels = _hourly_labels(pd.Timestamp("2026-01-01 00:00"), 4 * 24)
+    labels = _hourly_labels(pd.Timestamp("2026-01-01 00:00"), 5 * 24)
     special = _custom_labels(
         [(pd.Timestamp("2026-01-02 20:00"), pd.Timestamp("2026-01-03 06:00"))]
     ).iloc[0]
@@ -120,7 +129,10 @@ def test_folds_purge_applied_at_every_boundary():
 
 @pytest.mark.unit
 def test_folds_embargo_applied():
-    labels = _hourly_labels(pd.Timestamp("2026-01-01 00:00"), 4 * 24)
+    # 15-minute entries over 5 days so the embargo window (exit within 15m of a
+    # test_start, but resolved just before it) actually catches labels the
+    # purge leaves in — proving the knob moves the boundary.
+    labels = _freq_labels(pd.Timestamp("2026-01-01 00:00"), 5 * 24 * 4, freq="15min")
     entry, exit_ = labels["entry_time"], labels["exit_time"]
     folds_0 = calibration_folds(entry, exit_, test_days=2, train_days=2, embargo_bars=0)
     folds_1 = calibration_folds(entry, exit_, test_days=2, train_days=2, embargo_bars=1)
@@ -128,7 +140,7 @@ def test_folds_embargo_applied():
     assert folds_0 == _expected_folds(entry, exit_, 2, 2, 0)
     assert folds_1 == _expected_folds(entry, exit_, 2, 2, 1)
     assert len(folds_0) == len(folds_1)
-    for (tr0, _), (tr1, _) in zip(folds_0, folds_1):
+    for (tr0, _), (tr1, _) in zip(folds_0, folds_1, strict=True):
         # Embargo strictly shrinks the train not just in count.
         assert set(tr1) < set(tr0)
 

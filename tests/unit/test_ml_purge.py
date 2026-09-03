@@ -41,7 +41,7 @@ def _labels(entry_times: list[pd.Timestamp], exit_times: list[pd.Timestamp]) -> 
             "entry_time": e,
             "exit_time": x,
         }
-        for e, x in zip(entry_times, exit_times)
+        for e, x in zip(entry_times, exit_times, strict=True)
     ]
     return make_labels(rows)
 
@@ -78,8 +78,10 @@ def test_purge_keeps_exit_closing_at_test_start():
             pd.Timestamp("2026-01-01 23:30"),
         ],
         [
-            test_start - pd.Timedelta(minutes=TF_MIN),  # exit bar opens 15m before, closes at start -> keep
-            test_start - pd.Timedelta(minutes=2 * TF_MIN),  # clearly before -> keep
+            # exit bar opens 15m before and closes exactly at the start -> keep.
+            test_start - pd.Timedelta(minutes=TF_MIN),
+            # clearly before the start -> keep.
+            test_start - pd.Timedelta(minutes=2 * TF_MIN),
         ],
     )
     train_mask = pd.Series(True, index=labels.index)

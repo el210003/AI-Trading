@@ -27,7 +27,6 @@ import pandas as pd
 import pytest
 from _ml_fixtures import make_labels, ml_cfg, synthetic_feature_frame
 
-from ai_trading.backtest.walkforward import build_windows
 from ai_trading.ml.folds import calibration_folds
 from ai_trading.ml.train import (
     decided_mask,
@@ -124,7 +123,7 @@ def test_fit_calibrated_requires_explicit_folds():
 @pytest.mark.unit
 def test_fit_calibrated_end_to_end_sigmoid():
     cfg = ml_cfg(ml_n_estimators=30)
-    n = 48
+    n = 72  # 3 days of hourly entries -> two valid expanding/sequential folds
     entry = pd.date_range("2026-01-01 00:00", periods=n, freq="h")
     labels = make_labels(
         [
