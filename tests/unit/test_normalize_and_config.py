@@ -93,6 +93,21 @@ def _base_values(tmp: Path, **overrides: object) -> dict:
         "min_history_days": 30,
         "warmup_bars": 0,
         "htf_warmup_days": 30,
+        # Phase-4 ML scoring knobs (same values as config.toml) — required since
+        # plan 04-01 extended _REQUIRED_KEYS.
+        "ml_feature_list_version": 1,
+        "ml_calibration_method": "sigmoid",
+        "ml_embargo_bars": 0,
+        "ml_min_train_labels": 30,
+        "ml_cal_train_days": 2,
+        "ml_cal_test_days": 1,
+        "ml_random_state": 42,
+        "ml_n_estimators": 200,
+        "ml_num_leaves": 7,
+        "ml_min_data_in_leaf": 5,
+        "ml_learning_rate": 0.1,
+        "ml_retrain_enabled": False,
+        "ml_retrain_interval_hours": 24,
     }
     values.update(overrides)
     return values

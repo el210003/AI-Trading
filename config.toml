@@ -52,3 +52,34 @@ wf_test_days = 30
 min_history_days = 30
 warmup_bars = 0
 htf_warmup_days = 30
+
+# ML scoring knobs (Phase 4)
+# ml_feature_list_version: feature-list schema version for artifact compatibility —
+#   bump when the FEATURE_SPEC column set or encodings change so stale artifacts
+#   refuse to load instead of silently scoring against the wrong features.
+# ml_calibration_method: Platt "sigmoid" is the v1 default because isotonic overfits
+#   tiny calibration samples (≪1000); revisit isotonic only after deep backfill.
+# ml_embargo_bars: pre-boundary serial-correlation guard; 0 = purge-only (default),
+#   raising it drops train labels whose exit closes within N bars before test_start.
+# ml_min_train_labels: label-count gate — refuse a real fit below this many decided
+#   labels per training window (D-21-style actionable refusal; starvation never
+#   fabricates a model).
+# ml_cal_train_days / ml_cal_test_days: expanding train / rolling test block sizes
+#   (in days) for deriving chronological calibration folds inside the training window.
+# ml_random_state / ml_n_estimators / ml_num_leaves / ml_min_data_in_leaf /
+# ml_learning_rate: deterministic LightGBM capacity params (tiny-capacity defaults).
+# ml_retrain_enabled / ml_retrain_interval_hours: scheduled-retrain schedule,
+#   CONSUMED by the Phase 6 scheduler (Phase 4 only validates them).
+ml_feature_list_version = 1
+ml_calibration_method = "sigmoid"
+ml_embargo_bars = 0
+ml_min_train_labels = 30
+ml_cal_train_days = 2
+ml_cal_test_days = 1
+ml_random_state = 42
+ml_n_estimators = 200
+ml_num_leaves = 7
+ml_min_data_in_leaf = 5
+ml_learning_rate = 0.1
+ml_retrain_enabled = false
+ml_retrain_interval_hours = 24

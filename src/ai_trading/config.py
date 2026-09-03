@@ -56,6 +56,21 @@ _REQUIRED_KEYS = (
     "min_history_days",
     "warmup_bars",
     "htf_warmup_days",
+    # ML scoring knobs (Phase 4) — same fail-fast contract: a typo'd or missing
+    # ml_* key refuses load rather than silently changing training semantics.
+    "ml_feature_list_version",
+    "ml_calibration_method",
+    "ml_embargo_bars",
+    "ml_min_train_labels",
+    "ml_cal_train_days",
+    "ml_cal_test_days",
+    "ml_random_state",
+    "ml_n_estimators",
+    "ml_num_leaves",
+    "ml_min_data_in_leaf",
+    "ml_learning_rate",
+    "ml_retrain_enabled",
+    "ml_retrain_interval_hours",
 )
 
 
@@ -92,6 +107,23 @@ class Config:
     min_history_days: int = 30
     warmup_bars: int = 0
     htf_warmup_days: int = 30
+    # ML scoring knobs (Phase 4). Fields carry defaults so direct construction
+    # (tests/conftest.py _make_cfg) keeps working unchanged.
+    ml_feature_list_version: int = 1
+    ml_calibration_method: str = "sigmoid"
+    ml_embargo_bars: int = 0
+    ml_min_train_labels: int = 30
+    ml_cal_train_days: int = 2
+    ml_cal_test_days: int = 1
+    ml_random_state: int = 42
+    ml_n_estimators: int = 200
+    ml_num_leaves: int = 7
+    ml_min_data_in_leaf: int = 5
+    ml_learning_rate: float = 0.1
+    # Retrain schedule: ml_retrain_enabled / ml_retrain_interval_hours are
+    # consumed by the Phase 6 scheduler. Phase 4 only validates them.
+    ml_retrain_enabled: bool = False
+    ml_retrain_interval_hours: int = 24
 
 
 def load_config(base: Path = Path("config.toml")) -> Config:
@@ -140,6 +172,19 @@ def load_config(base: Path = Path("config.toml")) -> Config:
         min_history_days=raw["min_history_days"],
         warmup_bars=raw["warmup_bars"],
         htf_warmup_days=raw["htf_warmup_days"],
+        ml_feature_list_version=raw["ml_feature_list_version"],
+        ml_calibration_method=raw["ml_calibration_method"],
+        ml_embargo_bars=raw["ml_embargo_bars"],
+        ml_min_train_labels=raw["ml_min_train_labels"],
+        ml_cal_train_days=raw["ml_cal_train_days"],
+        ml_cal_test_days=raw["ml_cal_test_days"],
+        ml_random_state=raw["ml_random_state"],
+        ml_n_estimators=raw["ml_n_estimators"],
+        ml_num_leaves=raw["ml_num_leaves"],
+        ml_min_data_in_leaf=raw["ml_min_data_in_leaf"],
+        ml_learning_rate=raw["ml_learning_rate"],
+        ml_retrain_enabled=raw["ml_retrain_enabled"],
+        ml_retrain_interval_hours=raw["ml_retrain_interval_hours"],
     )
     _validate(cfg)
     if not cfg.validated_at:
@@ -266,4 +311,58 @@ def _validate(cfg: Config) -> None:
     if not _is_int(cfg.warmup_bars) or cfg.warmup_bars < 0:
         raise ValueError(
             f"warmup_bars must be an integer >= 0 (0 = auto-compute), got {cfg.warmup_bars!r}"
+        )
+
+    # -- ML scoring knobs (Phase 4, AI-01..AI-04) ---------------------------
+    # Fail-fast: a typo'd/out-of-domain ml_* key refuses load naming the field
+    # and (where applicable) the allowed set. Reuses the _is_int/_is_number
+    # discipline so bool-as-int is rejected.
+    allowed_calibration = {"sigmoid", "isotonic"}
+    if not _is_int(cfg.ml_feature_list_version) or cfg.ml_feature_list_version <= 0:
+        raise ValueError(
+            f"ml_feature_list_version must be a positive integer, "
+            f"got {cfg.ml_feature_list_version!r}"
+        )
+    if cfg.ml_calibration_method not in allowed_calibration:
+        raise ValueError(
+            f"ml_calibration_method must be one of {sorted(allowed_calibration)}, "
+            f"got {cfg.ml_calibration_method!r}"
+        )
+    if not _is_int(cfg.ml_embargo_bars) or cfg.ml_embargo_bars < 0:
+        raise ValueError(
+            f"ml_embargo_bars must be an integer >= 0 (0 = purge-only), got {cfg.ml_embargo_bars!r}"
+        )
+    if not _is_int(cfg.ml_min_train_labels) or cfg.ml_min_train_labels < 1:
+        raise ValueError(
+            f"ml_min_train_labels must be an integer >= 1, got {cfg.ml_min_train_labels!r}"
+        )
+    for name, value in (
+        ("ml_cal_train_days", cfg.ml_cal_train_days),
+        ("ml_cal_test_days", cfg.ml_cal_test_days),
+    ):
+        if not _is_int(value) or value <= 0:
+            raise ValueError(f"{name} must be a positive integer, got {value!r}")
+    if not _is_int(cfg.ml_random_state) or cfg.ml_random_state < 0:
+        raise ValueError(
+            f"ml_random_state must be an integer >= 0, got {cfg.ml_random_state!r}"
+        )
+    for name, value in (
+        ("ml_n_estimators", cfg.ml_n_estimators),
+        ("ml_num_leaves", cfg.ml_num_leaves),
+        ("ml_min_data_in_leaf", cfg.ml_min_data_in_leaf),
+    ):
+        if not _is_int(value) or value <= 0:
+            raise ValueError(f"{name} must be a positive integer, got {value!r}")
+    if not _is_number(cfg.ml_learning_rate) or cfg.ml_learning_rate <= 0:
+        raise ValueError(
+            f"ml_learning_rate must be a number > 0, got {cfg.ml_learning_rate!r}"
+        )
+    if not isinstance(cfg.ml_retrain_enabled, bool):
+        raise ValueError(
+            f"ml_retrain_enabled must be a boolean, got {cfg.ml_retrain_enabled!r}"
+        )
+    if not _is_int(cfg.ml_retrain_interval_hours) or cfg.ml_retrain_interval_hours <= 0:
+        raise ValueError(
+            f"ml_retrain_interval_hours must be a positive integer, "
+            f"got {cfg.ml_retrain_interval_hours!r}"
         )

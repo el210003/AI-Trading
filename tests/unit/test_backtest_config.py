@@ -62,6 +62,20 @@ def _base_values(tmp: Path, **overrides: object) -> dict:
         "min_history_days": 30,
         "warmup_bars": 0,
         "htf_warmup_days": 30,
+        # Phase-4 ML scoring knobs (same values as config.toml)
+        "ml_feature_list_version": 1,
+        "ml_calibration_method": "sigmoid",
+        "ml_embargo_bars": 0,
+        "ml_min_train_labels": 30,
+        "ml_cal_train_days": 2,
+        "ml_cal_test_days": 1,
+        "ml_random_state": 42,
+        "ml_n_estimators": 200,
+        "ml_num_leaves": 7,
+        "ml_min_data_in_leaf": 5,
+        "ml_learning_rate": 0.1,
+        "ml_retrain_enabled": False,
+        "ml_retrain_interval_hours": 24,
     }
     values.update(overrides)
     return values
@@ -94,6 +108,19 @@ def test_load_config_carries_backtest_knobs(tmp_path):
     assert cfg.min_history_days == 30
     assert cfg.warmup_bars == 0
     assert cfg.htf_warmup_days == 30
+    assert cfg.ml_feature_list_version == 1
+    assert cfg.ml_calibration_method == "sigmoid"
+    assert cfg.ml_embargo_bars == 0
+    assert cfg.ml_min_train_labels == 30
+    assert cfg.ml_cal_train_days == 2
+    assert cfg.ml_cal_test_days == 1
+    assert cfg.ml_random_state == 42
+    assert cfg.ml_n_estimators == 200
+    assert cfg.ml_num_leaves == 7
+    assert cfg.ml_min_data_in_leaf == 5
+    assert cfg.ml_learning_rate == 0.1
+    assert cfg.ml_retrain_enabled is False
+    assert cfg.ml_retrain_interval_hours == 24
 
 
 @pytest.mark.unit
@@ -124,11 +151,53 @@ def test_scalar_defaults_used_when_override_maps_empty(tmp_path):
         ({"min_history_days": 0}, "min_history_days"),
         ({"warmup_bars": -1}, "warmup_bars"),
         ({"htf_warmup_days": 0}, "htf_warmup_days"),
+        ({"ml_embargo_bars": -1}, "ml_embargo_bars"),
+        ({"ml_min_train_labels": 0}, "ml_min_train_labels"),
+        ({"ml_feature_list_version": 0}, "ml_feature_list_version"),
+        ({"ml_cal_train_days": 0}, "ml_cal_train_days"),
+        ({"ml_cal_test_days": 0}, "ml_cal_test_days"),
+        ({"ml_random_state": -1}, "ml_random_state"),
+        ({"ml_n_estimators": 0}, "ml_n_estimators"),
+        ({"ml_num_leaves": 0}, "ml_num_leaves"),
+        ({"ml_min_data_in_leaf": 0}, "ml_min_data_in_leaf"),
+        ({"ml_learning_rate": 0}, "ml_learning_rate"),
+        ({"ml_retrain_interval_hours": 0}, "ml_retrain_interval_hours"),
     ],
 )
 def test_backtest_knob_rejections(tmp_path, overrides, key):
     path = _write_config(tmp_path, _base_values(tmp_path, **overrides))
     with pytest.raises(ValueError, match=key):
+        load_config(path)
+
+
+@pytest.mark.unit
+def test_ml_calibration_method_rejects_outside_allowed_set(tmp_path):
+    """ml_calibration_method outside {sigmoid, isotonic} refuses load naming
+    the allowed set (T-04-04 fail-fast contract)."""
+    path = _write_config(tmp_path, _base_values(tmp_path, ml_calibration_method="platt"))
+    with pytest.raises(ValueError) as exc:
+        load_config(path)
+    msg = str(exc.value)
+    assert "ml_calibration_method" in msg
+    assert "sigmoid" in msg and "isotonic" in msg
+
+
+@pytest.mark.unit
+def test_ml_bool_not_accepted_as_int(tmp_path):
+    """Bool-as-int for an ml integer knob is rejected via the _is_int
+    discipline (T-04-04: a boolean ml_retrain_interval_hours must refuse)."""
+    path = _write_config(tmp_path, _base_values(tmp_path, ml_retrain_interval_hours=True))
+    with pytest.raises(ValueError, match="ml_retrain_interval_hours"):
+        load_config(path)
+
+
+@pytest.mark.unit
+def test_missing_ml_key_raises_naming_key(tmp_path):
+    """A missing ml_* TOML key refuses load naming the key (fail-fast)."""
+    values = _base_values(tmp_path)
+    del values["ml_n_estimators"]
+    path = _write_config(tmp_path, values)
+    with pytest.raises(ValueError, match="ml_n_estimators"):
         load_config(path)
 
 
