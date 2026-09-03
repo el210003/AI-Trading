@@ -23,6 +23,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
+import numpy as np
 import pandas as pd
 from _backtest_fixtures import bt_cfg
 from _detector_fixtures import flat_bars
@@ -34,6 +35,7 @@ __all__ = [
     "ml_cfg",
     "make_labels",
     "sculpted_label_world",
+    "synthetic_feature_frame",
     "LABEL_COLUMNS",
 ]
 
@@ -62,15 +64,28 @@ def ml_cfg(**overrides) -> Any:
     return bt_cfg(**overrides)
 
 
+def _default_for(col: str):
+    """Type-aware placeholder for an unprovided label column so the final
+    dtype casts succeed (pd.NA would break numeric/ts/int casts)."""
+    if col in _STR_COLS:
+        return pd.NA
+    if col in _TS_COLS:
+        return pd.NaT
+    if col in _INT_COLS:
+        return 0
+    return float("nan")
+
+
 def make_labels(rows: list[dict]) -> pd.DataFrame:
     """Build a label frame with exactly ``LABEL_COLUMNS`` and replay's pinned
-    dtypes from a list of row dicts. Every row must supply all columns (use
-    ``pd.NA`` for missing value columns). Empty ``rows`` yields a
-    schema-correct empty frame with pinned dtypes."""
+    dtypes from a list of row dicts. Unprovided columns fall back to a
+    dtype-appropriate missing placeholder (pd.NA / NaT / 0 / NaN). Empty
+    ``rows`` yields a schema-correct empty frame with pinned dtypes."""
     data = {col: [] for col in LABEL_COLUMNS}
     for row in rows:
         for col in LABEL_COLUMNS:
-            data[col].append(row.get(col, pd.NA))
+            value = row.get(col)
+            data[col].append(_default_for(col) if value is None or value is pd.NA else value)
     labels = pd.DataFrame(data, columns=LABEL_COLUMNS)
     for col in _STR_COLS:
         labels[col] = labels[col].astype(pd.StringDtype())
@@ -174,3 +189,50 @@ def sculpted_label_world() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd
     h4 = _h4_world()
     labels = replay_symbol(m15, run_chain(m15, h1, h4), ml_cfg(), _barrier_stub)
     return m15, h1, h4, labels
+
+
+def synthetic_feature_frame(n_rows: int, seed: int = 0) -> pd.DataFrame:
+    """Deterministic feature frame whose columns are exactly the FEATURE_SPEC
+    names (categorical columns as ``pd.CategoricalDtype``, numeric columns
+    float64), seeded via ``numpy.default_rng(seed)`` and scaled to plausible
+    ranges. Consumed by the train/scorer tests in plan 04-02. Never mutates
+    its inputs (returns a new frame)."""
+    from ai_trading.ml.features import FEATURE_SPEC
+
+    rng = np.random.default_rng(seed)
+    categorical = [e["name"] for e in FEATURE_SPEC if e["dtype"] == "categorical"]
+    numeric = [e["name"] for e in FEATURE_SPEC if e["dtype"] == "float64"]
+
+    data: dict[str, Any] = {}
+    cat_values = {
+        "symbol": ["EURUSD", "GBPUSD", "USDJPY", "EURUSD.a"],
+        "timeframe": ["M15", "H1"],
+        "direction": ["long", "short"],
+        "bias_h1": [pd.NA, "bullish", "bearish", "neutral"],
+        "bias_h4": [pd.NA, "bullish", "bearish", "neutral"],
+    }
+    for name in categorical:
+        choices = cat_values.get(name, [pd.NA, "a", "b"])
+        data[name] = pd.Series(rng.choice(choices, size=n_rows)).astype("category")
+    # Plausible numeric ranges.
+    for name in numeric:
+        if name in ("rr_at_decision",):
+            data[name] = rng.uniform(0.5, 4.0, size=n_rows)
+        elif name in ("sl_dist_atr", "tp_dist_atr", "atr14"):
+            data[name] = rng.uniform(0.2, 3.0, size=n_rows)
+        elif name in ("zone_position",):
+            data[name] = rng.uniform(0.0, 1.0, size=n_rows)
+        elif name in ("bars_since_sweep", "bars_since_zone_created"):
+            data[name] = rng.integers(0, 30, size=n_rows).astype("float64")
+        elif name in ("htf_bias_agreement",):
+            data[name] = rng.integers(0, 3, size=n_rows).astype("float64")
+        elif name in ("htf_dist_to_eq_atr_h1", "htf_dist_to_eq_atr_h4"):
+            data[name] = rng.uniform(-3.0, 3.0, size=n_rows)
+        elif name in ("spread_points",):
+            data[name] = rng.integers(0, 60, size=n_rows).astype("float64")
+        elif name in ("utc_hour_sin", "utc_hour_cos"):
+            data[name] = rng.uniform(-1.0, 1.0, size=n_rows)
+        else:
+            data[name] = rng.uniform(0.0, 1.0, size=n_rows)
+        data[name] = data[name].astype("float64")
+    return pd.DataFrame(data, columns=[e["name"] for e in FEATURE_SPEC])

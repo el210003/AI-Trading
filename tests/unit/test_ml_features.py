@@ -19,11 +19,11 @@ import math
 import numpy as np
 import pandas as pd
 import pytest
-from _ml_fixtures import LABEL_COLUMNS, make_labels, ml_cfg, sculpted_label_world
+from _ml_fixtures import make_labels, ml_cfg, sculpted_label_world
 
-from ai_trading.backtest.chain import run_chain
-from ai_trading.backtest.candidates import CandidateState, compute_rr
 from ai_trading.backtest.asof import close_time_of
+from ai_trading.backtest.candidates import CandidateState, compute_rr
+from ai_trading.backtest.chain import run_chain
 from ai_trading.ml.features import FEATURE_SPEC, build_feature_frame, features_at_decision
 
 M15 = "M15"
@@ -67,9 +67,10 @@ def test_rr_feature_uses_decision_close_not_fill_open(world):
 
 @pytest.mark.unit
 def test_decision_bar_located_across_session_gap(tmp_path):
-    from conftest import make_bars
-    from _detector_fixtures import flat_bars
     from datetime import datetime
+
+    from _detector_fixtures import flat_bars
+    from conftest import make_bars
 
     start = datetime(2026, 8, 20, 0, 0)
     bars = make_bars("EURUSD", "M15", start, 120)
@@ -113,17 +114,33 @@ def test_decision_bar_located_across_session_gap(tmp_path):
 # Categorical payload consumed as-is (NA when payload_row is None)
 # ---------------------------------------------------------------------------
 
+def _empty_state(bars: pd.DataFrame, payload_row=None) -> CandidateState:
+    """CandidateState over empty tier frames + an optional payload_row."""
+    return CandidateState(
+        m15_bars=bars,
+        events15=pd.DataFrame(
+            columns=[
+                "event_id", "resolved_at", "event_type", "side",
+                "symbol", "pool_id", "level", "timeframe",
+            ]
+        ),
+        zones15=pd.DataFrame(
+            columns=[
+                "zone_id", "range_high", "range_low", "equilibrium", "state",
+                "created_at", "mitigated_at", "symbol", "timeframe",
+                "leg_direction", "invalidated_at",
+            ]
+        ),
+        pools15=pd.DataFrame(columns=["pool_id", "side", "level", "symbol", "timeframe"]),
+        swings15=pd.DataFrame(columns=["confirmed_at", "price", "side", "symbol"]),
+        payload_row=payload_row,
+    )
+
+
 @pytest.mark.unit
 def test_categorical_features_from_payload_as_is():
     bars = _small_bars()
-    state = CandidateState(
-        m15_bars=bars,
-        events15=pd.DataFrame(columns=["event_id", "resolved_at", "event_type", "side", "symbol", "pool_id", "level", "timeframe"]),
-        zones15=pd.DataFrame(columns=["zone_id", "range_high", "range_low", "equilibrium", "state", "created_at", "mitigated_at", "symbol", "timeframe", "leg_direction", "invalidated_at"]),
-        pools15=pd.DataFrame(columns=["pool_id", "side", "level", "symbol", "timeframe"]),
-        swings15=pd.DataFrame(columns=["confirmed_at", "price", "side", "symbol"]),
-        payload_row=None,  # no payload row at the decision bar
-    )
+    state = _empty_state(bars, payload_row=None)
     label_row = _label_row()
     feats = features_at_decision(state, label_row, ml_cfg())
     assert pd.isna(feats["bias_h1"])
@@ -141,14 +158,7 @@ def test_categorical_features_from_payload_as_is():
 @pytest.mark.unit
 def test_atr_warmup_propagates_missing():
     bars = _small_bars(count=5)  # < ATR(14) warmup
-    state = CandidateState(
-        m15_bars=bars,
-        events15=pd.DataFrame(columns=["event_id", "resolved_at", "event_type", "side", "symbol", "pool_id", "level", "timeframe"]),
-        zones15=pd.DataFrame(columns=["zone_id", "range_high", "range_low", "equilibrium", "state", "created_at", "mitigated_at", "symbol", "timeframe", "leg_direction", "invalidated_at"]),
-        pools15=pd.DataFrame(columns=["pool_id", "side", "level", "symbol", "timeframe"]),
-        swings15=pd.DataFrame(columns=["confirmed_at", "price", "side", "symbol"]),
-        payload_row=None,
-    )
+    state = _empty_state(bars, payload_row=None)
     feats = features_at_decision(state, _label_row(), ml_cfg())
     assert pd.isna(feats["atr14"])
     assert pd.isna(feats["sl_dist_atr"])
@@ -165,7 +175,9 @@ def test_zone_and_sweep_recency_features(world):
     frame = build_feature_frame(labels, chain, m15)
     row = frame.iloc[0]
     entry_time = labels.iloc[0]["entry_time"]
-    entry_pos = int(np.searchsorted(m15["time_utc"].to_numpy(), pd.Timestamp(entry_time), side="left"))
+    entry_pos = int(
+        np.searchsorted(m15["time_utc"].to_numpy(), pd.Timestamp(entry_time), side="left")
+    )
     decision_idx = entry_pos - 1
     decision_close_time = close_time_of(m15.iloc[decision_idx]["time_utc"], "M15")
     assert row["decision_close_time"] == decision_close_time
@@ -240,8 +252,9 @@ def test_build_feature_frame_rejects_multi_symbol_labels(world):
 
 
 def _small_bars(count: int = 60) -> pd.DataFrame:
-    from conftest import make_bars
     from datetime import datetime
+
+    from conftest import make_bars
 
     df = make_bars("EURUSD", "M15", datetime(2026, 8, 20, 0, 0), count)
     return df
