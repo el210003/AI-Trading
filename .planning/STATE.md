@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 6
 current_phase_name: Setups & Dashboard
 status: executing
-stopped_at: Completed 06-01-PLAN.md
-last_updated: "2026-09-04T13:44:16.088Z"
+stopped_at: Completed 06-02-PLAN.md
+last_updated: "2026-09-04T14:33:29.331Z"
 last_activity: 2026-09-04
 last_activity_desc: Phase 6 execution started
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 18
-  completed_plans: 15
+  completed_plans: 16
   percent: 83
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 6 (Setups & Dashboard) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-09-04 — Phase 6 execution started
 
@@ -74,6 +74,7 @@ Progress: [███████░░░] 67%
 | Phase 05-llm-narrative-layer P01 | 16 min | 3 tasks | 14 files |
 | Phase 05-llm-narrative-layer P02 | 16min | 3 tasks | 12 files |
 | Phase 06 P01 | 52 min | 4 tasks | 17 files |
+| Phase 06-setups-dashboard P02 | 41 min | 3 tasks | 18 files |
 
 ## Accumulated Context
 
@@ -112,6 +113,9 @@ Recent decisions affecting current work:
 - [Phase 06]: score_source promoted to ml_llm only when a verified narrative attaches; otherwise scorer ml (UI-SPEC honesty rule).
 - [Phase 06]: run_engine_once accepts injectable scorer/llm_provider (defaulting to load_scorer/OpenAICompatProvider) so offline tests need no trained model or live LLM.
 - [Phase 06]: Setup store = dedup-on-setup_id Parquet, atomic tmp+os.replace, resolve-under-data-root guard; bar-position columns float64 to allow null trigger/exit index.
+- [Phase 06-setups-dashboard]: Selection drives the DASH-02/03 anchor: the setup table uses st.dataframe on_select single-row; selecting a row renders the candlestick + full evidence trace as the single visual focal point
+- [Phase 06-setups-dashboard]: Reset Filters uses an on_click callback deleting the sidebar widget session_state keys (a widget key cannot be SET after instantiation in the same run); the Refresh path has no @st.cache_data per the UI-SPEC manual-refresh contract
+- [Phase 06-setups-dashboard]: The offline AppTest suites inject a fixture config via st.secrets['CONFIG_PATH'] (and the AITRADING_CONFIG env var), so the dashboard boots and is tested against an isolated tmp store with no live MT5/LLM
 
 ### Pending Todos
 
@@ -133,6 +137,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-04T13:44:16.077Z
-Stopped at: Completed 06-01-PLAN.md
+Last session: 2026-09-04T14:33:29.321Z
+Stopped at: Completed 06-02-PLAN.md
 Resume file: None

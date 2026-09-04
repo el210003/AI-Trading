@@ -51,9 +51,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Dashboard
 
-- [ ] **DASH-01**: Dashboard shows a setup table with filters (symbol, status, direction, min probability, date range)
-- [ ] **DASH-02**: Dashboard renders a candlestick chart with entry/SL/TP markers plus sweep and PD-zone annotations
-- [ ] **DASH-03**: Each setup detail view displays its full evidence trace (zones, sweeps, bias, ML contributors, LLM narrative)
+- [x] **DASH-01**: Dashboard shows a setup table with filters (symbol, status, direction, min probability, date range)
+- [x] **DASH-02**: Dashboard renders a candlestick chart with entry/SL/TP markers plus sweep and PD-zone annotations
+- [x] **DASH-03**: Each setup detail view displays its full evidence trace (zones, sweeps, bias, ML contributors, LLM narrative)
 - [ ] **DASH-04**: Dashboard shows setup history with lifecycle outcomes for every emitted signal
 - [ ] **DASH-05**: Dashboard shows performance stats (win rate, PF, expectancy, equity curve in R) aggregate and per symbol
 - [ ] **DASH-06**: Dashboard shows a data/pipeline health strip (last bar time per feed, MT5 connection status, errors)
@@ -131,9 +131,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SETUP-02 | Phase 6 | Complete |
 | SETUP-03 | Phase 6 | Complete |
 | SETUP-04 | Phase 6 | Complete |
-| DASH-01 | Phase 6 | Pending |
-| DASH-02 | Phase 6 | Pending |
-| DASH-03 | Phase 6 | Pending |
+| DASH-01 | Phase 6 | Complete |
+| DASH-02 | Phase 6 | Complete |
+| DASH-03 | Phase 6 | Complete |
 | DASH-04 | Phase 6 | Pending |
 | DASH-05 | Phase 6 | Pending |
 | DASH-06 | Phase 6 | Pending |
