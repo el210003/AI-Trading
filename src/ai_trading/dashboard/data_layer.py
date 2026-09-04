@@ -23,6 +23,7 @@ renders in the warning hue — never a bare probability.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import pandas as pd
@@ -34,6 +35,8 @@ from ai_trading.stores.bar_store import bar_path, read_bars
 
 __all__ = [
     "load_cfg",
+    "config_path",
+    "get_config",
     "data_root_guarded",
     "healthy_config",
     "setup_dir_guarded",
@@ -56,6 +59,33 @@ _DIRECTION_ALL = "all"
 def load_cfg(path="config.toml"):
     """Load the frozen ``Config`` from ``path`` (defaults to ``config.toml``)."""
     return load_config(Path(path))
+
+
+def config_path() -> str:
+    """Resolve the app's config path: ``AITRADING_CONFIG`` env var, then
+    ``st.secrets['CONFIG_PATH']``, then ``config.toml``.
+
+    The env var (and the secrets override) let the offline ``AppTest`` suites
+    point the dashboard at a fixture config without touching the committed
+    ``config.toml``.
+    """
+    env = os.environ.get("AITRADING_CONFIG")
+    if env:
+        return env
+    try:
+        import streamlit as st
+
+        path = st.secrets.get("CONFIG_PATH", None)
+        if path:
+            return str(path)
+    except Exception:  # noqa: BLE001 - outside a running script secret access may fail
+        pass
+    return "config.toml"
+
+
+def get_config():
+    """Return the dashboard's frozen ``Config`` (see ``config_path``)."""
+    return load_cfg(config_path())
 
 
 def data_root_guarded(cfg) -> Path:

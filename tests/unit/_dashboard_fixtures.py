@@ -198,8 +198,10 @@ def write_app_config(config_path: Path, *, bars_dir: Path, meta_db: Path,
     if not terminal_file.exists():
         terminal_file.write_bytes(b"# fake terminal for offline dashboard tests")
 
-    pip_size = "\n".join(f"    {sym} = {0.0001 if 'JPY' not in sym else 0.01}" for sym in symbols)
-    symbol_list = ", ".join(symbols)
+    pip_size = ", ".join(
+        f"{sym} = {0.0001 if 'JPY' not in sym else 0.01}" for sym in symbols
+    )
+    symbol_list = ", ".join(f'"{sym}"' for sym in symbols)
     toml = f"""
 symbols = [{symbol_list}]
 timeframes = ["M15", "H1", "H4"]
@@ -220,9 +222,7 @@ slippage_pips = 0.5
 slippage_pips_by_symbol = {{}}
 default_spread_points = 20
 default_spread_points_by_symbol = {{}}
-pip_size = {{
-{pip_size}
-}}
+pip_size = {{ {pip_size} }}
 min_rr = 1.0
 time_barrier_bars = 96
 wf_train_days = 180
