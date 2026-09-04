@@ -41,9 +41,9 @@ created: 2026-09-04
 | 06-01-01 | 01 | 1 | SETUP-01/02 | — | Setup assembly reuses Phase 3/4/5 pure functions; MT5-free; point-in-time | unit | `pytest tests/unit/test_setup_assembly.py` | ⬜ W0 | ⬜ pending |
 | 06-01-02 | 01 | 1 | SETUP-03/04 | — | Lifecycle monitor (pending→active/invalidated→tp_hit/sl_hit/expired), dedup-on-setup_id store | unit | `pytest tests/unit/test_setup_lifecycle.py tests/unit/test_setup_store.py` | ⬜ W0 | ⬜ pending |
 | 06-01-03 | 01 | 1 | SETUP-01..04 | — | Scheduled M15-close engine wiring; human checkpoint on `uv add streamlit plotly` | unit | `pytest tests/unit/test_setup_engine.py` | ⬜ W0 | ⬜ pending |
-| 06-02-01 | 02 | 1 | DASH-01 | — | Streamlit setup table: filters symbol/status/direction/min-prob/date + sort | streamlit (AppTest) | `pytest tests/ui/test_dashboard_table.py` | ⬜ W0 | ⬜ pending |
-| 06-02-02 | 02 | 1 | DASH-02/03 | — | plotly candlestick + entry/SL/TP + sweep/PD-zone overlays; evidence detail trace | streamlit (AppTest) | `pytest tests/ui/test_dashboard_chart.py tests/ui/test_dashboard_evidence.py` | ⬜ W0 | ⬜ pending |
-| 06-03-01 | 03 | 1 | DASH-04 | — | History view: lifecycle outcomes per emitted setup | streamlit (AppTest) | `pytest tests/ui/test_dashboard_history.py` | ⬜ W0 | ⬜ pending |
+| 06-02-01 | 02 | 1 | DASH-01 | — | Streamlit setup table: filters symbol/status/direction/min-prob/date + sort | streamlit (AppTest) | `pytest -m streamlit tests/ui/test_dashboard_table.py` | ⬜ W0 | ⬜ pending |
+| 06-02-02 | 02 | 1 | DASH-02/03 | — | plotly candlestick + entry/SL/TP + sweep/PD-zone overlays; evidence detail trace | streamlit (AppTest) | `pytest -m streamlit tests/ui/test_dashboard_chart.py tests/ui/test_dashboard_evidence.py` | ⬜ W0 | ⬜ pending |
+| 06-03-01 | 03 | 1 | DASH-04 | — | History view: lifecycle outcomes per emitted setup | streamlit (AppTest) | `pytest -m streamlit tests/ui/test_dashboard_history.py` | ⬜ W0 | ⬜ pending |
 | 06-03-02 | 03 | 1 | DASH-05 | — | Performance: WR/PF/expectancy + R equity curve (aggregate + per symbol) | unit | `pytest tests/unit/test_dashboard_perf.py` | ⬜ W0 | ⬜ pending |
 | 06-03-03 | 03 | 1 | DASH-06 | — | Health strip: last-bar time per feed, MT5 status, recent errors | unit | `pytest tests/unit/test_dashboard_health.py` | ⬜ W0 | ⬜ pending |
 

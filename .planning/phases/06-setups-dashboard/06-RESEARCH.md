@@ -431,7 +431,9 @@ st.dataframe(filtered_df, column_config=column_configuration, use_container_widt
 
 **If this table is not empty:** Items A1–A6 need user confirmation (or planner lock-in for the discretion areas) before execution. A3 in particular should be confirmed before plan 06-01 locks the entry-derivation rule.
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> **RESOLVED — all five questions below are pinned in-plan with rationale** (see the "Discretion Decisions Pinned In-Plan" sections of 06-01-PLAN.md and 06-03-PLAN.md). Do not re-open: (1) entry = decision-bar close, limit-trigger on a later bar's high/low crossing entry (OQ1/A3, pinned in 06-01); (2) LLM narrative eager at assembly with the AI-07 labeled fallback (OQ2); (3) persist all detector-passing candidates, min-P(WIN) is a display filter via `setup_min_p_win` default 0.0 (OQ3); (4) health strip reads last-persisted heartbeat freshness, MT5-free (OQ4, pinned in 06-03); (5) single global `setup_trigger_window_bars` default 8, trigger on bar high/low crossing entry (OQ5).
 
 1. **What exact price is the setup's `entry` (the D-01 limit-trigger level)?**
    - What we know: `Candidate` carries SL/TP/bias/zone/pool/event but **no entry price** (D-04 defers fill math). The live signal (D-01) must quote an entry that goes `pending` until price trades through it.
