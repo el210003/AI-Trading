@@ -105,7 +105,11 @@ ml_retrain_interval_hours = 24
 llm_enabled = false
 llm_base_url = "http://192.168.5.178:8000/v1"
 llm_model = "deepseek-v4-flash-vision-exp"
-llm_timeout_ms = 8000
+# llm_timeout_ms: transport timeout for the provider call. LOCAL vLLM reasoning
+# model verifies ~17-34s per generation (chain-of-thought on this hardware), so
+# 8000ms times out every call; 60000ms is the realistic bound (T-05-04 DoS bound
+# still applies at the provider/worker layer, not the client transport here).
+llm_timeout_ms = 60000
 llm_max_tokens = 2048
 llm_top_n_contributors = 5
 llm_structured_mode = "json_schema"

@@ -36,7 +36,11 @@ def _good_narrative_json() -> str:
 
 @pytest.mark.unit
 def test_timeout_emits_ml_only_setup():
-    provider = FakeLLMProvider(errors=[TimeoutError()])
+    # A PERSISTENT timeout (across the pipeline's 1-retry window) degrades to a
+    # complete ML-only result with reason="timeout". (A single transient-timeout
+    # provider is intentionally retried once by the pipeline — see the tolerant
+    # reasoning-model retry in narrative.py.)
+    provider = FakeLLMProvider(errors=[TimeoutError(), TimeoutError()])
     result = run_narrative_pipeline(provider, make_evidence(), llm_cfg(llm_enabled=True))
     assert result.narrative is None
     assert result.agreement is None
@@ -49,7 +53,7 @@ def test_timeout_emits_ml_only_setup():
 
 @pytest.mark.unit
 def test_fallback_bounded_time():
-    provider = FakeLLMProvider(errors=[TimeoutError()])
+    provider = FakeLLMProvider(errors=[TimeoutError(), TimeoutError()])
     start = time.perf_counter()
     run_narrative_pipeline(provider, make_evidence(), llm_cfg(llm_enabled=True))
     elapsed = time.perf_counter() - start

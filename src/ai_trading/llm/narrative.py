@@ -90,20 +90,42 @@ def run_narrative_pipeline(provider, evidence: dict, cfg) -> NarrativeResult:
         return _ml_only_result(evidence, "llm_disabled")
 
     response_schema = narrative_response_format()
-    try:
-        raw = provider.build_narrative(evidence, response_schema, cfg=cfg)
-    except LLMTruncatedError:
-        # RESEARCH A3/Pitfall 1: content=None on a reasoning model → retry once.
+
+    def _attempt() -> tuple[str | None, str | None]:
+        """One build+narrative-parse attempt. Returns (raw_json, reason) where
+        reason is None on success and a downgrade reason otherwise (one of
+        "timeout" | "error"); a provider error, a timeout, or an unparseable /
+        schema-violating response is reported as a retryable transient (never a
+        parse crash)."""
         try:
             raw = provider.build_narrative(evidence, response_schema, cfg=cfg)
+        except LLMTruncatedError:
+            # RESEARCH A3/Pitfall 1: content=None on a reasoning model → retryable.
+            return None, "error"
         except TimeoutError:
-            return _ml_only_result(evidence, "timeout")
+            return None, "timeout"
         except Exception:
-            return _ml_only_result(evidence, "error")
-    except TimeoutError:
-        return _ml_only_result(evidence, "timeout")
-    except Exception:
-        return _ml_only_result(evidence, "error")
+            return None, "error"
+        try:
+            LLMNarrative.model_validate_json(raw)
+        except Exception:
+            # Reasoning model can emit schema-violating/truncated JSON on a bad
+            # generation — retryable, not a hard failure (non-deterministic).
+            return None, "error"
+        return raw, None
+
+    # RESEARCH A3 / Pitfall 1 + live finding: the local vLLM is a reasoning model
+    # whose output is non-deterministic and can be slow — it may truncate
+    # (content=None → LLMTruncatedError), emit schema-violating JSON on a bad
+    # generation, or time out. Retry ONCE on any retryable transient (all three
+    # cases), then degrade gracefully to the complete ML-only result.
+    last_reason: str | None = "error"
+    for _ in range(1 + cfg.llm_max_retries):  # llm_max_retries defaults to 1
+        raw, last_reason = _attempt()
+        if last_reason is None:
+            break
+    else:
+        return _ml_only_result(evidence, last_reason or "error")
 
     try:
         narrative = LLMNarrative.model_validate_json(raw)
