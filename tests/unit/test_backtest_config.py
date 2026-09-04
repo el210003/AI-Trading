@@ -90,6 +90,9 @@ def _base_values(tmp: Path, **overrides: object) -> dict:
         "llm_structured_mode": "json_schema",
         "llm_agree_min_confidence": 0.6,
         "llm_max_retries": 1,
+        # Phase-6 setup-assembly / lifecycle knobs (same values as config.toml)
+        "setup_trigger_window_bars": 8,
+        "setup_min_p_win": 0.0,
     }
     values.update(overrides)
     return values
@@ -135,6 +138,8 @@ def test_load_config_carries_backtest_knobs(tmp_path):
     assert cfg.ml_learning_rate == 0.1
     assert cfg.ml_retrain_enabled is False
     assert cfg.ml_retrain_interval_hours == 24
+    assert cfg.setup_trigger_window_bars == 8
+    assert cfg.setup_min_p_win == 0.0
 
 
 @pytest.mark.unit
@@ -176,6 +181,9 @@ def test_scalar_defaults_used_when_override_maps_empty(tmp_path):
         ({"ml_min_data_in_leaf": 0}, "ml_min_data_in_leaf"),
         ({"ml_learning_rate": 0}, "ml_learning_rate"),
         ({"ml_retrain_interval_hours": 0}, "ml_retrain_interval_hours"),
+        ({"setup_trigger_window_bars": 0}, "setup_trigger_window_bars"),
+        ({"setup_min_p_win": 1.5}, "setup_min_p_win"),
+        ({"setup_min_p_win": -0.5}, "setup_min_p_win"),
     ],
 )
 def test_backtest_knob_rejections(tmp_path, overrides, key):
@@ -264,3 +272,5 @@ def test_direct_construction_uses_dataclass_defaults(tmp_path):
     assert cfg.min_history_days == 30
     assert cfg.warmup_bars == 0
     assert cfg.htf_warmup_days == 30
+    assert cfg.setup_trigger_window_bars == 8
+    assert cfg.setup_min_p_win == 0.0

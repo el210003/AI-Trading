@@ -121,6 +121,10 @@ def _base_values(tmp: Path, **overrides: object) -> dict:
         "llm_structured_mode": "json_schema",
         "llm_agree_min_confidence": 0.6,
         "llm_max_retries": 1,
+        # Phase-6 setup-assembly / lifecycle knobs (same values as config.toml)
+        # — required since plan 06-01 extended _REQUIRED_KEYS.
+        "setup_trigger_window_bars": 8,
+        "setup_min_p_win": 0.0,
     }
     values.update(overrides)
     return values

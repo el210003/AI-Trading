@@ -85,6 +85,11 @@ _REQUIRED_KEYS = (
     "llm_structured_mode",
     "llm_agree_min_confidence",
     "llm_max_retries",
+    # Setup-assembly / lifecycle knobs (Phase 6) — same fail-fast contract: a
+    # typo'd or missing setup_* key refuses load rather than silently changing
+    # the trigger-window or qualification semantics.
+    "setup_trigger_window_bars",
+    "setup_min_p_win",
 )
 
 
@@ -153,6 +158,15 @@ class Config:
     llm_structured_mode: str = "json_schema"
     llm_agree_min_confidence: float = 0.6
     llm_max_retries: int = 1
+    # Setup-assembly / lifecycle knobs (Phase 6). Fields carry defaults so
+    # direct construction (tests/conftest.py _make_cfg) keeps working.
+    # setup_trigger_window_bars: D-04 pending-phase window in M15 bars (default
+    #   8) before an untriggered setup expires.
+    # setup_min_p_win: engine-side qualification floor; 0.0 = persist every
+    #   detector-passing candidate (the dashboard's min-probability display
+    #   filter is separate).
+    setup_trigger_window_bars: int = 8
+    setup_min_p_win: float = 0.0
 
 
 def load_config(base: Path = Path("config.toml")) -> Config:
@@ -224,6 +238,8 @@ def load_config(base: Path = Path("config.toml")) -> Config:
         llm_structured_mode=str(raw["llm_structured_mode"]),
         llm_agree_min_confidence=raw["llm_agree_min_confidence"],
         llm_max_retries=raw["llm_max_retries"],
+        setup_trigger_window_bars=raw["setup_trigger_window_bars"],
+        setup_min_p_win=raw["setup_min_p_win"],
     )
     _validate(cfg)
     if not cfg.validated_at:
@@ -445,4 +461,19 @@ def _validate(cfg: Config) -> None:
     if not _is_int(cfg.llm_max_retries) or cfg.llm_max_retries < 1:
         raise ValueError(
             f"llm_max_retries must be an integer >= 1, got {cfg.llm_max_retries!r}"
+        )
+
+    # -- Setup-assembly / lifecycle knobs (Phase 6, SETUP-01..04) ------------
+    # setup_trigger_window_bars (D-04): the pending-phase window in M15 bars
+    # before an untriggered setup expires; must be a positive int.
+    # setup_min_p_win: engine-side qualification floor; must be a number in
+    # [0,1] (0.0 = persist every detector-passing candidate).
+    if not _is_int(cfg.setup_trigger_window_bars) or cfg.setup_trigger_window_bars <= 0:
+        raise ValueError(
+            f"setup_trigger_window_bars must be a positive integer, "
+            f"got {cfg.setup_trigger_window_bars!r}"
+        )
+    if not _is_number(cfg.setup_min_p_win) or not 0 <= cfg.setup_min_p_win <= 1:
+        raise ValueError(
+            f"setup_min_p_win must be a number in [0,1], got {cfg.setup_min_p_win!r}"
         )

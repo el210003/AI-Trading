@@ -80,6 +80,8 @@ def _make_cfg(**overrides) -> Config:
         "backfill_max_rounds": 12,
         "backfill_pause_seconds": 0.7,
         "initial_backfill_days": 90,
+        "setup_trigger_window_bars": 8,
+        "setup_min_p_win": 0.0,
     }
     return Config(**{**defaults, **overrides})
 

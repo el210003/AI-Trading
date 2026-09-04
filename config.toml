@@ -115,3 +115,12 @@ llm_top_n_contributors = 5
 llm_structured_mode = "json_schema"
 llm_agree_min_confidence = 0.6
 llm_max_retries = 1
+
+# Setup-assembly / lifecycle knobs (Phase 6)
+# setup_trigger_window_bars: D-04 pending-phase trigger window in M15 bars (default
+#   8) before an untriggered setup expires if price never trades through the entry.
+# setup_min_p_win: engine-side qualification floor on ML P(WIN). 0.0 = persist every
+#   detector-passing candidate (complete provable history); the dashboard's
+#   min-probability slider is a separate view-time filter.
+setup_trigger_window_bars = 8
+setup_min_p_win = 0.0
