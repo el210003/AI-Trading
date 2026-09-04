@@ -36,10 +36,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Trade Setups
 
-- [ ] **SETUP-01**: Each setup record contains symbol, direction, entry, SL, TP, R:R ratio, and the reason each level was chosen
-- [ ] **SETUP-02**: Each setup persists an evidence object (zone IDs, sweep events, MTF bias, ML score contributors) consumable by LLM and dashboard
-- [ ] **SETUP-03**: Setup lifecycle is tracked (active → TP hit / SL hit / expired / invalidated) via bar-close monitoring
-- [ ] **SETUP-04**: Untriggered setups expire or invalidate per documented rules (N-bar window / structure break)
+- [x] **SETUP-01**: Each setup record contains symbol, direction, entry, SL, TP, R:R ratio, and the reason each level was chosen
+- [x] **SETUP-02**: Each setup persists an evidence object (zone IDs, sweep events, MTF bias, ML score contributors) consumable by LLM and dashboard
+- [x] **SETUP-03**: Setup lifecycle is tracked (active → TP hit / SL hit / expired / invalidated) via bar-close monitoring
+- [x] **SETUP-04**: Untriggered setups expire or invalidate per documented rules (N-bar window / structure break)
 
 ### Backtesting
 
@@ -127,10 +127,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AI-05 | Phase 5 | Complete |
 | AI-06 | Phase 5 | Complete |
 | AI-07 | Phase 5 | Complete |
-| SETUP-01 | Phase 6 | Pending |
-| SETUP-02 | Phase 6 | Pending |
-| SETUP-03 | Phase 6 | Pending |
-| SETUP-04 | Phase 6 | Pending |
+| SETUP-01 | Phase 6 | Complete |
+| SETUP-02 | Phase 6 | Complete |
+| SETUP-03 | Phase 6 | Complete |
+| SETUP-04 | Phase 6 | Complete |
 | DASH-01 | Phase 6 | Pending |
 | DASH-02 | Phase 6 | Pending |
 | DASH-03 | Phase 6 | Pending |
