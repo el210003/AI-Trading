@@ -4,17 +4,17 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 5
 current_phase_name: LLM Narrative Layer
-status: executing
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-09-04T05:44:52.623Z"
+status: verifying
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-09-04T06:17:53.673Z"
 last_activity: 2026-09-04
 last_activity_desc: Phase 5 execution started
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 15
-  completed_plans: 13
-  percent: 67
+  completed_plans: 15
+  percent: 83
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 
 Phase: 5 (LLM Narrative Layer) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-09-04 — Phase 5 execution started
 
 Progress: [███████░░░] 67%
@@ -71,6 +71,7 @@ Progress: [███████░░░] 67%
 | Phase 04-ml-scoring P02 | ~40m | 3 tasks | 11 files |
 | Phase 04-ml-scoring P03 | 40 min | 3 tasks | 7 files |
 | Phase 05-llm-narrative-layer P01 | 16 min | 3 tasks | 14 files |
+| Phase 05-llm-narrative-layer P02 | 16min | 3 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -103,6 +104,8 @@ Recent decisions affecting current work:
 - [Phase 04-ml-scoring]: FEATURE_LIST_VERSION=1 added to ml/features.py as the loader's current-FEATURE_SPEC source of truth; model bundles are not byte-deterministic (pickle framing) - determinism pinned at the probability and manifest (config_hash) levels — Pitfall 10 + research determinism deviation note: version gates at the artifact boundary, probability-level reproducibility
 - [Phase 04-ml-scoring]: fit_calibrated takes folds as a REQUIRED positional argument (no default) passing cv=folds + ensemble=True; refuses fewer than 2 explicit folds with a skip reason rather than silent uncalibrated fallback — SC3 no-shuffled-splits rule made structural (AST-pinned) and SC2 never-fabricate-a-model
 - [Phase ?]: All-positive WEIGHTS on normalized goodness (inversion encodes smaller-is-better); EvalResult as singular eval surface; artifact save gated on --write; per-symbol audit aggregation; heuristic quality deferred to Phase 5/6
+- [Phase ?]: citation_check value-match is contradiction-detection on scalar enum fields; numeric fields (p_win/contributors) are existence-checked only (research OQ3)
+- [Phase 05-llm-narrative-layer]: run_narrative_pipeline returns a complete NarrativeResult on every path; the ML-only fallback is labeled (narrative_status=llm_unavailable, reason=timeout|error|llm_disabled), never silence (research OQ2)
 
 ### Pending Todos
 
@@ -124,6 +127,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-04T05:44:52.607Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-09-04T06:17:53.661Z
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None

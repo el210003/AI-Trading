@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: SMC Detection Engine** - Look-ahead-safe swings, liquidity pools, sweeps, premium/discount zones with lifecycle state (completed 2026-08-31)
 - [x] **Phase 3: Backtesting & Labeling** - Shared-code-path replay, spread-modeled costs, triple-barrier labels, canonical + walk-forward stats (completed 2026-09-02)
 - [x] **Phase 4: ML Scoring** - Point-in-time features, calibrated LightGBM probability, walk-forward evaluation, versioned artifacts (completed 2026-09-03)
-- [ ] **Phase 5: LLM Narrative Layer** - Evidence-grounded confirm/refute reasoning with agreement flag and ML-only fallback
+- [x] **Phase 5: LLM Narrative Layer** - Evidence-grounded confirm/refute reasoning with agreement flag and ML-only fallback (completed 2026-09-04)
 - [ ] **Phase 6: Setups & Dashboard** - Setup assembly/lifecycle, Streamlit dashboard with charts, evidence traces, history, stats, health
 
 ## Phase Details
@@ -153,7 +153,7 @@ Plans:
   2. Setups expose an ML↔LLM agreement flag
   3. With the LLM endpoint disabled or timing out, the pipeline still emits complete ML-only setups (graceful fallback proven by test)
 
-**Plans**: 1/2 plans executed
+**Plans**: 2/2 plans complete
 
 Plans:
 **Wave 1**
@@ -162,7 +162,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 05-02-PLAN.md — Narrative pipeline (evidence serialization, citation check) + agreement flag + timeout fallback
+- [x] 05-02-PLAN.md — Narrative pipeline (evidence serialization, citation check) + agreement flag + timeout fallback
 
 ### Phase 6: Setups & Dashboard
 
@@ -196,5 +196,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. SMC Detection Engine | 4/4 | Complete    | 2026-08-31 |
 | 3. Backtesting & Labeling | 3/3 | Complete    | 2026-09-02 |
 | 4. ML Scoring | 3/3 | Complete    | 2026-09-03 |
-| 5. LLM Narrative Layer | 1/2 | In Progress|  |
+| 5. LLM Narrative Layer | 2/2 | Complete   | 2026-09-04 |
 | 6. Setups & Dashboard | 0/3 | Not started | - |
