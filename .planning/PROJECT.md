@@ -16,10 +16,10 @@ Produce high-probability SMC-based forex trade setups with transparent, reasoned
 - [x] Detect SMC liquidity concepts: sweeps of equal highs/lows and premium/discount zones (built on swing-point detection) — Validated in Phase 2: SMC Detection Engine (pure deterministic detector chain swings→zigzag→pools→sweeps→zones→MTF context; point-in-time lookahead-safe; 177-test suite green, verification 30/30 must-haves)
 - [x] Backtesting engine validates SMC detection and setup quality on historical MT5 data — Validated in Phase 3: Backtesting & Labeling (MT5-free replay engine calls the identical detector chain; triple-barrier labels with SL-first tie rule; costs = recorded spread + slippage; walk-forward reports; 358-test suite, verification 16/16 must-haves)
 - [x] ML model scores each setup's probability — Validated in Phase 4: ML Scoring (point-in-time feature builder + 3-layer leak audit; LightGBM P(WIN) with CalibratedClassifierCV, pooled model; versioned artifact + loadable scorer; walk-forward eval on the Phase 3 harness; verification 9/9 must-haves)
+- [x] LLM produces narrative/confirmation reasoning per setup — Validated in Phase 5: LLM Narrative Layer (OpenAI-compatible provider → local vLLM; structured LLMNarrative verdict+confidence+reasoning+citations; reference-only levels with schema guard; strict citation check; ML↔LLM agreement flag; graceful ML-only fallback on timeout/disabled; verification 10/10 must-haves)
 
 ### Active
 
-- [ ] LLM produces narrative/confirmation reasoning per setup
 - [ ] Web dashboard presents setups: direction, entry, SL, TP, probability, rationale
 
 ### Out of Scope
@@ -51,7 +51,8 @@ Produce high-probability SMC-based forex trade setups with transparent, reasoned
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
 | v1 is signals-only; execution deferred to next milestone | Build trust in signal quality before automating risk | — Pending |
-| Hybrid AI (ML scoring + LLM reasoning) | Combines quantitative probability with interpretable narrative confirmation | — ML scoring Proven in Phase 4 (calibrated P(WIN), walk-forward eval); LLM layer pending Phase 5 |
+| Hybrid AI (ML scoring + LLM reasoning) | Combines quantitative probability with interpretable narrative confirmation | — ML scoring Proven in Phase 4 (calibrated P(WIN), walk-forward eval); LLM layer Proven in Phase 5 (evidence-grounded confirm/refute + agreement flag) |
+| LLM narrative conventions (Phase 5): LLM receives only the structured evidence object, never originates levels/probabilities; strict citation check; graceful ML-only fallback | Verifiable trust — the LLM narrates, never invents; SC1 enforced mechanically | — Validated in Phase 5 |
 | MetaTrader5 Python lib for data feed | Official, reliable OHLC source from the user's local terminal | — Pending |
 | Backtesting included in v1 | Validate SMC detection and setup quality on historical data before live use | — Proven in Phase 3 (identical-pipeline replay, walk-forward harness) |
 | Backtest labeling conventions: triple-barrier with SL-first intrabar tie; entry candidates = sweep + zone tap | Conservative, reproducible labels (D-01…D-22 in Phase 3 CONTEXT.md) | — Validated in Phase 3 |
@@ -77,4 +78,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-03 after Phase 4 (ML Scoring) completion*
+*Last updated: 2026-09-04 after Phase 5 (LLM Narrative Layer) completion*
