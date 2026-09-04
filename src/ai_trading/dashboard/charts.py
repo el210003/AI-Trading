@@ -11,8 +11,9 @@ be unit-tested directly and rendered via ``st.plotly_chart``.
 - fixed ``height=520`` and ``margin=dict(l=8, r=8, t=24, b=8)`` and
   ``hovermode="x unified"``.
 
-``equity_curve`` is a stub retained for plan 06-03 (DASH-05) — it returns a
-minimal cumulative-R figure so imports resolve before the Performance view lands.
+``equity_curve`` renders the DASH-05 cumulative-R running line (bull hue,
+locked 360px height / margin / x-unified hover) from the
+``data_layer.cumulative_r_curve`` frame.
 """
 
 from __future__ import annotations
@@ -158,17 +159,22 @@ def candlestick_chart(bars: pd.DataFrame, setup, zones: pd.DataFrame | None = No
     return fig
 
 
-def equity_curve(curve: pd.DataFrame | None = None, *, symbol: str | None = None) -> go.Figure:
-    """DASH-05 cumulative-R equity curve (plan 06-03 fills the real data path).
+def equity_curve(data: pd.DataFrame | None = None, *, symbol: str | None = None) -> go.Figure:
+    """DASH-05 cumulative-R equity curve (plan 06-03).
 
-    Returns a minimal plotly figure now so the Performance view imports resolve.
+    ``data`` is the ``{time_utc, cum_r}`` frame from
+    ``data_layer.cumulative_r_curve``; returns a ``go.Scatter`` cumulative-R
+    running line (bull ``#26A69A``, per the UI-SPEC equity binding) at the
+    locked 360px height / margin / ``x unified`` hovermode. ``symbol`` only
+    names the trace for readability (aggregate vs per-symbol toggle). A
+    missing/empty frame returns an empty figure (never raises).
     """
     fig = go.Figure()
-    if curve is not None and not curve.empty:
+    if data is not None and not data.empty:
         fig.add_trace(
             go.Scatter(
-                x=curve["time_utc"],
-                y=curve["r_net"] if "r_net" in curve else curve["r_gross"],
+                x=data["time_utc"],
+                y=data["cum_r"],
                 mode="lines",
                 line=dict(color=theme.COLORS["bull"], width=2),
                 name=f"cumulative R ({symbol or 'all'})",
