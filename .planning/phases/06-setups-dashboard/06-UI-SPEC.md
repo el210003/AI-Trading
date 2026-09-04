@@ -23,7 +23,7 @@ This contract governs **DASH-01…DASH-06** (the Streamlit dashboard). SETUP-01�
 | Preset | not applicable |
 | Component library | Streamlit native widgets (`st.tabs`, `st.dataframe`, `st.metric`, `st.plotly_chart`, `st.sidebar`, `st.status`) |
 | Chart library | **plotly** (via `st.plotly_chart`) — locked choice |
-| Icon library | none (unicode/emoji status glyphs only: `✓ ✗ ⌀ ● ◇`) |
+| Icon library | none (unicode/emoji status glyphs only: `✓ ✗ ⌀ ● ◇ ◌`) |
 | Font | system-ui stack: `-apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, Roboto, sans-serif` |
 
 **Stack reality (verified in repo):** `pyproject.toml` has **no** streamlit/plotly dependency yet. Phase 6 **adds** `streamlit>=1.39` and `plotly>=5.23` to the runtime dependencies (dev group unchanged). The dashboard is a **Python / Streamlit** app — there is **no** React, no `components.json`, no Tailwind, no shadcn cache. The shadcn initialization gate is **N/A** (not a React/Next/Vite project). UI styling is achieved through Streamlit's `.streamlit/config.toml` `[theme]` block plus targeted `st.markdown`/`st.container` styling — no CSS framework, no third-party UI registry.
@@ -75,16 +75,17 @@ Streamlit default body is 1rem (16px); overrides are limited to headings and num
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 16px | 400 | 1.5 |
-| Label (field names, table headers, KPI captions, form labels) | 14px | 500 | 1.4 |
+| Label (field names, table headers, KPI captions, form labels, legend items, axis ticks) | 14px | 400 | 1.4 |
 | Heading (view titles, tab-intro copy, panel titles) | 20px | 600 | 1.2 |
 | Display (headline KPI values / metric numbers) | 28px | 600 | 1.2 |
 
 **Numeric/tabular exception:** every price, probability, R-value, and statistic appends `font-variant-numeric: tabular-nums` so column figures align vertically in the setup table and KPI cards. Percentage probability is rendered as a whole percent ("58%"), not a decimal (58.3%).
 
 Semantic text rules:
-- KPI card **heading** uses Display (28px/600); its **caption/label** uses Label (14px/500); its **delta** uses Body (16px/500).
-- Table body text is Body (16px/400) at `row_height` ~35px; table headers are Label (14px/500), uppercase-lite (title case, not all-caps).
-- Chart axis ticks: Label (14px/500); legend items: Label (14px/400).
+- KPI card **heading** uses Display (28px/600); its **caption/label** uses Label (14px/400); its **delta** uses Body (16px/600).
+- Table body text is Body (16px/400) at an explicit `row_height` of **36px** (a multiple of 4; overrides the Streamlit `st.dataframe` default to keep the dense table grid-aligned); table headers are Label (14px/400), uppercase-lite (title case, not all-caps).
+- Chart axis ticks: Label (14px/400); legend items: Label (14px/400).
+- **Two weights only** — regular (400) for all body/caption/table/legend/axis text, semibold (600) reserved for emphasis (Heading, Display, KPI delta, HP/RR/stat numeric emphasis). No intermediate 500 weight is used anywhere.
 
 ---
 
@@ -102,7 +103,7 @@ Semantic, high-contrast trading-terminal palette. The **60/30/10** split distrib
 | Warning | `#E0A500` | `TIMEOUT`/`expired` status, `unclear` chip, degraded/fallback notification, MT5 disconnected warning |
 | Destructive | `#E5484D` | (reserved) destructive actions — **none exist in v1** (signals-only, no order execution) |
 
-Accent reserved for: **entry marker line, focus/selected states, gold-ratio primary action buttons, active filter highlight, active tab underline.** It must **not** be used as a general text color or for badges/status chips.
+Accent reserved for: **entry marker line, focus/selected states, gold-ratio primary action buttons, active filter highlight, active tab underline.** It must **not** be used as a general text color. It is NOT used for status chips except the single explicit `active` (live) status chip, which is the one sanctioned accent use — every other status chip uses the semantic lifecycle colors from the binding table below.
 
 Status and outcome color **binding** (the single source of truth for what color means what):
 
@@ -112,7 +113,7 @@ Status and outcome color **binding** (the single source of truth for what color 
 | Setup status `tp_hit` | chip `✓ TP hit` | bull `#26A69A` |
 | Setup status `sl_hit` | chip `✗ SL hit` | bear `#EF5350` |
 | Setup status `expired` | chip `⌀ expired` | warning `#E0A500` |
-| Setup status `invalidated` | chip `�#{invalidated}` | warning `#E0A500` (dashed border = structure break) |
+| Setup status `invalidated` | chip `◌ invalidated` | warning `#E0A500` (dashed border = structure break) |
 | Label outcome `WIN` | badge `WIN` | bull `#26A69A` |
 | Label outcome `LOSS` | badge `LOSS` | bear `#EF5350` |
 | Label outcome `TIMEOUT` | badge `TIMEOUT` | warning `#E0A500` |
@@ -173,6 +174,7 @@ All components are Streamlit native / plotly; no imported design-system widgets.
 - **Health strip is rendered first (top) on every tab** so pipeline freshness is always visible — it is the trust backdrop for the entire phase (DASH-06).
 - **Sidebar filters apply globally** across Setups / History tabs (single filter state). The History view may additionally filter by outcome.
 - Tab content for `Setups` = setup table (top) + selected-setup candlestick + detail panels (below/right). Selecting a row in the table sets the chart and detail for that setup (DASH-02 + DASH-03 together).
+- **Primary visual anchor (Dimension 2):** on the main `Setups` tab, the **selected-setup candlestick chart + evidence-trace panel** (DASH-02 + DASH-03) is the *single* visual focal point — all emphasis (size, accent color, contrast, hover affordance) is concentrated there. The setup table above is the **navigation/selection surface** (non-emphasized, secondary), and the sidebar filters are tertiary chrome. Do not split attention with competing large elements; the candle/detail pair is where the user's eye should land first.
 
 ### Evidence Trace layout (DASH-03 — the verification surface)
 Rendered as ordered sub-sections in `st.container(border=True)`. Order is fixed (maps to the evidence object's lineage, not arbitrary):
