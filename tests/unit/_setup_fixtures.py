@@ -18,7 +18,6 @@ from __future__ import annotations
 from typing import Any
 
 import pandas as pd
-
 from _backtest_fixtures import bt_cfg  # noqa: F401  (consumed, never extended)
 
 from ai_trading.setup.store import SETUP_COLUMNS, _coerce

@@ -8,19 +8,16 @@ threat T-06-01).
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import pandas as pd
 import pytest
+from _setup_fixtures import make_setup_row, setup_cfg
 
 from ai_trading.setup.store import (
     SETUP_COLUMNS,
     read_setups,
     setup_store_path,
-    setup_store_root,
     upsert_setups,
 )
-from _setup_fixtures import make_setup_row, setup_cfg
 
 
 @pytest.mark.unit

@@ -7,6 +7,7 @@ assembly, scoring, evidence serialization, narrative pipeline and barrier
 resolution are all imported verbatim — never re-implemented here.
 """
 
+from ai_trading.setup.assembly import assemble_setup, build_setup_record
 from ai_trading.setup.store import (
     SETUP_COLUMNS,
     read_setups,
@@ -17,6 +18,8 @@ from ai_trading.setup.store import (
 
 __all__ = [
     "SETUP_COLUMNS",
+    "assemble_setup",
+    "build_setup_record",
     "read_setups",
     "setup_store_path",
     "setup_store_root",
