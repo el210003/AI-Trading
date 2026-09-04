@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Backtesting & Labeling** - Shared-code-path replay, spread-modeled costs, triple-barrier labels, canonical + walk-forward stats (completed 2026-09-02)
 - [x] **Phase 4: ML Scoring** - Point-in-time features, calibrated LightGBM probability, walk-forward evaluation, versioned artifacts (completed 2026-09-03)
 - [x] **Phase 5: LLM Narrative Layer** - Evidence-grounded confirm/refute reasoning with agreement flag and ML-only fallback (completed 2026-09-04)
-- [ ] **Phase 6: Setups & Dashboard** - Setup assembly/lifecycle, Streamlit dashboard with charts, evidence traces, history, stats, health
+- [x] **Phase 6: Setups & Dashboard** - Setup assembly/lifecycle, Streamlit dashboard with charts, evidence traces, history, stats, health (completed 2026-09-04)
 
 ## Phase Details
 
@@ -177,16 +177,16 @@ Plans:
   4. History view shows lifecycle outcomes for every emitted setup; performance panel shows WR/PF/expectancy and an R-based equity curve aggregate and per symbol
   5. A health strip shows last-bar time per feed, MT5 connection status, and recent errors
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans complete
 
 Plans:
 
 - [x] 06-01-PLAN.md
 - [x] 06-02-PLAN.md
-- [ ] 06-03-PLAN.md
+- [x] 06-03-PLAN.md
 
 - [x] 06-01: Setup assembly + persistence + lifecycle monitor + scheduled engine wiring (M15 close trigger)
-- [ ] 06-02: Streamlit dashboard — setup table, chart with SMC overlays, evidence detail view
+- [x] 06-02: Streamlit dashboard — setup table, chart with SMC overlays, evidence detail view
 - [ ] 06-03: History with outcomes, performance stats panel, data-health strip
 
 ## Progress
@@ -201,4 +201,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Backtesting & Labeling | 3/3 | Complete    | 2026-09-02 |
 | 4. ML Scoring | 3/3 | Complete    | 2026-09-03 |
 | 5. LLM Narrative Layer | 2/2 | Complete    | 2026-09-04 |
-| 6. Setups & Dashboard | 2/3 | In Progress|  |
+| 6. Setups & Dashboard | 3/3 | Complete   | 2026-09-04 |

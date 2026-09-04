@@ -4,16 +4,16 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 6
 current_phase_name: Setups & Dashboard
-status: executing
-stopped_at: Completed 06-02-PLAN.md
-last_updated: "2026-09-04T14:33:29.331Z"
+status: verifying
+stopped_at: Completed 06-03-PLAN.md
+last_updated: "2026-09-04T15:02:11.029Z"
 last_activity: 2026-09-04
 last_activity_desc: Phase 6 execution started
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 18
-  completed_plans: 16
+  completed_plans: 17
   percent: 83
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 
 Phase: 6 (Setups & Dashboard) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-09-04 — Phase 6 execution started
 
 Progress: [███████░░░] 67%
@@ -75,6 +75,7 @@ Progress: [███████░░░] 67%
 | Phase 05-llm-narrative-layer P02 | 16min | 3 tasks | 12 files |
 | Phase 06 P01 | 52 min | 4 tasks | 17 files |
 | Phase 06-setups-dashboard P02 | 41 min | 3 tasks | 18 files |
+| Phase 06 P03 | 15 min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -116,6 +117,9 @@ Recent decisions affecting current work:
 - [Phase 06-setups-dashboard]: Selection drives the DASH-02/03 anchor: the setup table uses st.dataframe on_select single-row; selecting a row renders the candlestick + full evidence trace as the single visual focal point
 - [Phase 06-setups-dashboard]: Reset Filters uses an on_click callback deleting the sidebar widget session_state keys (a widget key cannot be SET after instantiation in the same run); the Refresh path has no @st.cache_data per the UI-SPEC manual-refresh contract
 - [Phase 06-setups-dashboard]: The offline AppTest suites inject a fixture config via st.secrets['CONFIG_PATH'] (and the AITRADING_CONFIG env var), so the dashboard boots and is tested against an isolated tmp store with no live MT5/LLM
+- [Phase 06]: Performance R basis (A4): the Performance panel uses the structural r_gross from each resolved setup (entry vs SL distance); data_layer maps tp_hit->WIN / sl_hit->LOSS / expired->TIMEOUT and sets both r_raw and r_net to r_gross so it reuses backtest.stats.stats_by_symbol_timeframe unchanged; the live-vs-backtest comparability caveat (D-01/D-04) is surfaced as a panel caption.
+- [Phase 06]: Health status semantics (OQ4): the strip shows last-persisted state only - per-feed last-bar time from the bar store and a collector heartbeat from the meta collection_state.last_success_at; 'MT5 disconnected'/stale renders the UI-SPEC copy when the heartbeat is old; there is no live MT5 probe in the dashboard.
+- [Phase 06]: Recent errors are derived from the meta store's existing bar_gaps records (data-quality gaps detected in the last N days) surfaced as the health recent-errors count, via the new single-purpose helpers collection_state_heartbeats / recent_bar_gaps; no new errors table.
 
 ### Pending Todos
 
@@ -137,6 +141,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-04T14:33:29.321Z
-Stopped at: Completed 06-02-PLAN.md
+Last session: 2026-09-04T15:02:11.020Z
+Stopped at: Completed 06-03-PLAN.md
 Resume file: None
