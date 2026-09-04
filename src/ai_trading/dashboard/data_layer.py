@@ -50,10 +50,13 @@ __all__ = [
     "score_source_color",
     "direction_label",
     "pct",
+    "history_frame",
 ]
 
 #: ``all`` is the sidebar-direction sentinel that means "no direction filter".
 _DIRECTION_ALL = "all"
+
+_STR_DTYPE = pd.StringDtype()
 
 
 def load_cfg(path="config.toml"):
@@ -232,3 +235,75 @@ def pct(p) -> str:
     if pd.isna(value):
         return "—"
     return f"{round(value * 100):d}%"
+
+
+# --- History (DASH-04) --------------------------------------------------------
+
+#: Exact output schema of ``history_frame`` (DASH-04 lifecycle-outcome table).
+HISTORY_COLUMNS = (
+    "symbol",
+    "direction",
+    "entry",
+    "outcome",
+    "r",
+    "p_win",
+    "score_source",
+    "status",
+    "closed_at",
+)
+
+#: Terminal setup statuses that belong on the History tab (the lifecycle
+#: outcomes every emitted setup reaches, per DASH-04).
+RESOLVED_STATUSES = ("tp_hit", "sl_hit", "expired", "invalidated")
+
+#: Terminal status -> the outcome badge enum the History tab shows. ``invalidated``
+#: is a structure break, never an entry, so it has NO WIN/LOSS/TIMEOUT outcome —
+#: it keeps its own status (the UI renders it as its own chip, not a badge).
+STATUS_OUTCOME = {
+    "tp_hit": "WIN",
+    "sl_hit": "LOSS",
+    "expired": "TIMEOUT",
+    "invalidated": "invalidated",
+}
+
+
+def _empty_history_frame() -> pd.DataFrame:
+    """Empty frame with exactly ``HISTORY_COLUMNS`` and pinned dtypes."""
+    data = {
+        "symbol": pd.Series(dtype=_STR_DTYPE),
+        "direction": pd.Series(dtype=_STR_DTYPE),
+        "entry": pd.Series(dtype="float64"),
+        "outcome": pd.Series(dtype=_STR_DTYPE),
+        "r": pd.Series(dtype="float64"),
+        "p_win": pd.Series(dtype="float64"),
+        "score_source": pd.Series(dtype=_STR_DTYPE),
+        "status": pd.Series(dtype=_STR_DTYPE),
+        "closed_at": pd.Series(dtype="datetime64[ns]"),
+    }
+    return pd.DataFrame(data)[list(HISTORY_COLUMNS)]
+
+
+def history_frame(setups: pd.DataFrame, *, outcome: str | None = None) -> pd.DataFrame:
+    """DASH-04: every emitted setup's lifecycle outcome, sorted newest-first.
+
+    Keeps only the terminal statuses (``tp_hit`` / ``sl_hit`` / ``expired`` plus
+    the ``invalidated`` structural breaks) and derives the outcome badge enum via
+    ``STATUS_OUTCOME`` — ``tp_hit``->``WIN``, ``sl_hit``->``LOSS``,
+    ``expired``->``TIMEOUT``, ``invalidated`` kept as its own status (no
+    WIN/LOSS). The ``r`` column prefers each setup's ``r_net`` (falling back to
+    ``r_gross``) so the live-vs-backtest structural-R view stays consistent with
+    the Performance panel. Sorts by ``closed_at`` descending (newest-first). A
+    missing/empty store returns the schema-correct empty frame (T-06-03); the
+    optional ``outcome`` badge narrows the rows to a single outcome.
+    """
+    if setups is None or setups.empty:
+        return _empty_history_frame()
+    resolved = setups[setups["status"].isin(RESOLVED_STATUSES)].copy()
+    if resolved.empty:
+        return _empty_history_frame()
+    resolved["outcome"] = resolved["status"].map(STATUS_OUTCOME)
+    resolved["r"] = resolved["r_net"].where(resolved["r_net"].notna(), resolved["r_gross"])
+    if outcome is not None:
+        resolved = resolved[resolved["outcome"] == outcome]
+    sorted_frame = resolved.sort_values("closed_at", ascending=False, na_position="last")
+    return sorted_frame[list(HISTORY_COLUMNS)].reset_index(drop=True)
