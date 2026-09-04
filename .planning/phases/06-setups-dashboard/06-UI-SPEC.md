@@ -1,7 +1,7 @@
 ---
 phase: 6
 slug: setups-dashboard
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-09-04
@@ -62,6 +62,7 @@ Declared values (must be multiples of 4). Streamlit has no global spacing grid; 
 | 3xl | 64px | Page-level top offset under sticky header |
 
 Exceptions:
+
 - **Plot margin**: candlestick/equity plots use `margin=dict(l=8, r=8, t=24, b=8)` and a height of **520px** (candlestick) / **360px** (equity curve) — fixed chart heights, not token multiples, because plotly axes are coordinate-bound.
 - **Sticky header / health strip height**: **56px** (page-level persistent strip) — a fixed chrome height, not a spacing-token multiple.
 - **DataFrame row height**: Streamlit `st.dataframe` default row height is retained (no token override) — column filters/cell values are governed by the typography contract.
@@ -82,6 +83,7 @@ Streamlit default body is 1rem (16px); overrides are limited to headings and num
 **Numeric/tabular exception:** every price, probability, R-value, and statistic appends `font-variant-numeric: tabular-nums` so column figures align vertically in the setup table and KPI cards. Percentage probability is rendered as a whole percent ("58%"), not a decimal (58.3%).
 
 Semantic text rules:
+
 - KPI card **heading** uses Display (28px/600); its **caption/label** uses Label (14px/400); its **delta** uses Body (16px/600).
 - Table body text is Body (16px/400) at an explicit `row_height` of **36px** (a multiple of 4; overrides the Streamlit `st.dataframe` default to keep the dense table grid-aligned); table headers are Label (14px/400), uppercase-lite (title case, not all-caps).
 - Chart axis ticks: Label (14px/400); legend items: Label (14px/400).
@@ -159,6 +161,7 @@ All components are Streamlit native / plotly; no imported design-system widgets.
 ## Interaction & Layout Contract
 
 ### Page Layout (wide, single column + left sidebar)
+
 ```
 ┌──────────────────┬───────────────────────────────────────────────────┐
 │  FILTER SIDEBAR  │  HEALTH STRIP (sticky, 56px)                      │
@@ -171,13 +174,16 @@ All components are Streamlit native / plotly; no imported design-system widgets.
 │  Refresh         │                                                   │
 └──────────────────┴───────────────────────────────────────────────────┘
 ```
+
 - **Health strip is rendered first (top) on every tab** so pipeline freshness is always visible — it is the trust backdrop for the entire phase (DASH-06).
 - **Sidebar filters apply globally** across Setups / History tabs (single filter state). The History view may additionally filter by outcome.
 - Tab content for `Setups` = setup table (top) + selected-setup candlestick + detail panels (below/right). Selecting a row in the table sets the chart and detail for that setup (DASH-02 + DASH-03 together).
 - **Primary visual anchor (Dimension 2):** on the main `Setups` tab, the **selected-setup candlestick chart + evidence-trace panel** (DASH-02 + DASH-03) is the *single* visual focal point — all emphasis (size, accent color, contrast, hover affordance) is concentrated there. The setup table above is the **navigation/selection surface** (non-emphasized, secondary), and the sidebar filters are tertiary chrome. Do not split attention with competing large elements; the candle/detail pair is where the user's eye should land first.
 
 ### Evidence Trace layout (DASH-03 — the verification surface)
+
 Rendered as ordered sub-sections in `st.container(border=True)`. Order is fixed (maps to the evidence object's lineage, not arbitrary):
+
 1. **Setup header**: symbol · direction chip · entry/SL/TP + RR · creation time
 2. **Bias & context**: MTF H1/H4 bias (premium→bearish / discount→bullish per D-13/D-14), direction agreement
 3. **Zone**: tapped PD-zone ID + lifecycle state + boundaries; rendered as a small zone-band strip
@@ -186,12 +192,14 @@ Rendered as ordered sub-sections in `st.container(border=True)`. Order is fixed 
 6. **LLM narrative**: verdict chip (confirm/refute) + confidence + agreement flag chip + reasoning paragraph + citations list (mapped field keys). If `narrative_status=llm_unavailable`, show `⌀` + reason (timeout/error/disabled) in warning hue — never omit.
 
 ### Refresh model
+
 - A primary **`Refresh`** button in the sidebar and a **`st.button("Refresh")`** in the health strip re-query the stores (`st.rerun()`).
 - Auto-refresh is **off by default** (a manual refresh is the primary path; the M15 cadence makes continuous polling noisy). No `@st.cache_data` on the refresh path — each refresh reads live store state. Use `st.cache_data(ttl=…)` only on expensive, immutable historical artifacts (bars, labels) so the table/graph stay responsive.
 - Data dependency: the dashboard reads the **runtime data stores** under `data/` (`data/bars/*.parquet`, `data/labels/*.parquet` + `canonical_stats.json`, `data/reports/ml_scores.parquet`, `data/meta/meta.sqlite`). These are produced by the Phase-1 collector and the Phase-6 scheduled setup engine.
 - **Robustness:** if a store is missing/empty (e.g. no setups persisted yet), the dashboard renders the **Empty state** (not an exception) and suppresses only the affected view — other tabs remain functional.
 
 ### Chart interaction
+
 - Candlestick: hover shows OHLC; zoom/pan enabled; `tracegroupgap` none; crosshair via `hovermode="x unified"`. Entry/SL/TP `hLine`s have hover labels ("Entry", "SL", "TP"). PD-zone bands are `fig.add_shape` (semi-transparent, drawn **below** candles via `layer="below"`).
 - Equity curve: hover shows running R; a symbol `selectbox` toggles aggregate vs per-symbol curve.
 - Both charts use `to_excel`-free, no-export buttons; static (`config={"displayModeBar": True}` for pan/zoom, no export).
