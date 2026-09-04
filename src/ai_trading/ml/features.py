@@ -93,6 +93,20 @@ FEATURE_NAMES = tuple(entry["name"] for entry in FEATURE_SPEC)
 _CATEGORICAL_NAMES = frozenset(
     entry["name"] for entry in FEATURE_SPEC if entry["dtype"] == "categorical"
 )
+
+# Canonical category sets for the enum-valued categorical features. Pinning these
+# keeps the CategoricalDtype identical across a prefix slice and the full run, so
+# the L1 prefix-equivalence audit's exact-equality comparison (assert_frame_equal)
+# does not fail on category-set drift when a value (e.g. 'short') first appears
+# only partway through the data. A drifting category set is an encoding artifact,
+# not a point-in-time information leak — the values are identical.
+_CATEGORICAL_CATEGORIES: dict[str, list[str]] = {
+    "symbol": ["EURUSD", "GBPUSD", "USDJPY"],
+    "timeframe": ["M15", "H1", "H4"],
+    "direction": ["long", "short"],
+    "bias_h1": ["bullish", "bearish", "neutral"],
+    "bias_h4": ["bullish", "bearish", "neutral"],
+}
 _NUMERIC_NAMES = frozenset(
     entry["name"] for entry in FEATURE_SPEC if entry["dtype"] == "float64"
 )
@@ -361,7 +375,11 @@ def build_feature_frame(
     out_cols = list(FEATURE_NAMES) + ["entry_time", "decision_close_time"]
     frame = frame[out_cols]
     for name in _CATEGORICAL_NAMES:
-        frame[name] = frame[name].astype("category")
+        cats = _CATEGORICAL_CATEGORIES.get(name)
+        if cats is not None:
+            frame[name] = frame[name].astype(pd.CategoricalDtype(categories=cats))
+        else:
+            frame[name] = frame[name].astype("category")
     for name in _NUMERIC_NAMES:
         frame[name] = frame[name].astype("float64")
     frame["entry_time"] = frame["entry_time"].astype("datetime64[us]")

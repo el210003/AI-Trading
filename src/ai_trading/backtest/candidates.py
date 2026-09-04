@@ -199,10 +199,20 @@ def candidate_at_bar(state: CandidateState, cfg) -> Candidate | None:
 
     # 2) Tap trigger: a zone mitigated ON this decision bar (first row in
     # frame order — deterministic; frames are created_at-sorted).
+    # Point-in-time state (D-15 as-of): the stored `state` column is the FINAL
+    # lifecycle state from derive_zones (~99.9% `invalidated` on real data), so
+    # testing it here would exclude zones that were legitimately mitigated on
+    # this bar but invalidated at a LATER bar. Reconstruct the as-of tap: the
+    # zone was mitigated exactly this bar AND not yet invalidated as of now
+    # (invalidated_at is NaT, or strictly after bar_t). Preserves the D-01
+    # same-bar tap semantics that the fixtures validate.
     zones = state.zones15
     if zones is None or zones.empty:
         return None
-    taps = zones[(zones["state"] == "mitigated") & (zones["mitigated_at"] == bar_t)]
+    taps = zones[
+        (zones["mitigated_at"] == bar_t)
+        & (zones["invalidated_at"].isna() | (zones["invalidated_at"] > bar_t))
+    ]
     if taps.empty:
         return None
     zone = taps.iloc[0]
@@ -260,5 +270,11 @@ def compute_rr(direction: str, entry: float, sl: float, tp: float) -> float:
     """Structural R:R at the given entry price. D-12 filtering happens at
     fill (replay) because the entry price is the next bar's open."""
     if direction == "long":
-        return (tp - entry) / (entry - sl)
-    return (entry - tp) / (sl - entry)
+        risk = entry - sl
+        if risk <= 0:
+            return 0.0  # degenerate/zero-risk setup (entry at/below SL) — no valid trade
+        return (tp - entry) / risk
+    risk = sl - entry
+    if risk <= 0:
+        return 0.0  # degenerate/zero-risk setup (entry at/above SL)
+    return (entry - tp) / risk

@@ -44,7 +44,7 @@ from lightgbm import LGBMClassifier
 from sklearn.calibration import CalibratedClassifierCV, calibration_curve
 
 from ai_trading.backtest.barriers import OUTCOME_LOSS, OUTCOME_WIN
-from ai_trading.ml.features import FEATURE_SPEC
+from ai_trading.ml.features import FEATURE_SPEC, _CATEGORICAL_CATEGORIES
 
 _CATEGORICAL_NAMES = frozenset(
     entry["name"] for entry in FEATURE_SPEC if entry["dtype"] == "categorical"
@@ -52,12 +52,24 @@ _CATEGORICAL_NAMES = frozenset(
 
 
 def _cast_categoricals(frame: pd.DataFrame) -> pd.DataFrame:
-    """Return a copy with every FEATURE_SPEC categorical column cast to
-    ``pd.CategoricalDtype`` LightGBM auto-detects (idempotent)."""
+    """Return a copy with every FEATURE_SPEC categorical column cast to a
+    PINNED ``pd.CategoricalDtype``.
+
+    Using the canonical category sets from ``features._CATEGORICAL_CATEGORIES``
+    (rather than auto-derived ``astype("category")``) guarantees that every
+    chronological train/valid fold shares IDENTICAL category dtypes — a fold
+    that lacks a value (e.g. a symbol, or ``short``) would otherwise produce a
+    different categorical set and fail LightGBM's "train and valid dataset
+    categorical_feature do not match" check. Idempotent.
+    """
     out = frame.copy()
     for name in _CATEGORICAL_NAMES:
         if name in out.columns:
-            out[name] = out[name].astype("category")
+            cats = _CATEGORICAL_CATEGORIES.get(name)
+            if cats is not None:
+                out[name] = out[name].astype(pd.CategoricalDtype(categories=cats))
+            else:
+                out[name] = out[name].astype("category")
     return out
 
 

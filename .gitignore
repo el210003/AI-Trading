@@ -7,3 +7,6 @@ dist/
 *.egg-info/
 data/
 config.local.toml
+
+# gsd research scrape cache (ephemeral)
+.planning/research/.cache/

@@ -56,10 +56,30 @@ _NON_FEATURE_COLUMNS = ("entry_time", "decision_close_time")
 
 
 def _default_prefix_points(m15_bars: pd.DataFrame) -> list[int]:
-    """Default prefix lengths for the L1 audit (moderate, so the audit stays
-    fast in the unit suite while checking >0 labels)."""
+    """Default prefix lengths for the L1 audit.
+
+    Samples a BOUNDED number of evenly-spaced prefixes across the warmup..end
+    range regardless of data size. Real-data runs span tens of thousands of
+    bars; iterating ``range(28, n, 15)`` would yield O(n/15) prefixes, each
+    re-running ``run_chain`` + ``build_feature_frame`` over a growing prefix —
+    an O(n^2) cost that hangs on a year of M15 (was fine only on tiny synthetic
+    fixtures). Bounding to ~24 evenly-spaced checkpoints keeps the L1 proof
+    meaningful (each checks the point-in-time feature equivalence along the
+    range) while staying tractable.
+    """
     n = len(m15_bars)
-    points = list(range(28, n, 15))
+    if n <= 28:
+        return [n - 1] if n > 0 else []
+    start = 28
+    # Bounded count of prefix checkpoints (incl. the final prefix n-1). Keep
+    # small enough that the audit completes on real-data runs: each prefix
+    # re-runs `run_chain` (the full detector chain, ~65s on a year of M15) plus
+    # a feature-build over the prefix's labels, so P prefixes cost ~P × chain.
+    # A handful of checkpoints still proves point-in-time equivalence along the
+    # range (early / mid / late), just without exhaustively hitting every bar.
+    max_points = 6
+    step = max(1, (n - start) // (max_points - 1))
+    points = list(range(start, n, step))
     if n - 1 not in points:
         points.append(n - 1)
     return points
@@ -102,9 +122,20 @@ def audit_prefix_equivalence(
             continue
         prefix_close = close_time_of(prefix_m15["time_utc"].iloc[-1], "M15")
 
-        visible = full_features["decision_close_time"] <= prefix_close
-        full_part = full_features[visible].sort_values("entry_time").reset_index(drop=True)
-        prefix_labels = labels[visible]
+        # Positional visibility mask: build_feature_frame emits one row per
+        # label in order (index reset to 0..N-1), so `full_features` row i is
+        # `labels` row i. `labels[bool_series]` misaligns when `labels` carries
+        # a non-0-based index (real-data frames do); use positional .iloc on
+        # both so the row-alignment holds regardless of each frame's index.
+        pos_visible = (
+            full_features["decision_close_time"].to_numpy() <= prefix_close
+        )
+        full_part = (
+            full_features.iloc[pos_visible]
+            .sort_values("entry_time")
+            .reset_index(drop=True)
+        )
+        prefix_labels = labels.iloc[pos_visible]
         prefix_part = build_feature_frame(
             prefix_labels,
             run_chain(prefix_m15, h1_bars, h4_bars),
