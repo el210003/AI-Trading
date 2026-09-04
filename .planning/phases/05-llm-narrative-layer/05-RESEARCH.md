@@ -423,7 +423,9 @@ The pipeline injects `FakeLLMProvider`; a scripted `TimeoutError` in `errors` pr
 | A4 | A separate `llm` pytest marker (excluded by default) is the intended way to gate the live-endpoint integration test, rather than reusing `mt5`. | Validation Architecture | Reusing `mt5` would conflate an MT5 terminal requirement with an LLM endpoint requirement; but either is acceptable. Default choice (new `llm` marker) assumed. |
 | A5 | The top-5 contributors should be ranked by absolute raw `pred_contrib` value (excluding the trailing `bias` column), and null/`NaN` contributors (warmup rows) are dropped from the top-5 rather than zero-filled. | Evidence Serialization | If the user prefers signed-rank or zero-fill, the ranking/filter rule changes. Default assumed. |
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> All four open questions below are resolved by recommendations pinned in the plan actions (05-01 / 05-02) — see the planner-pinned semantics in the plan `<action>` bodies and the `llm_*` config knobs. Questions 1 (agreement flag), 2 (fallback policy), 3 (citation value matching), and 4 (config key placement) are each implemented per the recommendations here; no open ambiguity remains for the executor.
 
 1. **Agreement flag semantics (AI-06 — agent's discretion).**
    - What we know: verdict is `confirm|refute` with `confidence∈[0,1]`; the ML headline is calibrated `p_win`; the phase must expose agree/disagree with confidence.

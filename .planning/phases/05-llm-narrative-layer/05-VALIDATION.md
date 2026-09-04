@@ -38,12 +38,12 @@ created: 2026-09-04
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 05-01-01 | 01 | 1 | AI-05 | — | Provider interface (openai SDK, base_url→vLLM), mockable FakeLLMProvider, no live endpoint in default suite | unit | `pytest tests/unit/test_ml_provider.py` | ⬜ W0 | ⬜ pending |
-| 05-01-02 | 01 | 1 | AI-05 | — | Structured-output contract (pydantic LLMNarrative, response_format json_object, content=None retry/fallback) | unit | `pytest tests/unit/test_ml_contract.py` | ⬜ W0 | ⬜ pending |
-| 05-01-03 | 01 | 1 | AI-05 | — | Schema-level guard drops any level field the LLM emits (D-02, never originate levels/prices) | unit | `pytest tests/unit/test_ml_schema_guard.py` | ⬜ W0 | ⬜ pending |
-| 05-02-01 | 02 | 1 | AI-05 | — | Evidence serialization (scorer + SMC fields + top-5 contributors; point-in-time, no future data) | unit | `pytest tests/unit/test_ml_evidence.py` | ⬜ W0 | ⬜ pending |
-| 05-02-02 | 02 | 1 | AI-06 | — | ML↔LLM agreement flag (verdict+confidence → agree/disagree with confidence) | unit | `pytest tests/unit/test_ml_agreement.py` | ⬜ W0 | ⬜ pending |
-| 05-02-03 | 02 | 1 | AI-07 | — | Citation check (SC1) + graceful fallback to ML-only on timeout/disabled, proven offline | unit | `pytest tests/unit/test_ml_citation.py tests/unit/test_ml_fallback.py` | ⬜ W0 | ⬜ pending |
+| 05-01-01 | 01 | 1 | AI-05 | — | Provider interface (openai SDK, base_url→vLLM), mockable FakeLLMProvider, no live endpoint in default suite | unit | `pytest tests/unit/test_llm_provider.py` | ⬜ W0 | ⬜ pending |
+| 05-01-02 | 01 | 1 | AI-05 | — | Structured-output contract (pydantic LLMNarrative, response_format json_schema/json_object, content=None retry/fallback) | unit | `pytest tests/unit/test_llm_schema.py` | ⬜ W0 | ⬜ pending |
+| 05-01-03 | 01 | 1 | AI-05 | — | Schema-level guard drops any level field the LLM emits (D-02, never originate levels/prices) | unit | `pytest tests/unit/test_llm_citations.py` | ⬜ W0 | ⬜ pending |
+| 05-02-01 | 02 | 1 | AI-05 | — | Evidence serialization (scorer + SMC fields + top-5 contributors; point-in-time, no future data) | unit | `pytest tests/unit/test_llm_evidence.py` | ⬜ W0 | ⬜ pending |
+| 05-02-02 | 02 | 1 | AI-06 | — | ML↔LLM agreement flag (verdict+confidence → agree/disagree with confidence) | unit | `pytest tests/unit/test_llm_agreement.py` | ⬜ W0 | ⬜ pending |
+| 05-02-03 | 02 | 1 | AI-07 | — | Citation check (SC1) + graceful fallback to ML-only on timeout/disabled, proven offline | unit | `pytest tests/unit/test_llm_citations.py tests/unit/test_llm_fallback.py` | ⬜ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -53,10 +53,12 @@ created: 2026-09-04
 
 - [ ] `uv add openai` — the only Wave-0 install (research-verified openai 3.8.0; anthropic/respx deferred/optional)
 - [ ] Add `llm` pytest marker (live-endpoint integration tests opt-in; default suite stays offline)
-- [ ] `tests/unit/test_ml_provider.py` — stubs for AI-05 provider
-- [ ] `tests/unit/test_ml_contract.py` — stubs for AI-05 output contract
-- [ ] `tests/unit/test_ml_schema_guard.py` — stubs for SC1/D-02
-- [ ] `tests/unit/test_ml_evidence.py`, `test_ml_agreement.py`, `test_ml_citation.py`, `test_ml_fallback.py` — stubs for AI-05/06/07
+- [ ] `tests/unit/test_llm_provider.py` — stubs for AI-05 provider
+- [ ] `tests/unit/test_llm_schema.py` — stubs for AI-05 output contract
+- [ ] `tests/unit/test_llm_prompt.py` — stubs for AI-05 evidence-only prompt (D-03)
+- [ ] `tests/unit/test_llm_citations.py` — stubs for SC1/D-02 (level-field guard + citation check)
+- [ ] `tests/unit/test_llm_evidence.py` — stubs for AI-05 evidence serialization
+- [ ] `tests/unit/test_llm_agreement.py`, `test_llm_fallback.py`, `test_llm_writer.py` — stubs for AI-06/07
 
 ---
 
