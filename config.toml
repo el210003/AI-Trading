@@ -83,3 +83,31 @@ ml_min_data_in_leaf = 5
 ml_learning_rate = 0.1
 ml_retrain_enabled = false
 ml_retrain_interval_hours = 24
+
+# LLM narrative knobs (Phase 5)
+# llm_enabled: master switch — false keeps the narrative pipeline ML-only (AI-07
+#   graceful fallback) and skips any live endpoint; true engages the provider.
+# llm_base_url / llm_model: local OpenAI-compatible vLLM endpoint (verified live
+#   at .178:8000/v1; model deepseek-v4-flash-vision-exp). Any OpenAI-compatible
+#   endpoint works through the same interface.
+# llm_timeout_ms: transport timeout for the provider call (T-05-04 DoS bound).
+# llm_max_tokens: generous budget for the REASONING model (Pitfall 1) — below
+#   2048 the answer lands in content=None with finish_reason="length".
+# llm_top_n_contributors: top-N ML feature contributors (by |pred_contrib|) the
+#   evidence object surfaces to the LLM.
+# llm_structured_mode: response_format the provider sends — json_schema (strict,
+#   preferred) | json_object | none (Pitfall 4: some stacks reject json_schema);
+#   pydantic re-validation remains the authority regardless.
+# llm_agree_min_confidence: agreement-flag confidence floor (AI-06 three-state).
+# llm_max_retries: openai SDK max_retries for the underlying transport.
+# NOTE: llm_api_key (a credential, ASVS V14) lives ONLY in gitignored
+#   config.local.toml — it is intentionally absent here.
+llm_enabled = false
+llm_base_url = "http://192.168.5.178:8000/v1"
+llm_model = "deepseek-v4-flash-vision-exp"
+llm_timeout_ms = 8000
+llm_max_tokens = 2048
+llm_top_n_contributors = 5
+llm_structured_mode = "json_schema"
+llm_agree_min_confidence = 0.6
+llm_max_retries = 1

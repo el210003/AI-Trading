@@ -108,6 +108,19 @@ def _base_values(tmp: Path, **overrides: object) -> dict:
         "ml_learning_rate": 0.1,
         "ml_retrain_enabled": False,
         "ml_retrain_interval_hours": 24,
+        # Phase-5 LLM narrative knobs (same public values as config.toml) —
+        # required since plan 05-01 extended _REQUIRED_KEYS. llm_api_key is a
+        # credential that lives only in gitignored config.local.toml.
+        "llm_enabled": False,
+        "llm_base_url": "http://192.168.5.178:8000/v1",
+        "llm_model": "deepseek-v4-flash-vision-exp",
+        "llm_api_key": "",
+        "llm_timeout_ms": 8000,
+        "llm_max_tokens": 2048,
+        "llm_top_n_contributors": 5,
+        "llm_structured_mode": "json_schema",
+        "llm_agree_min_confidence": 0.6,
+        "llm_max_retries": 1,
     }
     values.update(overrides)
     return values

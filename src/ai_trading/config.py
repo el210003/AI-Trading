@@ -71,6 +71,20 @@ _REQUIRED_KEYS = (
     "ml_learning_rate",
     "ml_retrain_enabled",
     "ml_retrain_interval_hours",
+    # LLM narrative knobs (Phase 5) — same fail-fast contract: a typo'd or
+    # missing llm_* key refuses load rather than silently changing the provider
+    # or structured-output contract. llm_api_key is a credential (ASVS V14) and
+    # lives only in gitignored config.local.toml, never committed config.toml.
+    "llm_enabled",
+    "llm_base_url",
+    "llm_model",
+    "llm_api_key",
+    "llm_timeout_ms",
+    "llm_max_tokens",
+    "llm_top_n_contributors",
+    "llm_structured_mode",
+    "llm_agree_min_confidence",
+    "llm_max_retries",
 )
 
 
@@ -124,6 +138,21 @@ class Config:
     # consumed by the Phase 6 scheduler. Phase 4 only validates them.
     ml_retrain_enabled: bool = False
     ml_retrain_interval_hours: int = 24
+    # LLM narrative knobs (Phase 5). Fields carry defaults so direct
+    # construction (tests/conftest.py _make_cfg) keeps working unchanged.
+    # llm_api_key is a credential: it is never written to committed
+    # config.toml, never repr'd (modules-importing-Config never print it), and
+    # defaults to "" so offline (disabled) runs need no secret.
+    llm_enabled: bool = False
+    llm_base_url: str = "http://192.168.5.178:8000/v1"
+    llm_model: str = "deepseek-v4-flash-vision-exp"
+    llm_api_key: str = ""
+    llm_timeout_ms: int = 8000
+    llm_max_tokens: int = 2048
+    llm_top_n_contributors: int = 5
+    llm_structured_mode: str = "json_schema"
+    llm_agree_min_confidence: float = 0.6
+    llm_max_retries: int = 1
 
 
 def load_config(base: Path = Path("config.toml")) -> Config:
@@ -185,6 +214,16 @@ def load_config(base: Path = Path("config.toml")) -> Config:
         ml_learning_rate=raw["ml_learning_rate"],
         ml_retrain_enabled=raw["ml_retrain_enabled"],
         ml_retrain_interval_hours=raw["ml_retrain_interval_hours"],
+        llm_enabled=raw["llm_enabled"],
+        llm_base_url=str(raw["llm_base_url"]),
+        llm_model=str(raw["llm_model"]),
+        llm_api_key=str(raw["llm_api_key"]),
+        llm_timeout_ms=raw["llm_timeout_ms"],
+        llm_max_tokens=raw["llm_max_tokens"],
+        llm_top_n_contributors=raw["llm_top_n_contributors"],
+        llm_structured_mode=str(raw["llm_structured_mode"]),
+        llm_agree_min_confidence=raw["llm_agree_min_confidence"],
+        llm_max_retries=raw["llm_max_retries"],
     )
     _validate(cfg)
     if not cfg.validated_at:
@@ -365,4 +404,45 @@ def _validate(cfg: Config) -> None:
         raise ValueError(
             f"ml_retrain_interval_hours must be a positive integer, "
             f"got {cfg.ml_retrain_interval_hours!r}"
+        )
+
+    # -- LLM narrative knobs (Phase 5, AI-05..AI-07) ------------------------
+    # Fail-fast: an out-of-domain llm_* key refuses load naming the field and
+    # (where applicable) the allowed set. Reuses the _is_int/_is_number
+    # discipline so bool-as-int is rejected. llm_structured_mode gates the
+    # response_format the provider sends (RESEARCH Pitfall 4: some stacks
+    # reject json_schema) — pydantic re-validation stays the authority.
+    allowed_structured_mode = {"json_schema", "json_object", "none"}
+    if not isinstance(cfg.llm_enabled, bool):
+        raise ValueError(f"llm_enabled must be a boolean, got {cfg.llm_enabled!r}")
+    if cfg.llm_structured_mode not in allowed_structured_mode:
+        raise ValueError(
+            f"llm_structured_mode must be one of {sorted(allowed_structured_mode)}, "
+            f"got {cfg.llm_structured_mode!r}"
+        )
+    if not _is_int(cfg.llm_timeout_ms) or cfg.llm_timeout_ms <= 0:
+        raise ValueError(
+            f"llm_timeout_ms must be a positive integer, got {cfg.llm_timeout_ms!r}"
+        )
+    # Reasoning-model budget guard (RESEARCH Pitfall 1): the local vLLM serves a
+    # reasoning model that burns max_tokens on chain-of-thought; below 2048 the
+    # answer lands in content=None with finish_reason="length". Fail-fast here.
+    if not _is_int(cfg.llm_max_tokens) or cfg.llm_max_tokens < 2048:
+        raise ValueError(
+            f"llm_max_tokens must be an integer >= 2048 (reasoning-model token "
+            f"budget), got {cfg.llm_max_tokens!r}"
+        )
+    if not _is_int(cfg.llm_top_n_contributors) or cfg.llm_top_n_contributors < 1:
+        raise ValueError(
+            f"llm_top_n_contributors must be an integer >= 1, "
+            f"got {cfg.llm_top_n_contributors!r}"
+        )
+    if not _is_number(cfg.llm_agree_min_confidence) or not 0 <= cfg.llm_agree_min_confidence <= 1:
+        raise ValueError(
+            f"llm_agree_min_confidence must be a number in [0,1], "
+            f"got {cfg.llm_agree_min_confidence!r}"
+        )
+    if not _is_int(cfg.llm_max_retries) or cfg.llm_max_retries < 1:
+        raise ValueError(
+            f"llm_max_retries must be an integer >= 1, got {cfg.llm_max_retries!r}"
         )
