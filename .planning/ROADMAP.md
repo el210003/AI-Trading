@@ -196,5 +196,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. SMC Detection Engine | 4/4 | Complete    | 2026-08-31 |
 | 3. Backtesting & Labeling | 3/3 | Complete    | 2026-09-02 |
 | 4. ML Scoring | 3/3 | Complete    | 2026-09-03 |
-| 5. LLM Narrative Layer | 2/2 | Complete   | 2026-09-04 |
+| 5. LLM Narrative Layer | 2/2 | Complete    | 2026-09-04 |
 | 6. Setups & Dashboard | 0/3 | Not started | - |

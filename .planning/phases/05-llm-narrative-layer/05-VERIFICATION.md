@@ -1,11 +1,12 @@
 ---
 phase: 05-llm-narrative-layer
 verified: 2026-09-04T18:30:00Z
-status: human_needed
+status: passed
 score: 10/10 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
 human_verification:
+
   - test: "Run the opt-in live end-to-end narrative against the real OpenAI-compatible vLLM endpoint: `uv run pytest -m llm tests/integration/test_llm_live.py -q` with `llm_enabled=true` and the endpoint reachable in config.local.toml"
     expected: "test_live_narrative_produces_verified_result yields `result.narrative is not None`, `citation_status == 'verified'`, `score_source == 'ml_llm'`, `narrative_status == 'ok'`, `agreement` in {agree, disagree, unclear}"
     why_human: "Requires a running local vLLM endpoint (http://192.168.5.178:8000/v1). The phase is provable offline via FakeLLMProvider, so SC1/SC2/SC3 need no live endpoint; this is the only path that exercises the real model's output against the citation check and agreement flag and cannot be verified without infrastructure."
