@@ -157,8 +157,8 @@ Plans:
 
 Plans:
 
-- [ ] 05-01: Provider interface (local vLLM via OpenAI SDK; Anthropic optional) + structured-output contract
-- [ ] 05-02: Narrative pipeline (evidence serialization, citation check) + agreement flag + timeout fallback
+- [ ] 05-01-PLAN.md — Provider interface (local vLLM via OpenAI SDK; Anthropic optional) + structured-output contract
+- [ ] 05-02-PLAN.md — Narrative pipeline (evidence serialization, citation check) + agreement flag + timeout fallback
 
 ### Phase 6: Setups & Dashboard
 
