@@ -30,7 +30,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **AI-02**: Each candidate setup receives an ML probability score from a gradient-boosted model
 - [x] **AI-03**: ML scores are calibrated (isotonic/Platt) so displayed probabilities are honest
 - [x] **AI-04**: ML training/evaluation follows a walk-forward protocol with no shuffled splits on time series
-- [ ] **AI-05**: Each setup receives an LLM narrative that confirms or refutes using only the structured evidence object
+- [x] **AI-05**: Each setup receives an LLM narrative that confirms or refutes using only the structured evidence object
 - [ ] **AI-06**: Setups expose an ML↔LLM agreement flag (agree/disagree with confidence)
 - [ ] **AI-07**: System degrades gracefully to ML-only setups when the LLM endpoint is unavailable or slow
 
@@ -124,7 +124,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AI-02 | Phase 4 | Complete |
 | AI-03 | Phase 4 | Complete |
 | AI-04 | Phase 4 | Complete |
-| AI-05 | Phase 5 | Pending |
+| AI-05 | Phase 5 | Complete |
 | AI-06 | Phase 5 | Pending |
 | AI-07 | Phase 5 | Pending |
 | SETUP-01 | Phase 6 | Pending |

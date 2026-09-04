@@ -153,12 +153,12 @@ Plans:
   2. Setups expose an ML↔LLM agreement flag
   3. With the LLM endpoint disabled or timing out, the pipeline still emits complete ML-only setups (graceful fallback proven by test)
 
-**Plans**: 2 plans
+**Plans**: 1/2 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 05-01-PLAN.md — Provider interface (local vLLM via OpenAI SDK; Anthropic optional) + structured-output contract
+- [x] 05-01-PLAN.md — Provider interface (local vLLM via OpenAI SDK; Anthropic optional) + structured-output contract
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -196,5 +196,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. SMC Detection Engine | 4/4 | Complete    | 2026-08-31 |
 | 3. Backtesting & Labeling | 3/3 | Complete    | 2026-09-02 |
 | 4. ML Scoring | 3/3 | Complete    | 2026-09-03 |
-| 5. LLM Narrative Layer | 0/2 | Not started | - |
+| 5. LLM Narrative Layer | 1/2 | In Progress|  |
 | 6. Setups & Dashboard | 0/3 | Not started | - |
