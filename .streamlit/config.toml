@@ -1,0 +1,17 @@
+# Locked Phase-6 Streamlit theme (06-UI-SPEC.md Design System) — do not re-open.
+# Palette: dominant #0B0F17 / secondary #141A26 / accent #00C7FF, text #E6EDF3.
+# The semantic bull/bear/warning colors live in src/ai_trading/dashboard/theme.py
+# (the single palette source); here we only pin the app chrome theme.
+
+[theme]
+base = "dark"
+primaryColor = "#00C7FF"             # accent
+backgroundColor = "#0B0F17"          # dominant
+secondaryBackgroundColor = "#141A26" # secondary (panels)
+textColor = "#E6EDF3"
+
+[server]
+runOnSave = true
+
+[browser]
+gatherUsageStats = false
