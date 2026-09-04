@@ -156,8 +156,12 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
+**Wave 1**
 
 - [ ] 05-01-PLAN.md — Provider interface (local vLLM via OpenAI SDK; Anthropic optional) + structured-output contract
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 05-02-PLAN.md — Narrative pipeline (evidence serialization, citation check) + agreement flag + timeout fallback
 
 ### Phase 6: Setups & Dashboard
