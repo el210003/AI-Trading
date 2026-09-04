@@ -186,11 +186,12 @@ data/
 └── setups/                    # NEW — runtime setup store
     └── setups.parquet         # dedup on setup_id, atomic rewrite
 tests/
-└── unit/
-    ├── test_setup_assembly.py # mock chain/features/score/llm → record assembly, evidence object, no leaks
-    ├── test_setup_lifecycle.py# pending→active/tp/sl/expired/invalidated state machine
-    ├── test_setup_store.py    # read/upsert round-trip, dedup, atomic write, empty-frame contract
-    ├── test_dashboard_data.py # data_layer/serialization (filters, stats, health aggregation) — pure
+├── unit/
+│   ├── test_setup_assembly.py # mock chain/features/score/llm → record assembly, evidence object, no leaks
+│   ├── test_setup_lifecycle.py# pending→active/tp/sl/expired/invalidated state machine
+│   ├── test_setup_store.py    # read/upsert round-trip, dedup, atomic write, empty-frame contract
+│   └── test_dashboard_data.py # data_layer/serialization (filters, stats, health aggregation) — pure
+└── ui/
     └── test_dashboard_app.py  # streamlit.testing.v1 AppTest smoke (labels the app renders, no exception)
 ```
 
@@ -481,11 +482,11 @@ st.dataframe(filtered_df, column_config=column_configuration, use_container_widt
 | Property | Value |
 |----------|-------|
 | Framework | pytest (project default, `pytest>=9.1.1`); Streamlit `AppTest` for the app |
-| Config file | `pyproject.toml` `[tool.pytest.ini_options]` (testpaths `tests`, addopts `-m "not mt5 and not llm"`) |
+| Config file | `pyproject.toml` `[tool.pytest.ini_options]` (testpaths `tests`, addopts `-m "not mt5 and not llm and not streamlit"`) |
 | Quick run command | `uv run pytest -q tests/unit/test_setup_assembly.py tests/unit/test_setup_lifecycle.py tests/unit/test_setup_store.py` |
-| Full suite command | `uv run pytest -q -m "not mt5 and not llm"` |
+| Full suite command | `uv run pytest -q -m "not mt5 and not llm and not streamlit"` |
 
-> Add an `ui` pytest marker (to `[tool.pytest.ini_options] markers`) for Streamlit `AppTest` tests so they can be selected/desellected independently. `AppTest` is offline so it runs in the default suite; keep the marker for targeting.
+> Add a `streamlit` pytest marker (to `[tool.pytest.ini_options] markers`) for Streamlit `AppTest` tests so they can be selected/desellected independently. `AppTest` is offline but the standardized marker excludes it from the default suite (`-m "not mt5 and not llm and not streamlit"`); AppTest cases run via the explicit `-m streamlit` selector, matching the `llm` precedent.
 
 ### Phase Requirements → Test Map
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
@@ -494,23 +495,23 @@ st.dataframe(filtered_df, column_config=column_configuration, use_container_widt
 | SETUP-02 | Evidence object persisted (zone/sweep/bias/ML contributors) | unit | `uv run pytest -q tests/unit/test_setup_assembly.py -x` | ❌ Wave 0 |
 | SETUP-03 | Lifecycle active→tp_hit/sl_hit/expired via bar-close | unit | `uv run pytest -q tests/unit/test_setup_lifecycle.py -x` | ❌ Wave 0 |
 | SETUP-04 | Untriggered expire/invalidate (N-bar window / structure break) | unit | `uv run pytest -q tests/unit/test_setup_lifecycle.py -x` | ❌ Wave 0 |
-| DASH-01 | Setup table filters (symbol/status/direction/min-prob/date) | unit (data_layer) + AppTest | `uv run pytest -q tests/unit/test_dashboard_data.py tests/unit/test_dashboard_app.py -x` | ❌ Wave 0 |
+| DASH-01 | Setup table filters (symbol/status/direction/min-prob/date) | unit (data_layer) + AppTest | `uv run pytest -q tests/unit/test_dashboard_data.py tests/ui/test_dashboard_app.py -x` | ❌ Wave 0 |
 | DASH-02 | Candlestick + entry/SL/TP + sweep + PD-zone overlays | unit (chart build) + AppTest | `uv run pytest -q tests/unit/test_dashboard_data.py -x` | ❌ Wave 0 |
-| DASH-03 | Evidence trace ordering + narrative/agreement render | unit + AppTest | `uv run pytest -q tests/unit/test_dashboard_app.py -x` | ❌ Wave 0 |
+| DASH-03 | Evidence trace ordering + narrative/agreement render | unit + AppTest | `uv run pytest -q tests/ui/test_dashboard_app.py -x` | ❌ Wave 0 |
 | DASH-04 | History lifecycle outcomes | unit (data_layer) | `uv run pytest -q tests/unit/test_dashboard_data.py -x` | ❌ Wave 0 |
 | DASH-05 | WR/PF/expectancy + R equity curve (aggregate + per symbol) | unit (stats reuse) | `uv run pytest -q tests/unit/test_dashboard_data.py -x` | ❌ Wave 0 |
 | DASH-06 | Health strip last-bar time + MT5 status + errors | unit (data_layer) + AppTest | `uv run pytest -q tests/unit/test_dashboard_data.py -x` | ❌ Wave 0 |
 
 ### Sampling Rate
 - **Per task commit:** `uv run pytest -q tests/unit/test_setup_*.py tests/unit/test_dashboard_data.py -x`
-- **Per wave merge:** `uv run pytest -q -m "not mt5 and not llm"`
+- **Per wave merge:** `uv run pytest -q -m "not mt5 and not llm and not streamlit"`
 - **Phase gate:** Full suite green before `/gsd-verify-work`
 
 ### Wave 0 Gaps
 - [x] `tests/conftest.py` — `_make_cfg` must gain `setup_*` defaults so `Config(...)` direct construction keeps working
 - [x] `tests/unit/_backtest_fixtures.py` / bar factories — reuse `make_bars` + `run_chain` fixtures to feed assembly/lifecycle tests
 - [x] `tests/integration/test_dashboard_app.py` (optional) — AppTest smoke against a fixture store dir
-- [x] Add the `ui` pytest marker to `pyproject.toml`
+- [x] Add the `streamlit` pytest marker to `pyproject.toml`
 - [x] `tests/unit/_setup_fixtures.py` (new) — shared setup-record / chain / bar fixtures
 
 ## Security Domain
