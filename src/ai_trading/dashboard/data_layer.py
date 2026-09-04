@@ -24,6 +24,8 @@ renders in the warning hue — never a bare probability.
 from __future__ import annotations
 
 import os
+import sqlite3
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pandas as pd
@@ -32,6 +34,7 @@ from ai_trading.backtest.stats import canonical_stats, stats_by_symbol_timeframe
 from ai_trading.config import load_config
 from ai_trading.dashboard import theme
 from ai_trading.setup import store as setup_store
+from ai_trading.stores import meta_store
 from ai_trading.stores.bar_store import bar_path, read_bars
 
 __all__ = [
@@ -54,6 +57,9 @@ __all__ = [
     "history_frame",
     "performance_stats",
     "cumulative_r_curve",
+    "collection_state_heartbeats",
+    "recent_bar_gaps",
+    "health_status",
 ]
 
 #: ``all`` is the sidebar-direction sentinel that means "no direction filter".
@@ -406,3 +412,138 @@ def _empty_curve_frame() -> pd.DataFrame:
     return pd.DataFrame(
         {"time_utc": pd.Series(dtype="datetime64[ns]"), "cum_r": pd.Series(dtype="float64")}
     )
+
+
+# --- Health (DASH-06) ---------------------------------------------------------
+
+#: MT5 heartbeat freshness windows (minutes): <= FRESH -> healthy, <= STALE ->
+#: stale, otherwise / absent -> disconnected.
+_HEALTHY_FRESH_MIN = 2
+_STALE_MAX_MIN = 30
+
+#: Recency window (days) for the ``recent_errors`` data-quality-gap count.
+_RECENT_ERROR_DAYS = 7
+
+
+def collection_state_heartbeats(conn: sqlite3.Connection) -> dict:
+    """Read every ``collection_state`` heartbeat (last-persisted freshness).
+
+    Returns ``{(symbol, timeframe): {"last_bar_time": ...,
+    "last_success_at": ...}}``, the single-purpose meta reader the health strip
+    needs (does not reimplement ``get_checkpoint`` which reads one row).
+    """
+    rows = conn.execute(
+        "SELECT symbol, timeframe, last_bar_time, last_success_at FROM collection_state"
+    ).fetchall()
+    return {
+        (r[0], r[1]): {"last_bar_time": r[2], "last_success_at": r[3]} for r in rows
+    }
+
+
+def recent_bar_gaps(conn: sqlite3.Connection, *, days: int = _RECENT_ERROR_DAYS,
+                    now: datetime | None = None) -> int:
+    """Count ``bar_gaps`` records whose ``detected_at`` falls within the last
+    ``days`` — the health-strip "recent errors / data-quality issues" number,
+    derived from the persisted meta store (no new errors table, T-06-03)."""
+    if now is None:
+        now = datetime.now(UTC)
+    cutoff = (now - timedelta(days=days)).isoformat()
+    row = conn.execute(
+        "SELECT COUNT(*) FROM bar_gaps WHERE detected_at >= ?", (cutoff,)
+    ).fetchone()
+    return int(row[0]) if row else 0
+
+
+def _last_bar_time(bars: pd.DataFrame):
+    """Max ``time_utc`` of a bar frame, or ``None`` when empty (no-data)."""
+    if bars is None or bars.empty:
+        return None
+    return pd.to_datetime(bars["time_utc"].max(), utc=False)
+
+
+def _fmt_iso(value) -> str | None:
+    """Normalize a stored ISO timestamp for display; unparseable -> None."""
+    if value is None:
+        return None
+    try:
+        return pd.Timestamp(value).isoformat()
+    except (TypeError, ValueError):
+        return None
+
+
+def health_status(cfg, now: datetime | None = None) -> dict:
+    """DASH-06 health aggregation — last-persisted pipeline state (MT5-free).
+
+    Returns:
+    - ``per_feed``: list of ``{"symbol", "timeframe", "last_bar_time"}`` per
+      configured (symbol, timeframe) from the bar store (missing/empty -> None).
+    - ``mt5_status``: ``healthy`` / ``stale`` / ``disconnected`` derived from the
+      most recent meta ``collection_state.last_success_at`` freshness vs ``now``.
+    - ``mt5_last_success_at``: the most recent heartbeat ISO string (or None).
+    - ``recent_errors``: count of recent ``bar_gaps`` within the recency window.
+
+    A missing/empty bar store or a missing/empty meta store degrades to the
+    no-data / disconnected state (never raises, threat T-06-03). ``now`` is
+    injectable so the freshness boundaries are unit-testable.
+    """
+    if now is None:
+        now = datetime.now(UTC)
+
+    # Per-feed last-bar time (last-persisted, from the bar store).
+    feed_list = []
+    for symbol in getattr(cfg, "symbols", ()):
+        for timeframe in getattr(cfg, "timeframes", ("M15",)):
+            try:
+                bars = load_bars(cfg, symbol, timeframe)
+            except Exception:  # noqa: BLE001 - a single unreadable feed degrades
+                bars = pd.DataFrame()
+            feed_list.append(
+                {"symbol": str(symbol), "timeframe": str(timeframe),
+                 "last_bar_time": _last_bar_time(bars)}
+            )
+
+    # Meta heartbeats + recent error-gaps (single-purpose readers over meta_store).
+    heartbeats: dict = {}
+    recent_errors = 0
+    conn: sqlite3.Connection | None = None
+    try:
+        conn = meta_store.connect(Path(cfg.meta_db))
+        heartbeats = collection_state_heartbeats(conn)
+        recent_errors = recent_bar_gaps(conn, days=_RECENT_ERROR_DAYS, now=now)
+    except Exception:  # noqa: BLE001 - a missing/unreadable meta store => no-data
+        heartbeats = {}
+        recent_errors = 0
+    finally:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:  # noqa: BLE001
+                pass
+
+    # MT5/collector status from the most recent heartbeat.
+    latest_success = None
+    for info in heartbeats.values():
+        ts_str = info.get("last_success_at")
+        ts = _fmt_iso(ts_str)
+        if ts is None:
+            continue
+        if latest_success is None or pd.Timestamp(ts) > pd.Timestamp(latest_success):
+            latest_success = ts
+
+    if latest_success is None:
+        mt5_status = "disconnected"
+    else:
+        age_min = (now - pd.Timestamp(latest_success)).total_seconds() / 60.0
+        if age_min <= _HEALTHY_FRESH_MIN:
+            mt5_status = "healthy"
+        elif age_min <= _STALE_MAX_MIN:
+            mt5_status = "stale"
+        else:
+            mt5_status = "disconnected"
+
+    return {
+        "per_feed": feed_list,
+        "mt5_status": mt5_status,
+        "mt5_last_success_at": latest_success,
+        "recent_errors": recent_errors,
+    }
