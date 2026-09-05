@@ -123,7 +123,8 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-None yet.
+- [2026-09-05] Fix LLM vLLM endpoint 404 (llm)
+- [2026-09-05] Add BTCUSD symbol for weekend data capture (config)
 
 ### Blockers/Concerns
 
@@ -141,6 +142,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-04T15:02:11.020Z
-Stopped at: Completed 06-03-PLAN.md
+Last session: 2026-09-05
+Stopped at: Session resumed — Phase 6 executed & verified (10/10, human_needed); awaiting human UAT checks
 Resume file: None
