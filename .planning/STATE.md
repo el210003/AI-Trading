@@ -124,7 +124,6 @@ Recent decisions affecting current work:
 ### Pending Todos
 
 - [2026-09-05] Fix LLM vLLM endpoint 404 (llm)
-- [2026-09-05] Add BTCUSD symbol for weekend data capture (config)
 
 ### Blockers/Concerns
 
