@@ -10,8 +10,9 @@ narrative pipeline discards it (D-05 — counted, never silently kept).
 - ``dropped``: any cited key in the schema's ``FORBIDDEN_LEVEL_KEYS`` (D-02 —
   a level field the LLM cited is structurally dropped; it is not a legal
   citation target).
-- ``unknown``: any cited key not present in the evidence object (a key the
-  model invented — never silently passed, D-05).
+- ``unknown``: any cited key not present in the evidence object — a top-level
+  key or a resolvable dotted path through nested objects (a key the model
+  invented — never silently passed, D-05).
 - ``mismatch``: for a cited scalar enum field (direction, zone_state,
   bias_h1/bias_h4, sweep_side), the reasoning's asserted value differs from the
   evidence value (normalized string equality, research OQ3). Numeric fields
@@ -48,6 +49,27 @@ _ENUM_CITATION_VALUES: dict[str, tuple[str, ...]] = {
 def _norm(value) -> str:
     """Strip-and-lowercase normalization for value comparison (OQ3)."""
     return str(value).strip().lower()
+
+
+_MISSING = object()
+
+
+def _resolve_evidence_key(key: str, evidence: dict):
+    """Resolve a cited key against the evidence object: a top-level key, or a
+    dotted path through nested objects (reasoning models cite ``zone.state`` /
+    ``sweep.side`` — observed on MiniMax-M3, 2026-09-05; the evidence object
+    embeds nested zone/sweep/contributor structures). Returns the resolved
+    value, or ``_MISSING`` when the path does not resolve (the model invented
+    it)."""
+    if key in evidence:
+        return evidence[key]
+    node: object = evidence
+    for part in key.split("."):
+        if isinstance(node, dict) and part in node:
+            node = node[part]
+        else:
+            return _MISSING
+    return node
 
 
 def _mentions(reasoning: str, value: str) -> bool:
@@ -87,9 +109,14 @@ def citation_check(narrative, evidence: dict) -> dict:
     """
     citations = set(narrative.citations)
     dropped = [key for key in citations if key in FORBIDDEN_LEVEL_KEYS]
-    unknown = [key for key in citations if key not in evidence]
+    unknown = [
+        key for key in citations if _resolve_evidence_key(key, evidence) is _MISSING
+    ]
     mismatch: list[str] = []
     for key in citations:
+        # Enum value-contradiction stays a flat-key check (the enum-citation
+        # names are top-level fields); dotted paths get the existence check
+        # above, which is the D-05 guarantee that matters.
         if key in FORBIDDEN_LEVEL_KEYS or key not in evidence:
             continue
         if key in _ENUM_CITATION_KEYS:

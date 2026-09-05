@@ -23,6 +23,8 @@ remains the authority regardless.
 
 from __future__ import annotations
 
+import json
+import re
 from typing import Protocol
 
 from openai import OpenAI
@@ -36,8 +38,37 @@ class LLMProviderError(RuntimeError):
 
 class LLMTruncatedError(LLMProviderError):
     """The reasoning model returned ``content=None`` (token budget exhausted by
-    chain-of-thought; ``finish_reason="length"``). Retry/fallback, never a
-    parse crash (RESEARCH Pitfall 1)."""
+    chain-of-thought; ``finish_reason="length"``). Retry/fallback, never a parse
+    crash (RESEARCH Pitfall 1)."""
+
+
+_FENCE_RE = re.compile(r"```(?:json)?\s*(\{.*\})\s*```", re.DOTALL)
+
+
+def _extract_json_payload(content: str) -> str:
+    """Return the JSON payload from model content, tolerating reasoning-model
+    wrappers. Guided-decoding stacks (vLLM ``json_schema``) return pure JSON;
+    cloud reasoning models (MiniMax-M3, observed 2026-09-05) may emit
+    chain-of-thought prose around a markdown-fenced JSON block. Pure-JSON
+    content passes through untouched; otherwise the fenced block — failing
+    that the outermost brace span — is extracted and must parse as JSON,
+    else the response is malformed (``LLMProviderError``)."""
+    try:
+        json.loads(content)
+        return content
+    except ValueError:
+        pass
+    match = _FENCE_RE.search(content)
+    candidate = (
+        match.group(1) if match else content[content.find("{"): content.rfind("}") + 1]
+    )
+    try:
+        json.loads(candidate)
+    except ValueError as exc:
+        raise LLMProviderError(
+            f"no JSON payload in LLM content ({exc}); raw head: {content[:120]!r}"
+        ) from exc
+    return candidate
 
 
 class LLMProvider(Protocol):
@@ -93,4 +124,4 @@ class OpenAICompatProvider:
                 "LLM returned content=None (reasoning-model token budget exhausted — "
                 "finish_reason likely 'length'); treat as retry/fallback"
             )
-        return content
+        return _extract_json_payload(content)

@@ -9,12 +9,14 @@ client is constructed once with base_url/timeout/max_retries from cfg.
 
 from __future__ import annotations
 
+import json
+
 import pytest
 from _llm_fixtures import llm_cfg, make_evidence
 
 from ai_trading.llm import provider as provider_module
 from ai_trading.llm.prompt import build_prompt
-from ai_trading.llm.provider import LLMTruncatedError, OpenAICompatProvider
+from ai_trading.llm.provider import LLMProviderError, LLMTruncatedError, OpenAICompatProvider
 from ai_trading.llm.schema import narrative_response_format
 
 
@@ -121,3 +123,52 @@ def test_response_format_gated_by_structured_mode(monkeypatch):
     provider2 = OpenAICompatProvider(cfg2)
     provider2.build_narrative(make_evidence(), narrative_response_format(), cfg=cfg2)
     assert "response_format" not in fake2.created_kwargs
+
+
+@pytest.mark.unit
+def test_pure_json_content_passes_through_untouched(monkeypatch):
+    cfg = llm_cfg()
+    fake = _FakeClient('{"verdict": "confirm", "confidence": 0.6}')
+    monkeypatch.setattr(provider_module, "OpenAI", lambda *a, **k: fake)
+    provider = OpenAICompatProvider(cfg)
+    out = provider.build_narrative(make_evidence(), narrative_response_format(), cfg=cfg)
+    assert out == '{"verdict": "confirm", "confidence": 0.6}'
+
+
+@pytest.mark.unit
+def test_reasoning_prose_with_fenced_json_extracted(monkeypatch):
+    """MiniMax-M3-style mixed output: chain-of-thought prose around a markdown
+    fence — the JSON payload is extracted at the provider boundary."""
+    cfg = llm_cfg()
+    mixed = (
+        "The evidence is internally consistent...\n"
+        '```json\n{"verdict": "confirm", "confidence": 0.65, '
+        '"citations": ["p_win"]}\n```\n'
+        "In summary the thesis holds."
+    )
+    fake = _FakeClient(mixed)
+    monkeypatch.setattr(provider_module, "OpenAI", lambda *a, **k: fake)
+    provider = OpenAICompatProvider(cfg)
+    out = provider.build_narrative(make_evidence(), narrative_response_format(), cfg=cfg)
+    assert json.loads(out) == {"verdict": "confirm", "confidence": 0.65, "citations": ["p_win"]}
+
+
+@pytest.mark.unit
+def test_reasoning_prose_without_fence_extracts_brace_span(monkeypatch):
+    cfg = llm_cfg()
+    mixed = 'Reasoning without braces here... {"verdict": "refute", "confidence": 0.4}'
+    fake = _FakeClient(mixed)
+    monkeypatch.setattr(provider_module, "OpenAI", lambda *a, **k: fake)
+    provider = OpenAICompatProvider(cfg)
+    out = provider.build_narrative(make_evidence(), narrative_response_format(), cfg=cfg)
+    assert json.loads(out) == {"verdict": "refute", "confidence": 0.4}
+
+
+@pytest.mark.unit
+def test_no_json_payload_raises_provider_error(monkeypatch):
+    cfg = llm_cfg()
+    fake = _FakeClient("no structured answer in this content at all")
+    monkeypatch.setattr(provider_module, "OpenAI", lambda *a, **k: fake)
+    provider = OpenAICompatProvider(cfg)
+    with pytest.raises(LLMProviderError):
+        provider.build_narrative(make_evidence(), narrative_response_format(), cfg=cfg)
