@@ -180,20 +180,8 @@ class Config:
         return self.setup_symbols if self.setup_symbols else self.symbols
 
 
-def load_config(base: Path = Path("config.toml")) -> Config:
-    """Load base TOML, shallow-merge the sibling config.local.toml (local wins),
-    construct the frozen Config, and fail fast on any invalid value."""
-    base = Path(base)
-    if not base.exists():
-        raise ValueError(f"config file not found: {base}")
-    with open(base, "rb") as fh:
-        raw: dict[str, Any] = tomllib.load(fh)
-
-    local = base.parent / "config.local.toml"
-    if local.exists():
-        with open(local, "rb") as fh:
-            raw = {**raw, **tomllib.load(fh)}  # shallow merge, local values win
-
+def _build_config(raw: dict[str, Any]) -> Config:
+    """Construct + validate a Config from an already-merged raw TOML dict."""
     missing = [key for key in _REQUIRED_KEYS if key not in raw]
     if missing:
         raise ValueError(f"missing required config key(s): {', '.join(missing)}")
@@ -254,10 +242,41 @@ def load_config(base: Path = Path("config.toml")) -> Config:
         setup_symbols=tuple(raw["setup_symbols"]) if "setup_symbols" in raw else (),
     )
     _validate(cfg)
+    return cfg
+
+
+def load_config(base: Path = Path("config.toml")) -> Config:
+    """Load base TOML, shallow-merge the sibling config.local.toml (local wins),
+    construct the frozen Config, and fail fast on any invalid value."""
+    base = Path(base)
+    if not base.exists():
+        raise ValueError(f"config file not found: {base}")
+    with open(base, "rb") as fh:
+        raw: dict[str, Any] = tomllib.load(fh)
+
+    local = base.parent / "config.local.toml"
+    if local.exists():
+        with open(local, "rb") as fh:
+            raw = {**raw, **tomllib.load(fh)}  # shallow merge, local values win
+
+    cfg = _build_config(raw)
     if not cfg.validated_at:
         # First empirical validation happens in plan 01-02; warn, do not fail.
         log.warning("broker offset not yet validated")
     return cfg
+
+
+def validate_merged(base: Path, local_raw: dict[str, Any]) -> Config:
+    """Validate a would-be configuration WITHOUT touching disk state: base
+    TOML shallow-merged with ``local_raw`` exactly as if it were
+    ``config.local.toml``. Used by the config writer to prove a merged
+    override set is valid before the file is written."""
+    base = Path(base)
+    if not base.exists():
+        raise ValueError(f"config file not found: {base}")
+    with open(base, "rb") as fh:
+        raw: dict[str, Any] = tomllib.load(fh)
+    return _build_config({**raw, **local_raw})
 
 
 def _is_int(value: object) -> bool:

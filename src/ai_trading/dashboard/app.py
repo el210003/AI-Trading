@@ -20,6 +20,7 @@ from ai_trading.dashboard import (  # noqa: E402  (after set_page_config)
     views_health,
     views_history,
     views_performance,
+    views_settings,
     views_setups,
 )
 
@@ -41,6 +42,7 @@ with tab_perf:
     views_performance.render(filters)
 with tab_health:
     views_health.render_detail(filters)
+    views_settings.render_settings()
 
 
 def main() -> None:

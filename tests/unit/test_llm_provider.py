@@ -172,3 +172,72 @@ def test_no_json_payload_raises_provider_error(monkeypatch):
     provider = OpenAICompatProvider(cfg)
     with pytest.raises(LLMProviderError):
         provider.build_narrative(make_evidence(), narrative_response_format(), cfg=cfg)
+
+
+# ---------------------------------------------------------------------------
+# probe_endpoint (SEED-004 settings panel): never raises, reports state
+# ---------------------------------------------------------------------------
+
+class _FakeModels:
+    def __init__(self, ids):
+        self.data = [type("M", (), {"id": i})() for i in ids]
+
+
+class _FakeProbeClient:
+    def __init__(self, model_ids=("m-a", "m-b"), fail_models=False, fail_chat=False):
+        self._ids = model_ids
+        self._fail_models = fail_models
+        self._fail_chat = fail_chat
+        self.content = "ok"  # read by _FakeChat.create
+        self.chat = _FakeChat(self)
+
+    @property
+    def models(self):
+        parent = self
+
+        class _Models:
+            def list(self):
+                if parent._fail_models:
+                    raise RuntimeError("models endpoint down")
+                return _FakeModels(parent._ids)
+
+        return _Models()
+
+
+@pytest.mark.unit
+def test_probe_endpoint_ok_reports_models_and_latency(monkeypatch):
+    fake = _FakeProbeClient()
+    monkeypatch.setattr(provider_module, "OpenAI", lambda *a, **k: fake)
+    result = provider_module.probe_endpoint("http://x:8000/v1", "key", "m-a")
+    assert result["ok"] is True
+    assert result["chat_ok"] is True
+    assert result["models"] == ["m-a", "m-b"]
+    assert isinstance(result["latency_ms"], int)
+
+
+@pytest.mark.unit
+def test_probe_endpoint_models_failure_reports_error(monkeypatch):
+    fake = _FakeProbeClient(fail_models=True)
+    monkeypatch.setattr(provider_module, "OpenAI", lambda *a, **k: fake)
+    result = provider_module.probe_endpoint("http://x:8000/v1", "key", "m-a")
+    assert result["ok"] is False
+    assert result["models"] == []
+    assert "models endpoint down" in result["error"]
+
+
+@pytest.mark.unit
+def test_probe_endpoint_chat_failure_lists_models(monkeypatch):
+    class _FailingChat:
+        class completions:
+            @staticmethod
+            def create(**kwargs):
+                raise RuntimeError("model does not exist")
+
+    fake = _FakeProbeClient()
+    fake.chat = _FailingChat()
+    monkeypatch.setattr(provider_module, "OpenAI", lambda *a, **k: fake)
+    result = provider_module.probe_endpoint("http://x:8000/v1", "key", "gone-model")
+    assert result["ok"] is False
+    assert result["chat_ok"] is False
+    assert result["models"] == ["m-a", "m-b"]
+    assert "model does not exist" in result["error"]

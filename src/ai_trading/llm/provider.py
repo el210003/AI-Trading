@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import json
 import re
+import time as _time
 from typing import Protocol
 
 from openai import OpenAI
@@ -125,3 +126,35 @@ class OpenAICompatProvider:
                 "finish_reason likely 'length'); treat as retry/fallback"
             )
         return _extract_json_payload(content)
+
+
+def probe_endpoint(base_url: str, api_key: str, model: str, timeout_s: float = 20.0) -> dict:
+    """One-shot endpoint probe for the settings panel (SEED-004): list the
+    served model ids and time a minimal chat call against ``model``.
+
+    Never raises — network/HTTP failures land in ``error`` and ``ok=False``.
+    Returns ``{ok, models, chat_ok, latency_ms, error}`` where ``models`` is
+    the served id list (the authority for the configured ``llm_model``).
+    """
+    result: dict = {"ok": False, "models": [], "chat_ok": False, "latency_ms": None, "error": None}
+    try:
+        client = OpenAI(api_key=api_key, base_url=base_url, timeout=timeout_s, max_retries=0)
+        listed = client.models.list()
+        result["models"] = sorted(str(m.id) for m in listed.data)
+    except Exception as exc:  # noqa: BLE001 — probe reports, never raises
+        result["error"] = f"{type(exc).__name__}: {exc}"
+        return result
+    try:
+        t0 = _time.monotonic()
+        client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": "Reply with the single word: ok"}],
+            max_tokens=2048,
+        )
+        result["latency_ms"] = int((_time.monotonic() - t0) * 1000)
+        result["chat_ok"] = True
+    except Exception as exc:  # noqa: BLE001 — probe reports, never raises
+        result["error"] = f"{type(exc).__name__}: {exc}"
+        return result
+    result["ok"] = True
+    return result

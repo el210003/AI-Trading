@@ -24,7 +24,7 @@ from pathlib import Path
 import pandas as pd
 
 from ai_trading.collector import seconds_until_next_close
-from ai_trading.config import load_config
+from ai_trading.config import Config, load_config
 from ai_trading.llm.provider import OpenAICompatProvider
 from ai_trading.ml.scorer import load_scorer
 from ai_trading.setup.assembly import assemble_setup
@@ -41,6 +41,18 @@ _TERMINAL_STATUSES = frozenset({"tp_hit", "sl_hit", "expired", "invalidated"})
 def models_dir(cfg) -> Path:
     """Path to the ML models root (``data/models``) derived from the data root."""
     return Path(cfg.bars_dir).parent / "models"
+
+
+def refresh_cfg(cfg: Config, config_path: Path) -> Config:
+    """Re-load the config for the next monitor pass so dashboard-driven
+    config.local.toml edits (LLM settings panel, SEED-004) apply without a
+    restart. On a config error, keep the previous config and log the
+    actionable message — a bad panel save must not kill a running engine."""
+    try:
+        return load_config(config_path)
+    except ValueError as exc:
+        log.error("config reload failed, keeping previous config: %s", exc)
+        return cfg
 
 
 def should_run_on_m15_close(now_utc: datetime) -> bool:
@@ -169,6 +181,9 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         log.info("setup engine monitor started (run after each M15 close)")
         while True:
+            # Per-pass config reload: dashboard-driven config.local.toml edits
+            # (LLM settings panel) apply on the next pass without a restart.
+            cfg = refresh_cfg(cfg, Path(args.config))
             summary = run_engine_once(cfg)
             log.info("engine pass complete: %s", summary)
             sleep_seconds = seconds_until_next_close(
