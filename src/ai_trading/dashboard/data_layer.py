@@ -417,8 +417,11 @@ def _empty_curve_frame() -> pd.DataFrame:
 # --- Health (DASH-06) ---------------------------------------------------------
 
 #: MT5 heartbeat freshness windows (minutes): <= FRESH -> healthy, <= STALE ->
-#: stale, otherwise / absent -> disconnected.
-_HEALTHY_FRESH_MIN = 2
+#: stale, otherwise / absent -> disconnected. FRESH must comfortably exceed the
+#: collector's inter-poll gap (~15.2 min worst case at the M15-close cadence):
+#: at 2 the strip read "stalled" for ~87% of every cycle in real operation
+#: (found during the 2026-09-05 human verification — bug, not semantics).
+_HEALTHY_FRESH_MIN = 20
 _STALE_MAX_MIN = 30
 
 #: Recency window (days) for the ``recent_errors`` data-quality-gap count.

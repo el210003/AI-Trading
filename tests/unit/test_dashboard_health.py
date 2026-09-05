@@ -78,12 +78,13 @@ def test_health_per_feed_last_bar_times(tmp_path):
 @pytest.mark.unit
 def test_health_heartbeat_freshness_mapping(tmp_path):
     cfg = dashboard_cfg(tmp_path, symbols=("EURUSD",), timeframes=("M15",))
-    # healthy: heartbeat within the fresh window (<= 2 min).
-    _seed_heartbeat(cfg, "EURUSD", "M15", (NOW - timedelta(minutes=1)).isoformat())
+    # healthy: heartbeat within the fresh window (<= 20 min — comfortably above
+    # the ~15.2-min worst-case inter-poll gap at the M15-close cadence).
+    _seed_heartbeat(cfg, "EURUSD", "M15", (NOW - timedelta(minutes=15)).isoformat())
     assert dl.health_status(cfg, now=NOW)["mt5_status"] == "healthy"
-    # stale: within the stale window (> 2 min, <= 30 min).
+    # stale: within the stale window (> 20 min, <= 30 min).
     cfg2 = dashboard_cfg(tmp_path / "stale", symbols=("EURUSD",), timeframes=("M15",))
-    _seed_heartbeat(cfg2, "EURUSD", "M15", (NOW - timedelta(minutes=10)).isoformat())
+    _seed_heartbeat(cfg2, "EURUSD", "M15", (NOW - timedelta(minutes=25)).isoformat())
     assert dl.health_status(cfg2, now=NOW)["mt5_status"] == "stale"
     # disconnected: heartbeat too old.
     cfg3 = dashboard_cfg(tmp_path / "disc", symbols=("EURUSD",), timeframes=("M15",))

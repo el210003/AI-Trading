@@ -207,6 +207,41 @@ def test_poll_cycle_checkpoint_filter_update_and_idempotency(tmp_path, fake_mt5,
 
 
 @pytest.mark.unit
+def test_poll_cycle_no_new_rows_still_bumps_heartbeat(tmp_path, fake_mt5, make_cfg):
+    """A successful fetch with nothing new (weekend forex at the 15-min
+    cadence) is still a liveness signal: last_success_at advances while the
+    checkpoint and bar file stay untouched (2026-09-05 human-verification
+    finding — the health strip read 'stalled' because heartbeats only moved
+    on actual bar writes)."""
+    _script_all_combos(fake_mt5)
+    cfg = _poll_cfg(make_cfg, tmp_path)
+    conn = meta_store.connect(cfg.meta_db)
+    try:
+        # Seed each combo at its own scripted max bar (per-TF grid end), so
+        # every fetch returns nothing strictly-newer -> zero stored rows.
+        for sym in cfg.symbols:
+            for tf in cfg.timeframes:
+                step_min = TIMEFRAME_MINUTES[tf]
+                max_utc = SERVER_START + timedelta(minutes=step_min * 4) - timedelta(hours=OFFSET)
+                meta_store.update_checkpoint(
+                    conn, sym, tf, max_utc.isoformat(), "2026-08-28T00:00:00Z"
+                )
+        assert run_poll_cycle(cfg, conn, fake_mt5) == 0
+        last_bar, last_success = conn.execute(
+            "SELECT last_bar_time, last_success_at FROM collection_state "
+            "WHERE symbol='EURUSD' AND timeframe='M15'"
+        ).fetchone()
+        m15_max_utc = (
+            SERVER_START + timedelta(minutes=TIMEFRAME_MINUTES["M15"] * 4) - timedelta(hours=OFFSET)
+        )
+        assert last_bar == m15_max_utc.isoformat()
+        assert last_success > "2026-08-28T00:00:00Z"  # heartbeat advanced
+        assert not bar_store.bar_path(cfg.bars_dir, "EURUSD", "M15").exists()
+    finally:
+        conn.close()
+
+
+@pytest.mark.unit
 def test_poll_cycle_writes_parquet_before_checkpoint(tmp_path, fake_mt5, make_cfg, monkeypatch):
     """Write-then-checkpoint ordering (Pattern 5) — the only restart state."""
     _script_all_combos(fake_mt5)

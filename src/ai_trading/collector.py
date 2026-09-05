@@ -169,9 +169,14 @@ def run_poll_cycle(cfg, conn, client=mt5_client) -> int:
     STRICTLY greater than the SQLite checkpoint (all rows when no checkpoint
     exists), skip when nothing is new, write Parquet via bar_store.merge_and_write,
     and ONLY after that write succeeds update the checkpoint with the max
-    stored time_utc (write-then-checkpoint ordering, Pattern 5 — a crash
+    stored time_utc (write-then-checkpoint ordering, Pattern 5 - a crash
     between the two merely refetches). Returns the total number of new bar
     rows stored across all combos.
+
+    A successful fetch with nothing new (weekend forex at the 15-min cadence)
+    still bumps ``last_success_at`` WITHOUT moving the checkpoint — the
+    heartbeat is a liveness signal ("we reached MT5"), not a bar-arrival
+    signal; the dashboard's health strip reads it as such.
     """
     total_new = 0
     for symbol in cfg.symbols:
@@ -183,6 +188,12 @@ def run_poll_cycle(cfg, conn, client=mt5_client) -> int:
                 checkpoint_ts = pd.Timestamp(checkpoint_iso)
                 df = df[df["time_utc"] > checkpoint_ts]
             if df.empty:
+                # Successful fetch, nothing new: liveness bump, checkpoint and
+                # last_bar_time stay untouched (nothing was persisted).
+                if checkpoint_iso is not None:
+                    meta_store.update_checkpoint(
+                        conn, symbol, timeframe, checkpoint_iso, datetime.now(UTC).isoformat()
+                    )
                 continue
 
             path = bar_store.bar_path(Path(cfg.bars_dir), symbol, timeframe)
