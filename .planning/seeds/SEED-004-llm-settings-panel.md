@@ -1,6 +1,6 @@
 ---
 id: SEED-004
-status: dormant
+status: done
 planted: 2026-09-05
 planted_during: v1.0 milestone, Phase 6 (setups-dashboard) — final UAT check pending
 trigger_when: v1.0 milestone closes (first /gsd-new-milestone planning)
@@ -8,6 +8,12 @@ scope: medium
 ---
 
 # SEED-004: LLM settings panel in the dashboard
+
+> **DONE — pulled forward and implemented 2026-09-05** (commit 1e45406):
+> `config_writer` validate-before-write atomic editor, `scheduler.refresh_cfg`
+> per-pass reload, Health-tab panel with write-only key field + Test-connection
+> probe (`probe_endpoint`), 11 new tests (suite 580). Design deviations: none
+> material — option (a) hot-reload chosen as the seed recommended.
 
 ## Why This Matters
 
