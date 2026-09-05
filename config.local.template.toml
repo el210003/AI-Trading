@@ -1,0 +1,35 @@
+# Template for config.local.toml — machine-specific overrides (gitignored).
+#
+# Setup on a new machine:
+#   1. Copy this file to config.local.toml  (PowerShell: Copy-Item config.local.template.toml config.local.toml)
+#   2. Fill in every <FILL-IN> below.
+#   3. Verify: uv run python -c "from pathlib import Path; from ai_trading.config import load_config; load_config(Path('config.toml')); print('config OK')"
+#
+# This file NEVER gets committed (see .gitignore). Keys in <ANGLE_BRACKETS>
+# are placeholders — replace them, do not commit real values anywhere else.
+
+# --- MetaTrader 5 terminal ---------------------------------------------------
+# Full path to THIS machine's terminal64.exe. Never let initialize() auto-find
+# a terminal (Pitfall 8: two installs on one machine pick the wrong one).
+terminal_path = '<FILL-IN: C:\Program Files\<Your Broker> MT5\terminal64.exe>'
+expected_server = "<FILL-IN: e.g. ICMarketsSC-Demo>"
+
+# --- Broker server pseudo-UTC offset ----------------------------------------
+# Hours to subtract from server wall time to reach true UTC. DST-dependent —
+# validate empirically (plan 01-02 procedure) and update validated_at;
+# expected +2 after US summer time ends (early November).
+broker_offset_hours = 3
+validated_at = "<FILL-IN: ISO timestamp of your empirical validation, e.g. 2026-09-05T02:00:00Z>"
+
+# --- Data backfill -----------------------------------------------------------
+# Deep history for ML training (overrides config.toml initial_backfill_days = 90)
+initial_backfill_days = 365
+
+# --- LLM narrative (Phase 5) -------------------------------------------------
+# llm_api_key is the ONLY credential here (ASVS V14 — never committed).
+# Current provider: MiniMax (OpenAI-compatible). The LAN vLLM default lives in
+# config.toml; these overrides win key-by-key.
+llm_base_url = "https://api.minimax.io/v1"
+llm_model = "MiniMax-M3"
+llm_api_key = "<FILL-IN: your API key — never commit this file>"
+llm_enabled = true
