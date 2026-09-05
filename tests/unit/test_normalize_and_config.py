@@ -237,6 +237,45 @@ def test_symbol_names_rejected(tmp_path, sym):
 
 
 # ---------------------------------------------------------------------------
+# setup_symbols: collect-only split (weekend/debug data feeds)
+# ---------------------------------------------------------------------------
+
+@pytest.mark.unit
+def test_setup_symbols_absent_defaults_to_symbols(tmp_path):
+    path = _write_config(tmp_path, _base_values(tmp_path, symbols=["EURUSD", "GBPUSD"]))
+    cfg = load_config(path)
+    assert cfg.setup_symbols == ()
+    assert cfg.engine_symbols == ("EURUSD", "GBPUSD")
+
+
+@pytest.mark.unit
+def test_setup_symbols_explicit_engine_universe_and_pip_size_scope(tmp_path):
+    # BTCUSD collected but not setup-eligible: no pip_size entry needed for it.
+    values = _base_values(tmp_path, symbols=["EURUSD", "BTCUSD"], setup_symbols=["EURUSD"])
+    values["pip_size"] = {"EURUSD": 0.0001}
+    path = _write_config(tmp_path, values)
+    cfg = load_config(path)
+    assert cfg.engine_symbols == ("EURUSD",)
+    assert "BTCUSD" in cfg.symbols
+
+
+@pytest.mark.unit
+def test_setup_symbols_unknown_entry_rejected(tmp_path):
+    values = _base_values(tmp_path, symbols=["EURUSD"], setup_symbols=["GBPUSD"])
+    path = _write_config(tmp_path, values)
+    with pytest.raises(ValueError, match="setup_symbols"):
+        load_config(path)
+
+
+@pytest.mark.unit
+def test_setup_symbols_invalid_entry_rejected(tmp_path):
+    values = _base_values(tmp_path, symbols=["EURUSD"], setup_symbols=["eurusd"])
+    path = _write_config(tmp_path, values)
+    with pytest.raises(ValueError, match="setup_symbols"):
+        load_config(path)
+
+
+# ---------------------------------------------------------------------------
 # Other validation failures + startup warning
 # ---------------------------------------------------------------------------
 

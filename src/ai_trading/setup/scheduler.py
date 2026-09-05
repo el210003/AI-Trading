@@ -76,7 +76,7 @@ def run_engine_once(cfg, conn=None, *, scorer=None, llm_provider=None) -> dict:
     stored = read_setups(cfg)
 
     bars_by_symbol: dict[str, dict] = {}
-    for sym in cfg.symbols:
+    for sym in cfg.engine_symbols:
         m15 = read_bars(bar_path(Path(cfg.bars_dir), sym, "M15"))
         if m15.empty:
             continue
@@ -97,7 +97,7 @@ def run_engine_once(cfg, conn=None, *, scorer=None, llm_provider=None) -> dict:
         llm_provider = OpenAICompatProvider(cfg)
 
     new_records: list[dict] = []
-    for sym in cfg.symbols:
+    for sym in cfg.engine_symbols:
         if sym in suppressed:
             continue
         bundle = bars_by_symbol.get(sym)

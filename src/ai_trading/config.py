@@ -167,6 +167,17 @@ class Config:
     #   filter is separate).
     setup_trigger_window_bars: int = 8
     setup_min_p_win: float = 0.0
+    # Collect-only symbols (weekend data feed, e.g. crypto): setup_symbols
+    # restricts which collected symbols the setup engine assembles/lifecycle-
+    # resolves for. Empty (default, and absent in TOML) = every configured
+    # symbol is setup-eligible — the v1 behavior.
+    setup_symbols: tuple[str, ...] = ()
+
+    @property
+    def engine_symbols(self) -> tuple[str, ...]:
+        """Symbols the setup engine (and the default backtest universe) works
+        on: ``setup_symbols`` when set, else all collected ``symbols``."""
+        return self.setup_symbols if self.setup_symbols else self.symbols
 
 
 def load_config(base: Path = Path("config.toml")) -> Config:
@@ -240,6 +251,7 @@ def load_config(base: Path = Path("config.toml")) -> Config:
         llm_max_retries=raw["llm_max_retries"],
         setup_trigger_window_bars=raw["setup_trigger_window_bars"],
         setup_min_p_win=raw["setup_min_p_win"],
+        setup_symbols=tuple(raw["setup_symbols"]) if "setup_symbols" in raw else (),
     )
     _validate(cfg)
     if not cfg.validated_at:
@@ -268,6 +280,22 @@ def _validate(cfg: Config) -> None:
                 f"symbols entry {sym!r} invalid: expected six uppercase letters "
                 "(optionally .broker-suffix), e.g. EURUSD or EURUSD.a"
             )
+
+    # setup_symbols (optional collect-only split): every entry must pass the
+    # symbol contract AND be a collected symbol — a setup symbol that is not
+    # collected could never assemble.
+    for sym in cfg.setup_symbols:
+        if not isinstance(sym, str) or not _SYMBOL_RE.match(sym):
+            raise ValueError(
+                f"setup_symbols entry {sym!r} invalid: expected six uppercase letters "
+                "(optionally .broker-suffix), e.g. EURUSD or EURUSD.a"
+            )
+    unknown_setup = [sym for sym in cfg.setup_symbols if sym not in cfg.symbols]
+    if unknown_setup:
+        raise ValueError(
+            f"setup_symbols entries must be configured symbols (collected); "
+            f"unknown: {', '.join(unknown_setup)}"
+        )
 
     if not cfg.timeframes:
         raise ValueError("timeframes must be a non-empty list")
@@ -327,10 +355,11 @@ def _validate(cfg: Config) -> None:
     if not isinstance(cfg.pip_size, dict):
         raise ValueError(f"pip_size must be a dict of symbol -> pip size, got {cfg.pip_size!r}")
     # Suffixed broker symbols (e.g. EURUSD.a, Phase 1 suffix contract) resolve
-    # their pip size through the base name.
+    # their pip size through the base name. Scoped to the engine universe: a
+    # collect-only symbol (setup_symbols split) never enters the cost model.
     missing_pip = [
         sym
-        for sym in cfg.symbols
+        for sym in cfg.engine_symbols
         if sym not in cfg.pip_size and _base_symbol(sym) not in cfg.pip_size
     ]
     if missing_pip:

@@ -1,8 +1,16 @@
 # Committed runtime configuration — NO secrets in this file (ASVS V14).
 # Local overrides belong in config.local.toml (gitignored), which wins key-by-key.
 
-symbols = ["EURUSD", "GBPUSD", "USDJPY"]
+symbols = ["EURUSD", "GBPUSD", "USDJPY", "BTCUSD"]
 timeframes = ["M15", "H1", "H4"]
+
+# Setup universe (Phase 6 engine + default backtest universe). Symbols listed
+# here are collected AND setup-eligible; collected symbols absent from this
+# list are collect-only data feeds. BTCUSD is collected as a weekend/debug
+# data feed (crypto trades 7x24, forex closes Fri ~21:00 UTC) — the engine
+# keeps assembling forex-only setups, honoring the v1 "forex majors only"
+# scope (PROJECT.md Out of Scope).
+setup_symbols = ["EURUSD", "GBPUSD", "USDJPY"]
 
 # MT5 terminal — must be overridden in config.local.toml (Pitfall 8: never let
 # initialize() find its own terminal; two installs exist on this machine).

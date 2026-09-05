@@ -11,7 +11,7 @@ import inspect
 
 import pandas as pd
 import pytest
-from _backtest_fixtures import write_bars_parquet
+from _backtest_fixtures import make_bars, write_bars_parquet
 from _llm_fixtures import FakeLLMProvider
 from _ml_fixtures import _h1_world, _h4_world, _m15_world
 from _setup_fixtures import make_setup_frame, setup_cfg
@@ -84,6 +84,28 @@ def test_run_engine_once_suppresses_second_setup_d05(tmp_path):
     summary = run_engine_once(cfg, scorer=FakeScorer(), llm_provider=FakeLLMProvider())
     assert summary["assembled"] == 0
     assert len(read_setups(cfg)) == 1
+
+
+@pytest.mark.unit
+def test_run_engine_once_ignores_collect_only_symbols(tmp_path):
+    """A collected-but-not-setup-eligible symbol (setup_symbols split) is never
+    read or assembled by the engine — BTCUSD weekend/debug feed contract."""
+    bars_dir = _write_world(tmp_path)
+    write_bars_parquet(
+        make_bars("BTCUSD", "M15", _m15_world()["time_utc"].iloc[0], 100),
+        bars_dir / "BTCUSD_M15.parquet",
+    )
+    cfg = setup_cfg(
+        bars_dir=bars_dir,
+        symbols=("EURUSD", "BTCUSD"),
+        setup_symbols=("EURUSD",),
+    )
+    assert cfg.engine_symbols == ("EURUSD",)
+    summary = run_engine_once(cfg, scorer=FakeScorer(), llm_provider=FakeLLMProvider())
+    assert summary["assembled"] == 1
+    setups = read_setups(cfg)
+    assert len(setups) == 1
+    assert setups.iloc[0]["symbol"] == "EURUSD"
 
 
 @pytest.mark.unit

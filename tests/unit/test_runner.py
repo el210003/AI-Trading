@@ -79,6 +79,22 @@ def test_symbols_outside_config_returns_2(tmp_path):
 
 
 @pytest.mark.unit
+def test_symbols_outside_engine_universe_returns_2(tmp_path):
+    """BTCUSD collected but collect-only (setup_symbols split): explicitly
+    backtesting it is a config error (exit 2), not a silent cost-model run."""
+    bars_dir = tmp_path / "bars"
+    _write_store(bars_dir, m15=_five_day_m15())
+    cfg_path = _write_config(
+        tmp_path,
+        bars_dir,
+        min_history_days=30,
+        symbols=["EURUSD", "BTCUSD"],
+        setup_symbols=["EURUSD"],
+    )
+    assert runner_main(["--config", str(cfg_path), "--symbols", "BTCUSD"]) == 2
+
+
+@pytest.mark.unit
 def test_min_history_days_must_be_positive(tmp_path, caplog):
     bars_dir = tmp_path / "bars"
     _write_store(bars_dir, m15=_five_day_m15())

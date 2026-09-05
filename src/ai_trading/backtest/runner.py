@@ -357,18 +357,18 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.symbols is not None:
         requested = tuple(s.strip() for s in args.symbols.split(",") if s.strip())
-        invalid = [s for s in requested if s not in cfg.symbols]
+        invalid = [s for s in requested if s not in cfg.engine_symbols]
         if not requested or invalid:
             log.error(
-                "--symbols must be a non-empty comma-separated subset of the configured "
+                "--symbols must be a non-empty comma-separated subset of the engine "
                 "symbols %s; rejected: %s",
-                list(cfg.symbols),
+                list(cfg.engine_symbols),
                 invalid if invalid else "<empty>",
             )
             return 2
         symbols = requested
     else:
-        symbols = tuple(cfg.symbols)
+        symbols = tuple(cfg.engine_symbols)
 
     try:
         result = run_backtest(cfg, symbols, args.range_arg, write=args.write)
