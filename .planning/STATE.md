@@ -142,5 +142,5 @@ Items acknowledged and carried forward from previous milestone close:
 ## Session Continuity
 
 Last session: 2026-09-05
-Stopped at: Session resumed — Phase 6 executed & verified (10/10, human_needed); awaiting human UAT checks
+Stopped at: UAT 3/4 passed (1, 2a, 3); BTCUSD collect-only feed live (collector monitor detached); LLM switched to MiniMax-M3 (provider JSON-extraction + dotted-path citations). Remaining: UAT test 2 live engine drive + broker-offset re-validation (Monday), setups-store cleanup decision, unconfirmed weekend duplicate-assembly edge case
 Resume file: None
