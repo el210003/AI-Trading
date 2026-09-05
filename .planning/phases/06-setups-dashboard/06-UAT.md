@@ -8,17 +8,17 @@ updated: 2026-09-04T11:40:00Z
 
 ## Current Test
 
-number: 1
-name: Interactive Streamlit dashboard run
+number: 2
+name: Drive the scheduled engine against live MT5
 expected: |
-  Launch the dashboard against a populated setup store. Confirm the Setups tab renders the table with filters, the candlestick chart shows entry/SL/TP lines + sweep and PD-zone overlays, and the evidence detail (DASH-01/02/03) renders the ordered trace (bias/zone/sweep/ML contributors/narrative + agreement chip). History/Performance/Health tabs render their content.
+  Run the MT5-free engine directly against the live MT5 terminal; confirm a real setup is assembled after the M15 close and the health strip shows connected + last-bar times. (Live heartbeat/trigger timing — human-only.)
 awaiting: user response
 
 ## Tests
 
 ### 1. Interactive Streamlit dashboard run
 expected: Launch the dashboard against a populated setup store; confirm table + filters, candlestick with entry/SL/TP + sweep/PD-zone overlays, evidence detail trace, and the History/Performance/Health tabs render.
-result: [pending]
+result: passed (human visual review 2026-09-05) — 18-row populated store (all statuses), filters + Reset/Refresh, candlestick with Entry/SL/TP/Sweep overlays, 6-section evidence trace, History/Performance/Health tabs render; locked dark palette applied.
 
 ### 2. Drive the scheduled engine against live MT5
 expected: Run the MT5-free engine directly against the live MT5 terminal; confirm a real setup is assembled after the M15 close and the health strip shows connected + last-bar times. (Live heartbeat/trigger timing — human-only.)
@@ -31,9 +31,9 @@ result: [pending]
 ## Summary
 
 total: 3
-passed: 0
+passed: 1
 issues: 0
-pending: 3
+pending: 2
 skipped: 0
 blocked: 0
 
