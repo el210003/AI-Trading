@@ -26,14 +26,18 @@ result: [pending]
 
 ### 3. Performance-caveat readability
 expected: The Performance panel's live-vs-backtest comparability caveat renders clearly and is human-readable.
-result: [pending]
+result: passed (human visual review 2026-09-05) — Trades: 2 (resolved WIN rows from the populated store), KPI cards + equity curve render, and the caveat caption is readable verbatim: "Live is a trigger-filtered subset of the backtest universe (live limit-trigger fill vs the backtest next-open fill); R is structural (signals-only, no cost model)."
+
+### 2a. Weekend data feed (BTCUSD collect-only split)
+expected: With the collect-only BTCUSD config change (setup_symbols split), the running collector stores fresh BTCUSD bars over the closed forex weekend and the health strip shows connected with fresh BTCUSD last-bar times.
+result: passed (observed 2026-09-05) — BTCUSD M15 34755→34758 bars across three live M15 closes under the detached collector monitor; BTCUSD heartbeat ~11 min old (connected), forex feeds correctly frozen at Friday 20:45 UTC last bar.
 
 ## Summary
 
-total: 3
-passed: 1
+total: 4
+passed: 3
 issues: 0
-pending: 2
+pending: 1
 skipped: 0
 blocked: 0
 
