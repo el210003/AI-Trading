@@ -123,7 +123,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-- [2026-09-05] Fix LLM vLLM endpoint 404 (llm)
+None — open items: UAT test 2 (live engine drive, Monday); broker-offset re-validation (Monday); weekend duplicate-assembly edge case (unconfirmed, not captured).
 
 ### Blockers/Concerns
 
