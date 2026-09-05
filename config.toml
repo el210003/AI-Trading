@@ -112,7 +112,9 @@ ml_retrain_interval_hours = 24
 #   config.local.toml — it is intentionally absent here.
 llm_enabled = false
 llm_base_url = "http://192.168.5.178:8000/v1"
-llm_model = "deepseek-v4-flash-vision-exp"
+# Model id as served by the endpoint (GET /v1/models is the authority — the
+# server swapped models on 2026-09-05: deepseek-v4-flash-vision-exp -> GLM-5.3-Flash-EXL3).
+llm_model = "GLM-5.3-Flash-EXL3"
 # llm_timeout_ms: transport timeout for the provider call. LOCAL vLLM reasoning
 # model verifies ~17-34s per generation (chain-of-thought on this hardware), so
 # 8000ms times out every call; 60000ms is the realistic bound (T-05-04 DoS bound

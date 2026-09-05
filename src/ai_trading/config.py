@@ -149,8 +149,8 @@ class Config:
     # config.toml, never repr'd (modules-importing-Config never print it), and
     # defaults to "" so offline (disabled) runs need no secret.
     llm_enabled: bool = False
-    llm_base_url: str = "http://192.168.5.178:8000/v1"
-    llm_model: str = "deepseek-v4-flash-vision-exp"
+    llm_base_url: str = ""
+    llm_model: str = ""
     llm_api_key: str = ""
     llm_timeout_ms: int = 8000
     llm_max_tokens: int = 2048
@@ -460,6 +460,20 @@ def _validate(cfg: Config) -> None:
     allowed_structured_mode = {"json_schema", "json_object", "none"}
     if not isinstance(cfg.llm_enabled, bool):
         raise ValueError(f"llm_enabled must be a boolean, got {cfg.llm_enabled!r}")
+    # No endpoint baked into code defaults: the concrete base URL / model live
+    # only in config (config.toml / config.local.toml). An enabled LLM without
+    # both refuses load — disabled runs (ML-only fallback) may omit them.
+    if cfg.llm_enabled:
+        missing_llm = [
+            name
+            for name, value in (("llm_base_url", cfg.llm_base_url), ("llm_model", cfg.llm_model))
+            if not str(value).strip()
+        ]
+        if missing_llm:
+            raise ValueError(
+                f"llm_enabled=true requires non-empty {', '.join(missing_llm)} "
+                "(endpoint/model are config-only, never hardcoded)"
+            )
     if cfg.llm_structured_mode not in allowed_structured_mode:
         raise ValueError(
             f"llm_structured_mode must be one of {sorted(allowed_structured_mode)}, "

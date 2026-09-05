@@ -113,7 +113,7 @@ def _base_values(tmp: Path, **overrides: object) -> dict:
         # credential that lives only in gitignored config.local.toml.
         "llm_enabled": False,
         "llm_base_url": "http://192.168.5.178:8000/v1",
-        "llm_model": "deepseek-v4-flash-vision-exp",
+        "llm_model": "GLM-5.3-Flash-EXL3",
         "llm_api_key": "",
         "llm_timeout_ms": 8000,
         "llm_max_tokens": 2048,
@@ -273,6 +273,36 @@ def test_setup_symbols_invalid_entry_rejected(tmp_path):
     path = _write_config(tmp_path, values)
     with pytest.raises(ValueError, match="setup_symbols"):
         load_config(path)
+
+
+# ---------------------------------------------------------------------------
+# LLM endpoint/model are config-only (never hardcoded code defaults)
+# ---------------------------------------------------------------------------
+
+@pytest.mark.unit
+def test_llm_enabled_requires_base_url_and_model(tmp_path):
+    values = _base_values(tmp_path, llm_enabled=True, llm_base_url="", llm_model="")
+    path = _write_config(tmp_path, values)
+    with pytest.raises(ValueError, match="llm_base_url"):
+        load_config(path)
+
+
+@pytest.mark.unit
+def test_llm_enabled_requires_model(tmp_path):
+    values = _base_values(
+        tmp_path, llm_enabled=True, llm_base_url="http://llm:8000/v1", llm_model=""
+    )
+    path = _write_config(tmp_path, values)
+    with pytest.raises(ValueError, match="llm_model"):
+        load_config(path)
+
+
+@pytest.mark.unit
+def test_llm_disabled_allows_empty_endpoint(tmp_path):
+    values = _base_values(tmp_path, llm_enabled=False, llm_base_url="", llm_model="")
+    path = _write_config(tmp_path, values)
+    cfg = load_config(path)
+    assert cfg.llm_base_url == "" and cfg.llm_model == ""
 
 
 # ---------------------------------------------------------------------------
