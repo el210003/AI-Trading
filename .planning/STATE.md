@@ -142,5 +142,5 @@ Items acknowledged and carried forward from previous milestone close:
 ## Session Continuity
 
 Last session: 2026-09-06
-Stopped at: Session resumed, awaiting routing decision. Prior state: UAT 3/4 passed (1, 2a, 3); BTCUSD collect-only feed live (collector monitor detached); LLM switched to MiniMax-M3 (provider JSON-extraction + dotted-path citations). Remaining: UAT test 2 live engine drive + broker-offset re-validation (Monday), setups-store cleanup decision, unconfirmed weekend duplicate-assembly edge case. Uncommitted: .planning/REQUIREMENTS.md (v2 concept absorption: EXEC-03, SMCX-04/05/06, ENH-07)
+Stopped at: SEED-003 sketching started — Sketch 001 (dashboard-shell) winner D "Neon Glass + Wide Desk", dark+light themes, committed 781e7fe. Open: sketch 002 evidence-detail (optional) then UI-SPEC v2. Prior state: UAT 3/4 passed (1, 2a, 3); BTCUSD collect-only feed live (collector monitor detached); LLM switched to MiniMax-M3 (provider JSON-extraction + dotted-path citations). Remaining: UAT test 2 live engine drive + broker-offset re-validation (Monday), setups-store cleanup decision, unconfirmed weekend duplicate-assembly edge case.
 Resume file: None
