@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sketch 001 — Dashboard Shell · Bold Trading Terminal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { color-scheme: dark; }
+  body {
+    font-family: var(--font-sans);
+    background: #06080F;
+    color: var(--color-text);
+    padding-top: 46px;
+    transition: background .3s;
+  }
+  button { font-family: inherit; cursor: pointer; }
+
+  /* ---------- variant nav ---------- */
+  #variant-nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 9998;
+    background: rgba(10, 13, 20, .92); backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    padding: 8px 16px; display: flex; gap: 8px; align-items: center;
+  }
+  #variant-nav .who { margin-left: auto; font-size: 11px; color: #66748a; }
+  .variant-tab {
+    background: transparent; color: #8B99AC; border: 1px solid transparent;
+    padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    transition: all .15s ease;
+  }
+  .variant-tab:hover { color: #E6EDF3; background: rgba(255,255,255,.06); }
+  .variant-tab.active { color: #fff; background: rgba(0,199,255,.16); border-color: rgba(0,199,255,.45); }
+  .variant-tab.winner-tab { border-color: rgba(38,166,154,.6); }
+
+  .variant { display: none; }
+  .variant.active { display: block; }
+
+  /* ---------- toolbar ---------- */
+  #sketch-tools {
+    position: fixed; bottom: 12px; right: 12px; z-index: 9999;
+    font-family: system-ui; font-size: 12px; background: rgba(0,0,0,.78);
+    color: #fff; padding: 8px 12px; border-radius: 10px; opacity: .35;
+    transition: opacity .2s; display: flex; gap: 10px; align-items: center;
+    border: 1px solid rgba(255,255,255,.12);
+  }
+  #sketch-tools:hover { opacity: 1; }
+  #sketch-tools select, #sketch-tools button {
+    background: #1c2433; color: #ddd; border: 1px solid #333f52;
+    border-radius: 6px; padding: 3px 8px; font-size: 11px;
+  }
+  #sketch-tools button.on { background: #0e5a75; border-color: #00C7FF; }
+
+  /* annotation mode */
+  body.anno .page *:hover { outline: 1px dashed #00C7FF; outline-offset: -1px; }
+  #anno-tip {
+    position: fixed; z-index: 10000; display: none; pointer-events: none;
+    background: #000; color: #0f0; font: 11px/1.4 var(--font-mono);
+    border: 1px solid #00C7FF; border-radius: 6px; padding: 4px 8px;
+  }
+
+  /* ================= page shell (shared) ================= */
+  .page {
+    --bg: var(--color-bg); --surf: var(--color-surface); --surf2: var(--color-surface-2);
+    --bd: var(--color-border); --tx: var(--color-text); --mut: var(--color-text-muted);
+    --acc: #00C7FF; --acc2: #7C5CFF; --bull: #26A69A; --bear: #EF5350; --warn: #E0A500;
+    --tx2: #c2cddd; --fill: rgba(255,255,255,.035); --line: rgba(255,255,255,.05);
+    --bar: rgba(255,255,255,.08); --hover: rgba(255,255,255,.04); --zebra: rgba(255,255,255,.018);
+    --pad: 14px 18px; --radius: 12px; --fs: 13px;
+    max-width: 1400px; margin: 0 auto; padding: 18px 22px 60px;
+    background: var(--bg); min-height: 100vh; font-size: var(--fs);
+    transition: max-width .25s ease;
+  }
+
+  .topbar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+  .brand { font-weight: 800; font-size: 15px; letter-spacing: .4px; display: flex; gap: 8px; align-items: center; }
+  .brand .logo {
+    display: inline-grid; place-items: center; width: 26px; height: 26px;
+    border-radius: 8px; background: linear-gradient(135deg, var(--acc), var(--acc2));
+    color: #04121a; font-size: 13px; font-weight: 800;
+  }
+  .brand .env { font-size: 10px; font-weight: 700; color: var(--mut); border: 1px solid var(--bd); padding: 2px 7px; border-radius: 9999px; }
+  .feeds { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px;
+    padding: 4px 10px; border-radius: 9999px; border: 1px solid var(--bd);
+    background: var(--fill); color: var(--mut);
+    transition: all .15s ease;
+  }
+  .chip b { color: var(--tx); font-weight: 600; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--mut); display: inline-block; }
+  .dot.ok { background: var(--bull); box-shadow: 0 0 6px var(--bull); }
+  .dot.warn { background: var(--warn); box-shadow: 0 0 6px var(--warn); }
+  .btn {
+    background: var(--fill); border: 1px solid var(--bd); color: var(--tx);
+    padding: 6px 14px; border-radius: 9999px; font-size: 12px; font-weight: 600;
+    transition: all .15s ease;
+  }
+  .btn:hover { border-color: var(--acc); color: var(--acc); box-shadow: 0 0 14px rgba(0,199,255,.18); }
+  .btn.refresh { margin-left: auto; }
+
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--bd); margin-bottom: 16px; }
+  .tabs a {
+    padding: 8px 16px; font-size: 13px; font-weight: 600; color: var(--mut);
+    border-bottom: 2px solid transparent; cursor: pointer; transition: all .15s ease;
+  }
+  .tabs a:hover { color: var(--tx); }
+  .tabs a.on { color: var(--acc); border-bottom-color: var(--acc); }
+
+  /* KPI cards */
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 16px; }
+  .kpi { border: 1px solid var(--bd); background: var(--surf); border-radius: var(--radius); padding: var(--pad); position: relative; overflow: hidden; }
+  .kpi .lbl { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--mut); font-weight: 600; }
+  .kpi .val { font-size: 30px; font-weight: 800; font-family: var(--font-mono); font-variant-numeric: tabular-nums; margin-top: 4px; letter-spacing: -.5px; }
+  .kpi .sub { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 11px; color: var(--mut); }
+  .delta { font-weight: 700; padding: 1px 7px; border-radius: 9999px; font-size: 10.5px; }
+  .delta.up { color: var(--bull); background: color-mix(in srgb, var(--bull) 14%, transparent); }
+  .delta.dn { color: var(--bear); background: color-mix(in srgb, var(--bear) 14%, transparent); }
+  .kpi .spark { position: absolute; right: 10px; bottom: 8px; opacity: .85; }
+
+  /* filters */
+  .filters { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+  .fchip {
+    border: 1px solid var(--bd); background: transparent; color: var(--mut);
+    padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; transition: all .15s ease;
+  }
+  .fchip:hover { color: var(--tx); border-color: var(--mut); }
+  .fchip.on { color: var(--acc); border-color: var(--acc); background: rgba(0,199,255,.10); }
+  .fsep { width: 1px; height: 18px; background: var(--bd); margin: 0 4px; }
+  .minip { font-size: 12px; color: var(--mut); display: flex; gap: 6px; align-items: center; }
+  .minip input { accent-color: var(--acc); width: 90px; }
+
+  /* panels + main grid */
+  .main { display: grid; grid-template-columns: 1.05fr 1fr; gap: 14px; align-items: start; }
+  .tablewrap { max-height: 390px; }
+  .detail { display: flex; flex-direction: column; gap: 14px; }
+  .panel { border: 1px solid var(--bd); background: var(--surf); border-radius: var(--radius); overflow: hidden; }
+  .panel-h {
+    display: flex; align-items: center; gap: 10px; padding: 11px var(--pad);
+    font-size: 12.5px; font-weight: 700; letter-spacing: .3px;
+    border-bottom: 1px solid var(--bd);
+  }
+  .panel-h .count { font-size: 10.5px; color: var(--mut); font-weight: 600; border: 1px solid var(--bd); border-radius: 9999px; padding: 1px 8px; }
+  .panel-h .grow { margin-left: auto; }
+
+  /* table */
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  thead th {
+    text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: .7px;
+    color: var(--mut); font-weight: 700; padding: 8px 10px; border-bottom: 1px solid var(--bd);
+    position: sticky; top: 0; background: var(--surf);
+  }
+  tbody td { padding: 9px 10px; border-bottom: 1px solid var(--line); font-size: 12.5px; white-space: nowrap; }
+  tbody td.num { font-family: var(--font-mono); }
+  tbody tr { cursor: pointer; transition: background .12s ease; }
+  tbody tr:hover { background: var(--hover); }
+  tbody tr.sel { background: rgba(0,199,255,.09); box-shadow: inset 2px 0 0 var(--acc); }
+  .dir-long { color: var(--bull); font-weight: 700; }
+  .dir-short { color: var(--bear); font-weight: 700; }
+
+  .pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 9999px; }
+  .pill .pg { font-size: 9px; }
+  .st-active   { color: var(--acc);  background: color-mix(in srgb, var(--acc) 12%, transparent); }
+  .st-pending  { color: var(--mut);  background: color-mix(in srgb, var(--mut) 12%, transparent); }
+  .st-tp_hit   { color: var(--bull); background: color-mix(in srgb, var(--bull) 14%, transparent); }
+  .st-sl_hit   { color: var(--bear); background: color-mix(in srgb, var(--bear) 14%, transparent); }
+  .st-expired, .st-invalidated { color: var(--warn); background: color-mix(in srgb, var(--warn) 12%, transparent); }
+
+  .pwin { display: flex; align-items: center; gap: 8px; min-width: 110px; }
+  .pwin .bar { flex: 1; height: 5px; border-radius: 9999px; background: var(--bar); overflow: hidden; }
+  .pwin .bar i { display: block; height: 100%; border-radius: 9999px; background: linear-gradient(90deg, var(--acc), var(--bull)); }
+  .pwin b { font-family: var(--font-mono); font-size: 12px; width: 32px; text-align: right; }
+  .src { font-size: 10px; font-weight: 700; letter-spacing: .5px; padding: 2px 7px; border-radius: 9999px; border: 1px solid var(--bd); color: var(--mut); }
+  .src.heuristic { color: var(--warn); border-color: rgba(224,165,0,.4); }
+
+  /* chart */
+  .chart { padding: 10px 6px 0; }
+  .chart svg { display: block; width: 100%; height: auto; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; padding: 8px 16px 12px; font-size: 11.5px; color: var(--mut); font-family: var(--font-mono); }
+  .legend i { display: inline-block; width: 14px; height: 0; border-top: 2px dashed currentColor; margin-right: 5px; vertical-align: middle; }
+  .legend .l-entry { color: var(--acc); } .legend .l-sl { color: var(--bear); } .legend .l-tp { color: var(--bull); }
+  .badge {
+    font-size: 10.5px; font-weight: 800; letter-spacing: .4px; padding: 3px 9px; border-radius: 9999px;
+  }
+  .badge.agree { color: #06281f; background: linear-gradient(135deg, #26A69A, #4fd8c5); }
+  .badge.disagree { color: #2b0d0d; background: linear-gradient(135deg, #EF5350, #ff8a80); }
+
+  /* evidence */
+  details { border-bottom: 1px solid var(--line); }
+  details:last-child { border-bottom: 0; }
+  summary {
+    list-style: none; cursor: pointer; display: flex; align-items: center; gap: 9px;
+    padding: 10px var(--pad); font-size: 12px; font-weight: 700; color: var(--tx); transition: background .15s;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary:hover { background: var(--hover); }
+  summary .ic { color: var(--acc); width: 16px; text-align: center; }
+  summary .chev { margin-left: auto; color: var(--mut); transition: transform .18s; font-size: 11px; }
+  details[open] summary .chev { transform: rotate(90deg); }
+  .ev-body { padding: 2px var(--pad) 14px 43px; font-size: 12.5px; color: var(--tx2); line-height: 1.55; }
+  .ev-body .kv { display: grid; grid-template-columns: auto 1fr; gap: 3px 14px; margin-top: 6px; }
+  .ev-body .kv span { color: var(--mut); }
+  .ev-body .kv b { font-family: var(--font-mono); font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+  .contrib { display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
+  .crow { display: grid; grid-template-columns: 150px 1fr 46px; gap: 10px; align-items: center; font-size: 11.5px; }
+  .crow .fname { font-family: var(--font-mono); color: var(--mut); }
+  .crow .cbar { height: 6px; border-radius: 9999px; background: var(--bar); position: relative; }
+  .crow .cbar i { position: absolute; top: 0; bottom: 0; border-radius: 9999px; }
+  .crow .cval { text-align: right; font-family: var(--font-mono); }
+  .cval.pos { color: var(--bull); } .cval.neg { color: var(--bear); }
+  .cites { display: flex; gap: 6px; margin-top: 8px; }
+  .cite { font-family: var(--font-mono); font-size: 10.5px; color: var(--acc); border: 1px solid rgba(0,199,255,.35); border-radius: 6px; padding: 1px 6px; }
+
+  /* ================= VARIANT A — Binance-style neon glass ================= */
+  .v-a { --bg: #05070D; --surf: rgba(255,255,255,.035); --bd: rgba(255,255,255,.09); --acc: #00E5FF; }
+  .page.v-a { background: radial-gradient(900px 320px at 50% -80px, rgba(0,229,255,.09), transparent 70%) #05070D; }
+  .v-a .kpi, .v-a .panel { backdrop-filter: blur(16px) saturate(1.25); -webkit-backdrop-filter: blur(16px) saturate(1.25); border-radius: 16px; }
+  .v-a .kpi { box-shadow: 0 0 0 1px rgba(0,229,255,.05), 0 10px 34px rgba(0,229,255,.07); }
+  .v-a .kpi::before { content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px; border-radius: 3px; background: linear-gradient(180deg, #00E5FF, #7C5CFF); box-shadow: 0 0 12px rgba(0,229,255,.6); }
+  .v-a .kpi .val { font-size: 32px; }
+  .v-a tbody tr.sel { background: rgba(0,229,255,.08); box-shadow: inset 0 0 0 1px rgba(0,229,255,.35); }
+  .v-a .pill { backdrop-filter: blur(6px); }
+  .v-a tbody tr:hover { background: rgba(0,229,255,.05); }
+
+  /* ================= VARIANT B — TradingView dense charcoal ================= */
+  .v-b { --bg: #131722; --surf: #1B2230; --surf2: #222B3C; --bd: #2A3140; --radius: 4px; --fs: 12px; --pad: 9px 12px; --acc: #2E9BF0; }
+  .page.v-b { background: #131722; }
+  .v-b .kpis { gap: 1px; grid-template-columns: repeat(4, 1fr); background: var(--bd); border: 1px solid var(--bd); border-radius: 4px; overflow: hidden; margin-bottom: 14px; }
+  .v-b .kpi { border: 0; border-radius: 0; background: var(--surf); padding: 10px 14px; }
+  .v-b .kpi .val { font-size: 19px; }
+  .v-b .kpi .spark { display: none; }
+  .v-b .panel { border-radius: 4px; }
+  .v-b thead th { background: var(--surf2); font-size: 10px; padding: 6px 9px; }
+  .v-b tbody td { padding: 5px 9px; font-size: 11.5px; }
+  .v-b tbody tr:nth-child(even) { background: var(--zebra); }
+  .v-b tbody tr.sel { background: rgba(46,155,240,.13); box-shadow: inset 2px 0 0 var(--acc); }
+  .v-b .pill { border-radius: 3px; font-size: 10.5px; padding: 1px 7px; }
+  .v-b .pwin .bar { height: 4px; }
+  .v-b .pwin .bar i { background: var(--acc); }
+  .v-b .brand .logo { border-radius: 4px; }
+
+  /* ================= VARIANT C — aurora gradient glow ================= */
+  .v-c { --bg: #070B16; --surf: linear-gradient(165deg, rgba(0,199,255,.07), rgba(124,92,255,.06) 55%, rgba(255,255,255,.028)); --bd: rgba(124,92,255,.22); --radius: 18px; --acc: #2ED8FF; --acc2: #8E6BFF; }
+  .page.v-c { background: #070B16; position: relative; }
+  .page.v-c::before {
+    content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(700px 380px at 12% -6%, rgba(0,199,255,.16), transparent 65%),
+      radial-gradient(700px 420px at 88% -4%, rgba(124,92,255,.15), transparent 65%);
+  }
+  .v-c .kpi, .v-c .panel { box-shadow: 0 18px 50px rgba(5,8,18,.6); backdrop-filter: blur(8px); }
+  .v-c .kpi .val { font-size: 33px; background: linear-gradient(120deg, #B9F3FF, #2ED8FF 45%, #8E6BFF); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .v-c .main { grid-template-columns: 1fr 1.22fr; }
+  .v-c .detail { position: sticky; top: 60px; }
+  .v-c .pill.st-active { color: #04121a; background: linear-gradient(120deg, #2ED8FF, #7C5CFF); border: 0; }
+  .v-c .fchip.on { background: linear-gradient(120deg, rgba(46,216,255,.18), rgba(142,107,255,.18)); border-color: rgba(46,216,255,.5); color: #B9F3FF; }
+  .v-c .pwin .bar i { background: linear-gradient(90deg, var(--acc), var(--acc2)); }
+  .v-c tbody tr:hover { background: rgba(142,107,255,.07); }
+
+  /* ================= VARIANT D — A refined: wide desk ================= */
+  .page.v-d { max-width: min(1800px, 96vw); }
+  .v-d .main { grid-template-columns: 1fr 1.15fr; }
+  .v-d .tablewrap { max-height: 560px; }
+  .v-d thead th { font-size: 10px; padding: 8px 7px; letter-spacing: .4px; }
+  .v-d tbody td { font-size: 12px; padding: 8px 7px; letter-spacing: -.1px; }
+  .v-d tbody td.num, .v-d tbody td:first-child, .v-d .pwin b { font-family: var(--font-mono); }
+  .v-d .pill { font-size: 10px; padding: 1px 7px; letter-spacing: -.2px; }
+  .v-d .pwin { min-width: 88px; gap: 6px; }
+  .v-d .src { font-size: 9px; padding: 1px 5px; }
+  .v-d .kpi .val { font-size: 34px; }
+
+  @media (max-width: 980px) {
+    .kpis { grid-template-columns: repeat(2, 1fr); }
+    .main, .v-c .main { grid-template-columns: 1fr; }
+  }
+</style>
+<link rel="stylesheet" href="../themes/default.css">
+</head>
+<body>
+
+<nav id="variant-nav">
+  <button class="variant-tab" onclick="showVariant('a', this)">A: Neon Glass (Binance-like)</button>
+  <button class="variant-tab" onclick="showVariant('b', this)">B: Dense Charcoal (TradingView-like)</button>
+  <button class="variant-tab" onclick="showVariant('c', this)">C: Aurora Gradient Glow</button>
+  <button class="variant-tab active winner-tab" onclick="showVariant('d', this)">D: Neon Glass + Wide Desk ★ Winner</button>
+  <span class="who">Sketch 001 · dashboard-shell · click table rows, chips, evidence sections</span>
+</nav>
+
+<div id="variant-a" class="variant"><div class="page v-a" data-v="a"></div></div>
+<div id="variant-b" class="variant"><div class="page v-b" data-v="b"></div></div>
+<div id="variant-c" class="variant"><div class="page v-c" data-v="c"></div></div>
+<div id="variant-d" class="variant active"><div class="page v-a v-d" data-v="d"></div></div>
+
+<div id="sketch-tools" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='.35'">
+  <label>theme
+    <select id="theme-switcher" onchange="document.querySelector('link[href*=themes]').href='../themes/'+this.value+'.css'">
+      <option value="default">Dark</option>
+      <option value="light">Light</option>
+    </select>
+  </label>
+  <button onclick="setW(375,this)">375</button>
+  <button onclick="setW(768,this)">768</button>
+  <button onclick="setW(1280,this)">1280</button>
+  <button class="on" onclick="setW(1800,this)">full</button>
+  <button id="anno-btn" onclick="document.body.classList.toggle('anno'); this.classList.toggle('on')">annotate</button>
+</div>
+<div id="anno-tip"></div>
+
+<script>
+/* ---------------- mock data (real field names from setup/store.py) ---------------- */
+const SETUPS = [
+  { sym:'EURUSD', tf:'M15', dir:'long',  status:'active',      entry:1.08740, sl:1.08460, tp:1.09320, rr:2.0, p:.72, src:'ml_llm',   age:'20:45' },
+  { sym:'GBPUSD', tf:'M15', dir:'long',  status:'tp_hit',      entry:1.26905, sl:1.26640, tp:1.27435, rr:2.0, p:.66, src:'ml',       age:'19:00' },
+  { sym:'USDJPY', tf:'H1',  dir:'short', status:'sl_hit',      entry:157.842, sl:158.180, tp:157.166, rr:2.0, p:.58, src:'ml',       age:'16:00' },
+  { sym:'EURUSD', tf:'H4',  dir:'short', status:'pending',     entry:1.09215, sl:1.09470, tp:1.08655, rr:2.2, p:.61, src:'heuristic',age:'18:00' },
+  { sym:'GBPUSD', tf:'M15', dir:'long',  status:'active',      entry:1.27182, sl:1.26958, tp:1.27650, rr:2.0, p:.75, src:'ml_llm',   age:'20:45' },
+  { sym:'USDJPY', tf:'M15', dir:'short', status:'expired',     entry:157.610, sl:157.890, tp:157.050, rr:2.0, p:.55, src:'ml',       age:'14:30' },
+  { sym:'EURUSD', tf:'M15', dir:'long',  status:'tp_hit',      entry:1.08310, sl:1.08095, tp:1.08740, rr:2.0, p:.69, src:'ml',       age:'Mon' },
+  { sym:'GBPUSD', tf:'H4',  dir:'long',  status:'invalidated', entry:1.27490, sl:1.27205, tp:1.28060, rr:2.0, p:.63, src:'ml',       age:'Mon' },
+];
+const GLYPH = { active:'●', pending:'○', tp_hit:'✓', sl_hit:'✗', expired:'⌀', invalidated:'◌' };
+const LABEL = { active:'active', pending:'pending', tp_hit:'TP hit', sl_hit:'SL hit', expired:'expired', invalidated:'invalidated' };
+
+function fmt(x){ return x < 50 ? x.toFixed(5) : x.toFixed(3); }
+
+/* ---------------- shared markup ---------------- */
+function kpi(lbl, val, delta, dir, sparkPts){
+  return `<div class="kpi">
+    <div class="lbl">${lbl}</div><div class="val">${val}</div>
+    <div class="sub"><span class="delta ${dir}">${delta}</span> vs backtest baseline</div>
+    <svg class="spark" width="72" height="26" viewBox="0 0 72 26"><polyline points="${sparkPts}" fill="none" stroke="var(--acc)" stroke-width="1.6" stroke-linejoin="round" opacity=".75"/></svg>
+  </div>`;
+}
+function rowsHtml(v){
+  return SETUPS.map((s,i)=>`
+  <tr data-i="${i}" class="${i===0?'sel':''}">
+    <td><b>${s.sym}</b></td><td>${s.tf}</td>
+    <td class="dir-${s.dir}">${s.dir==='long'?'LONG':'SHORT'}</td>
+    <td><span class="pill st-${s.status}"><span class="pg">${GLYPH[s.status]}</span>${LABEL[s.status]}</span></td>
+    <td class="num">${fmt(s.entry)}</td><td class="num" style="color:var(--mut)">${fmt(s.sl)}</td><td class="num" style="color:var(--mut)">${fmt(s.tp)}</td>
+    <td class="num">1:${s.rr.toFixed(1)}</td>
+    <td><div class="pwin"><div class="bar"><i style="width:${Math.round(s.p*100)}%"></i></div><b>${Math.round(s.p*100)}%</b></div></td>
+    <td><span class="src ${s.src}">${s.src==='ml_llm'?'ML+LLM':(s.src==='ml'?'ML':'HEUR')}</span></td>
+    <td style="color:var(--mut)">${s.age}</td>
+  </tr>`).join('');
+}
+const SP1='0,20 9,18 18,19 27,14 36,15 45,10 54,11 63,6 72,4';
+const SP2='0,14 9,16 18,12 27,15 36,10 45,13 54,9 63,11 72,7';
+const SP3='0,18 9,15 18,17 27,11 36,13 45,9 54,12 63,7 72,5';
+const SP4='0,12 9,14 18,10 27,13 36,8 45,11 54,7 63,9 72,6';
+
+function pageHtml(v){
+  return `
+  <header class="topbar">
+    <div class="brand"><span class="logo">▲</span> AI-Trading <span class="env">MT5 · UTC+3→UTC</span></div>
+    <div class="feeds">
+      <span class="chip"><i class="dot ok"></i>EURUSD·M15 <b>20:45</b></span>
+      <span class="chip"><i class="dot ok"></i>GBPUSD·M15 <b>20:45</b></span>
+      <span class="chip"><i class="dot ok"></i>USDJPY·M15 <b>20:45</b></span>
+      <span class="chip"><i class="dot ok"></i>MT5 <b id="hb-${v}">2m ago</b></span>
+      <span class="chip"><i class="dot ok"></i>errors <b>0</b></span>
+    </div>
+    <button class="btn refresh" data-refresh>⟳ Refresh</button>
+  </header>
+
+  <nav class="tabs"><a class="on">Setups</a><a>History</a><a>Performance</a><a>Health</a><a>Settings</a></nav>
+
+  <section class="kpis">
+    ${kpi('Win Rate','61.5%','+4.2pp','up',SP1)}
+    ${kpi('Profit Factor','1.62','−0.08','dn',SP2)}
+    ${kpi('Expectancy','+0.34R','+0.05R','up',SP3)}
+    ${kpi('Trades','13','live store','up',SP4)}
+  </section>
+
+  <section class="filters">
+    <button class="fchip on">All symbols</button><button class="fchip">EURUSD</button><button class="fchip">GBPUSD</button><button class="fchip">USDJPY</button>
+    <span class="fsep"></span>
+    <button class="fchip on">All statuses</button><button class="fchip">● active</button><button class="fchip">✓ tp_hit</button><button class="fchip">✗ sl_hit</button>
+    <span class="fsep"></span>
+    <button class="fchip on">Any direction</button><button class="fchip">LONG</button><button class="fchip">SHORT</button>
+    <span class="fsep"></span>
+    <label class="minip">P(win) ≥ <input type="range" min="50" max="80" value="50"> <b id="mp-${v}" style="font-family:var(--font-mono)">50%</b></label>
+    <button class="fchip" style="margin-left:auto">Reset filters</button>
+  </section>
+
+  <div class="main">
+    <div class="panel">
+      <div class="panel-h">SETUPS <span class="count">8 rows</span> <span class="count">sorted newest</span></div>
+      <div class="tablewrap" style="overflow:auto">
+      <table><thead><tr>
+        <th>Symbol</th><th>TF</th><th>Dir</th><th>Status</th><th>Entry</th><th>SL</th><th>TP</th><th>R:R</th><th>P(win)</th><th>Source</th><th>Age</th>
+      </tr></thead><tbody data-tbody>${rowsHtml(v)}</tbody></table>
+      </div>
+    </div>
+
+    <div class="detail">
+      <div class="panel">
+        <div class="panel-h"><span data-title>EURUSD · M15 · LONG</span>
+          <span class="pill st-active" data-stpill><span class="pg">●</span>active</span>
+          <span class="badge agree grow" data-badge>✓ ML↔LLM AGREE</span>
+        </div>
+        <div class="chart" data-chart></div>
+        <div class="legend" data-legend>
+          <span class="l-entry"><i></i>Entry 1.08740</span>
+          <span class="l-sl"><i></i>SL 1.08460</span>
+          <span class="l-tp"><i></i>TP 1.09320</span>
+          <span>R:R 1:2.0 · P(win) 72% [ML+LLM]</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-h">EVIDENCE TRACE <span class="count">point-in-time</span></div>
+        <details open><summary><span class="ic">▣</span>Setup header<span class="chev">▶</span></summary>
+          <div class="ev-body">Decision bar M15 close 20:45 UTC · limit trigger on later bar high/low (D-01).
+            <div class="kv"><span>Setup ID</span><b>EURUSD-M15-20260906T2045-L</b></div>
+            <div class="kv"><span>Score source</span><b>ml_llm (verified narrative attached)</b></div>
+          </div>
+        </details>
+        <details open><summary><span class="ic">⌖</span>Market bias (HTF)<span class="chev">▶</span></summary>
+          <div class="ev-body">H4 delivery bullish; price retrace into discount after H1 premium→discount transition.
+            <div class="kv"><span>H4 range</span><b>1.07920 – 1.09310</b></div>
+            <div class="kv"><span>Position in range</span><b>38.7% (discount)</b></div>
+          </div>
+        </details>
+        <details><summary><span class="ic">▤</span>Premium / discount zone<span class="chev">▶</span></summary>
+          <div class="ev-body">Tap of the 61.3% discount sub-zone; equidistant channel floor.
+            <div class="kv"><span>Zone</span><b>1.08553 – 1.08751</b></div>
+            <div class="kv"><span>Fib anchor</span><b>61.3% of H4 range</b></div>
+            <div class="kv"><span>Tap depth</span><b>−11.2 pips into zone</b></div>
+          </div>
+        </details>
+        <details><summary><span class="ic">◇</span>Liquidity sweep<span class="chev">▶</span></summary>
+          <div class="ev-body">Sweep of a 3-touch equal-low pool one bar before decision close; reclaim confirms stop-run.
+            <div class="kv"><span>Pool level</span><b>1.08420 (3 touches)</b></div>
+            <div class="kv"><span>Sweep strength</span><b>0.82</b></div>
+            <div class="kv"><span>Reclaim</span><b>close > pool within 1 bar</b></div>
+          </div>
+        </details>
+        <details><summary><span class="ic">⌁</span>ML contributors — P(WIN) 0.72<span class="chev">▶</span></summary>
+          <div class="ev-body">Calibrated LightGBM (pooled, v1 feature list).
+            <div class="contrib">
+              <div class="crow"><span class="fname">base rate</span><div class="cbar"><i style="left:0;width:45%;background:var(--mut);opacity:.5"></i></div><span class="cval">0.45</span></div>
+              <div class="crow"><span class="fname">sweep_strength</span><div class="cbar"><i style="left:45%;width:14%;background:var(--bull)"></i></div><span class="cval pos">+0.14</span></div>
+              <div class="crow"><span class="fname">htf_bias</span><div class="cbar"><i style="left:45%;width:11%;background:var(--bull)"></i></div><span class="cval pos">+0.11</span></div>
+              <div class="crow"><span class="fname">dist_to_zone_mid</span><div class="cbar"><i style="left:45%;width:7%;background:var(--bull)"></i></div><span class="cval pos">+0.07</span></div>
+              <div class="crow"><span class="fname">spread_z</span><div class="cbar"><i style="left:45%;width:3%;background:var(--bear)"></i></div><span class="cval neg">−0.03</span></div>
+              <div class="crow"><span class="fname">rsi_15</span><div class="cbar"><i style="left:45%;width:2%;background:var(--bear)"></i></div><span class="cval neg">−0.02</span></div>
+            </div>
+          </div>
+        </details>
+        <details open><summary><span class="ic">✍</span>LLM narrative — CONFIRM 0.78<span class="chev">▶</span></summary>
+          <div class="ev-body">“Stop-run of the 3-touch equal-low pool into the 61.3% discount zone, closed back above
+            the pool on the decision bar — textbook sweep-and-reclaim with H4 delivery supporting continuation lower
+            risk. Refutation would require an H4 close below 1.08420.”
+            <div class="cites"><span class="cite">E-3.1 pool</span><span class="cite">E-4.2 zone</span><span class="cite">E-1.3 bias</span></div>
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------------- candlestick generator (SVG) ---------------- */
+let seed = 42;
+const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
+function candles(){
+  seed = 42;
+  const bars = []; let px = 1.08560;
+  for (let i = 0; i < 46; i++){
+    let drift = .00006 + (rnd() - .5) * .00090;
+    if (i >= 28 && i <= 32) drift -= .00070;         // sweep dip
+    if (i > 32 && i <= 38) drift += .00075;          // reclaim
+    const o = px, c = px + drift;
+    const h = Math.max(o,c) + rnd()*.00045, l = Math.min(o,c) - rnd()*.00045;
+    bars.push({o,h,l,c}); px = c;
+  }
+  return bars;
+}
+function chartSvg(v){
+  seed = 42;
+  const bars = candles();
+  const W = 660, H = 300, PL = 8, PR = 104, PT = 10, PB = 8;
+  const lo = Math.min(...bars.map(b=>b.l)) - .0006;
+  const hi = Math.max(...bars.map(b=>b.h)) + .0006;
+  const y = p => PT + (hi - p) / (hi - lo) * (H - PT - PB);
+  const bw = (W - PL - PR) / bars.length, cw = bw * .58;
+  const E='#00C7FF', SL='#EF5350', TP='#26A69A', grid='rgba(255,255,255,.16)';
+  let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+  for (let g = 1; g < 5; g++){
+    const gy = PT + g*(H-PT-PB)/5, gp = hi - g*(hi-lo)/5;
+    s += `<line class="gridline" x1="${PL}" y1="${gy}" x2="${W-PR}" y2="${gy}" stroke="${grid}" stroke-width="1"/>
+          <text class="dim" x="${W-PR-6}" y="${gy-4}" text-anchor="end" fill="#7B8BA0" font-size="8.5" font-family="JetBrains Mono, monospace">${gp.toFixed(5)}</text>`;
+  }
+  for (let b = 6; b < bars.length; b += 8){ const gx = PL + b*bw; s += `<line class="gridline" x1="${gx}" y1="${PT}" x2="${gx}" y2="${H-PB}" stroke="${grid}" stroke-width="1" stroke-dasharray="2 4"/>`; }
+  // PD discount zone band
+  s += `<rect class="pdzone" x="${PL}" y="${y(1.08751)}" width="${W-PL-PR}" height="${y(1.08553)-y(1.08751)}" fill="rgba(0,199,255,.16)" stroke="rgba(0,199,255,.55)" stroke-width="1.2" stroke-dasharray="3 3"/>`;
+  s += `<text class="dim" x="${PL+6}" y="${y(1.08751)+13}" fill="#A9BAD0" font-size="9.5" font-weight="700" font-family="Inter" letter-spacing=".4">DISCOUNT ZONE 1.08553–1.08751</text>`;
+  bars.forEach((b,i)=>{
+    const x = PL + i*bw + (bw-cw)/2;
+    const bull = b.c >= b.o;
+    const col = bull ? '#26A69A' : '#EF5350';
+    s += `<line x1="${x+cw/2}" y1="${y(b.h)}" x2="${x+cw/2}" y2="${y(b.l)}" stroke="${col}" stroke-width="1"/>`;
+    s += `<rect x="${x}" y="${y(Math.max(b.o,b.c))}" width="${cw}" height="${Math.max(1.4,Math.abs(y(b.o)-y(b.c)))}" fill="${col}" rx="1"/>`;
+  });
+  // sweep diamond at pool level, bar 30
+  const dx = PL + 30*bw + bw/2, dy = y(1.08420);
+  s += `<path d="M ${dx} ${dy-6} L ${dx+5} ${dy} L ${dx} ${dy+6} L ${dx-5} ${dy} Z" fill="none" stroke="#E0A500" stroke-width="1.6"/>`;
+  s += `<text x="${dx+9}" y="${dy+4}" fill="#E0A500" font-size="9" font-family="Inter">sweep 1.08420</text>`;
+  // entry / sl / tp levels
+  const lvl = (p, col, name) => `<line x1="${PL}" y1="${y(p)}" x2="${W-PR}" y2="${y(p)}" stroke="${col}" stroke-dasharray="5 4" stroke-width="1.4"/>
+      <rect x="${W-PR+4}" y="${y(p)-7.5}" width="98" height="15" rx="3" fill="${col}" opacity=".14"/>
+      <text x="${W-PR+9}" y="${y(p)+3.7}" fill="${col}" font-size="9.5" font-weight="700" font-family="'JetBrains Mono', monospace">${name} ${fmt(p)}</text>`;
+  s += lvl(1.09320, TP, 'TP') + lvl(1.08740, E, 'ENTRY') + lvl(1.08460, SL, 'SL');
+  s += `</svg>`;
+  return s;
+}
+
+/* ---------------- mount + events ---------------- */
+document.querySelectorAll('.page').forEach(pg => {
+  const v = pg.dataset.v;
+  pg.innerHTML = pageHtml(v);
+  pg.querySelector('[data-chart]').innerHTML = chartSvg(v);
+
+  // row selection -> detail header sync
+  pg.querySelectorAll('[data-tbody] tr').forEach(tr => {
+    tr.addEventListener('click', () => {
+      pg.querySelectorAll('[data-tbody] tr').forEach(t => t.classList.remove('sel'));
+      tr.classList.add('sel');
+      const s = SETUPS[+tr.dataset.i];
+      pg.querySelector('[data-title]').textContent = `${s.sym} · ${s.tf} · ${s.dir === 'long' ? 'LONG' : 'SHORT'}`;
+      const sp = pg.querySelector('[data-stpill]');
+      sp.className = 'pill st-' + s.status;
+      sp.innerHTML = `<span class="pg">${GLYPH[s.status]}</span>${LABEL[s.status]}`;
+      const bd = pg.querySelector('[data-badge]');
+      const agree = s.src === 'ml_llm';
+      bd.className = 'badge ' + (agree ? 'agree grow' : 'grow');
+      bd.style.cssText = agree ? '' : 'color:var(--mut);border:1px solid var(--bd)';
+      bd.textContent = agree ? '✓ ML↔LLM AGREE' : '— ML ONLY';
+      pg.querySelector('[data-legend]').innerHTML = `
+        <span class="l-entry"><i></i>Entry ${fmt(s.entry)}</span>
+        <span class="l-sl"><i></i>SL ${fmt(s.sl)}</span>
+        <span class="l-tp"><i></i>TP ${fmt(s.tp)}</span>
+        <span>R:R 1:${s.rr.toFixed(1)} · P(win) ${Math.round(s.p*100)}% [${s.src==='ml_llm'?'ML+LLM':s.src.toUpperCase()}]</span>`;
+    });
+  });
+
+  // filter chips (single-select within visually-grouped runs is faked as toggle)
+  pg.querySelectorAll('.fchip').forEach(c => c.addEventListener('click', () => c.classList.toggle('on')));
+  pg.querySelectorAll('[data-refresh]').forEach(b => b.addEventListener('click', () => {
+    b.textContent = '⟳ Syncing…';
+    setTimeout(() => { b.textContent = '✓ Updated 20:59:12'; setTimeout(() => b.textContent = '⟳ Refresh', 1600); }, 700);
+  }));
+  const mp = pg.querySelector('[data-minip-range]');
+});
+document.querySelectorAll('.minip input').forEach(r => r.addEventListener('input', e => {
+  const out = e.target.closest('.page').querySelector('.minip b');
+  out.textContent = e.target.value + '%';
+}));
+
+/* ---------------- sketch tooling ---------------- */
+function showVariant(id, btn){
+  document.querySelectorAll('.variant').forEach(x => x.classList.remove('active'));
+  document.getElementById('variant-' + id).classList.add('active');
+  document.querySelectorAll('.variant-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+}
+function setW(w, btn){
+  document.querySelectorAll('.page').forEach(p => p.style.maxWidth = w + 'px');
+  document.querySelectorAll('#sketch-tools button').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+}
+const tip = document.getElementById('anno-tip');
+document.body.addEventListener('mousemove', e => {
+  if (!document.body.classList.contains('anno')) { tip.style.display = 'none'; return; }
+  const t = e.target;
+  if (t === document.body || t === tip) { tip.style.display = 'none'; return; }
+  const cs = getComputedStyle(t);
+  tip.textContent = `<${t.tagName.toLowerCase()}> ${cs.fontSize}/${cs.lineHeight} · ${t.className && t.className.baseVal !== undefined ? '' : (t.className || '').split(' ')[0]}`;
+  tip.style.display = 'block';
+  tip.style.left = Math.min(e.clientX + 14, innerWidth - 220) + 'px';
+  tip.style.top = (e.clientY + 16) + 'px';
+});
+</script>
+</body>
+</html>

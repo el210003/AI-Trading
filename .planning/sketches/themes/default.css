@@ -1,0 +1,48 @@
+/* Shared sketch theme vocabulary — bold trading-terminal direction.
+   Variants in each sketch override these tokens locally. */
+:root {
+  /* Colors (v1 baseline extended toward the bold-terminal brief) */
+  --color-bg: #0B0F17;
+  --color-surface: #141A26;
+  --color-surface-2: #1A2233;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-text: #E6EDF3;
+  --color-text-muted: #8B99AC;
+  --color-primary: #00C7FF;
+  --color-primary-hover: #33D6FF;
+  --color-accent: #7C5CFF;
+  --color-danger: #EF5350;
+  --color-success: #26A69A;
+  --color-warning: #E0A500;
+
+  /* Typography */
+  --font-sans: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
+  --text-xs: 0.72rem;
+  --text-sm: 0.82rem;
+  --text-base: 0.95rem;
+  --text-lg: 1.15rem;
+  --text-xl: 1.4rem;
+  --text-2xl: 1.9rem;
+  --text-3xl: 2.4rem;
+
+  /* Spacing rhythm */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+
+  /* Shapes */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 14px 40px rgba(0, 0, 0, 0.55);
+}

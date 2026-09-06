@@ -1,0 +1,69 @@
+/* LIGHT theme — same visual vocabulary translated to a light trading desk.
+   Loaded INSTEAD of default.css via the sketch toolbar's theme switcher;
+   loaded after the sketch's inline styles so equal-specificity rules win. */
+
+html { color-scheme: light; }
+body { background: #E9EDF3; }
+
+:root {
+  --color-bg: #EDF1F7;
+  --color-surface: #FFFFFF;
+  --color-surface-2: #F2F5FA;
+  --color-border: rgba(15, 23, 42, .10);
+  --color-text: #141B26;
+  --color-text-muted: #5B6B7F;
+  --color-primary: #0092C2;
+  --color-success: #0F8A7E;
+  --color-danger: #D64545;
+  --color-warning: #A87A00;
+}
+
+.page {
+  --tx: #141B26; --mut: #5B6B7F; --tx2: #45525F;
+  --bull: #0F8A7E; --bear: #D64545; --warn: #A87A00;
+  --fill: rgba(15, 23, 42, .045);
+  --line: rgba(15, 23, 42, .07);
+  --bar: rgba(15, 23, 42, .09);
+  --hover: rgba(15, 23, 42, .045);
+  --zebra: rgba(15, 23, 42, .025);
+}
+
+/* ---- shell chrome ---- */
+body #variant-nav { background: rgba(255, 255, 255, .9); border-bottom-color: rgba(15, 23, 42, .08); }
+body #variant-nav .who { color: #7A8798; }
+.variant-tab { color: #5B6B7F; }
+.variant-tab:hover { color: #141B26; background: rgba(15, 23, 42, .06); }
+.variant-tab.active { color: #083247; background: rgba(0, 146, 194, .14); border-color: rgba(0, 146, 194, .45); }
+.variant-tab.winner-tab { border-color: rgba(15, 138, 126, .55); }
+thead th { color: #5B6B7F; }
+.page.v-a thead th, .page.v-c thead th { background: #FAFCFF; }
+svg .gridline { stroke: rgba(15, 23, 42, .12); }
+svg .dim { fill: #5B6B7F; }
+svg .pdzone { fill: rgba(0, 146, 194, .10); stroke: rgba(0, 146, 194, .55); }
+
+/* ---- Variant A — light glass ---- */
+.v-a { --bg: #EDF1F7; --surf: rgba(255, 255, 255, .78); --bd: rgba(15, 23, 42, .10); --acc: #0092C2; }
+.page.v-a { background: radial-gradient(900px 320px at 50% -80px, rgba(0, 146, 194, .12), transparent 70%) #EDF1F7; }
+.v-a .kpi { box-shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 8px 24px rgba(16, 24, 40, .07); }
+.v-a .kpi::before { background: linear-gradient(180deg, #0092C2, #7C5CFF); box-shadow: 0 0 10px rgba(0, 146, 194, .35); }
+.v-a tbody tr:hover { background: color-mix(in srgb, var(--acc) 8%, transparent); }
+.v-a tbody tr.sel { background: color-mix(in srgb, var(--acc) 11%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--acc) 45%, transparent); }
+
+/* ---- Variant B — light charcoal (TradingView light) ---- */
+.v-b { --bg: #F6F8FB; --surf: #FFFFFF; --surf2: #EDF1F6; --bd: #DDE2EA; --acc: #1668D6; }
+.page.v-b { background: #F6F8FB; }
+.v-b tbody tr.sel { background: color-mix(in srgb, var(--acc) 13%, transparent); }
+
+/* ---- Variant C — light aurora ---- */
+.v-c { --bg: #EEF2FB; --surf: linear-gradient(165deg, rgba(255,255,255,.94), rgba(240,244,255,.9) 55%, rgba(255,255,255,.92)); --bd: rgba(124, 92, 255, .32); --acc: #0A93D4; --acc2: #7C5CFF; }
+.page.v-c { background: #EEF2FB; }
+.page.v-c::before {
+  background:
+    radial-gradient(700px 380px at 12% -6%, rgba(46, 216, 255, .28), transparent 65%),
+    radial-gradient(700px 420px at 88% -4%, rgba(142, 107, 255, .2), transparent 65%);
+}
+.v-c .kpi, .v-c .panel { box-shadow: 0 14px 40px rgba(23, 32, 55, .10); }
+.v-c .kpi .val { background: linear-gradient(120deg, #0077AE, #0A93D4 45%, #7C5CFF); -webkit-background-clip: text; background-clip: text; }
+.v-c .fchip.on { background: linear-gradient(120deg, rgba(10, 147, 212, .15), rgba(124, 92, 255, .15)); border-color: rgba(10, 147, 212, .55); color: #0B3C5E; }
+.v-c .pill.st-active { color: #fff; background: linear-gradient(120deg, #0A93D4, #7C5CFF); }
+.v-c tbody tr:hover { background: color-mix(in srgb, var(--acc2) 8%, transparent); }
