@@ -62,16 +62,22 @@ Requirements for initial release. Each maps to roadmap phases.
 
 Deferred to future release. Tracked but not in current roadmap.
 
+*Note: SMCX-04/05/06, ENH-07, EXEC-03 inspired by the YW Indicator (TradingView, closed-source) — concepts reimplemented from public ICT definitions; no code ported, behavior not guaranteed to match.*
+
 ### Execution (next milestone)
 
 - **EXEC-01**: User can approve a signal for semi-auto execution via MT5 order_send
 - **EXEC-02**: System can place orders automatically when setups pass configured filters (full-auto)
+- **EXEC-03**: Position sizing is computed from account risk %, SL distance, and MT5 instrument specs (lot step, min lot, tick value), with optional prop-firm daily-loss/max-loss caps
 
 ### SMC Expansion
 
 - **SMCX-01**: Order blocks detected as first-class features (backtest-validated before UI exposure)
 - **SMCX-02**: Fair value gaps / imbalances detected as first-class features
 - **SMCX-03**: BOS/CHoCH structure-shift labeling
+- **SMCX-04**: CISD (Change in State of Delivery) trend-shift events are detected only on candle close (consecutive closes through the opposing delivery's origin), non-repainting, and backtest-validated before UI exposure
+- **SMCX-05**: Composite reversal setups chain HTF sweep+reclaim (SMC-03) with CISD confirmation (SMCX-04) into a named setup template carrying fib-extension targets (1–4R) and a structural invalidation level
+- **SMCX-06**: Unicorn-style composite zones (breaker block overlapping an FVG) are detected as high-confluence POIs once SMCX-01 and SMCX-02 land, backtest-validated before UI exposure
 
 ### Enhancements
 
@@ -81,6 +87,7 @@ Deferred to future release. Tracked but not in current roadmap.
 - **ENH-04**: Alerts via browser notifications or email digest
 - **ENH-05**: User journal notes per setup
 - **ENH-06**: MTF confluence score badge (H4/H1 bias gating M15 entries)
+- **ENH-07**: Previous-day and session high/low reference levels carry sweep-stop lifecycle state (frozen once swept), reusing SMC-05 lifecycle machinery *(complements ENH-03 session/kill-zone filters)*
 
 ## Out of Scope
 
@@ -146,4 +153,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-08-29*
-*Last updated: 2026-08-29 after initial definition*
+*Last updated: 2026-09-05 — added EXEC-03, SMCX-04/05/06, ENH-07 (YW Indicator concept absorption, v2)*
