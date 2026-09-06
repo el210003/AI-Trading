@@ -141,6 +141,28 @@
   .receipt.hl { animation: hl 1.2s ease; }
   @keyframes hl { 0%,60% { background: color-mix(in srgb, var(--acc) 16%, transparent); } 100% { background: transparent; } }
 
+  /* ML contributor breakdown (SHAP-style diverging bars) */
+  .mlexp .mlbd { display: none; border-bottom: 1px solid var(--line); padding: 2px 16px 10px 48px; }
+  .mlexp.open .mlbd { display: block; }
+  .mlexp.open .receipt { background: var(--hover); }
+  .mltoggle { cursor: pointer; }
+  .mltoggle .bd-link { color: var(--acc); font-weight: 700; }
+  .mltoggle .chev { display: inline-block; transition: transform .15s; color: var(--acc); }
+  .mlexp.open .chev { transform: rotate(90deg); }
+  .mlrow { display: grid; grid-template-columns: 150px 130px 54px; gap: 10px; align-items: center; font-size: 11px; padding: 3px 0; }
+  .mlrow .mname { color: var(--mut); }
+  .mlrow .mval { font-family: var(--font-mono); text-align: right; font-variant-numeric: tabular-nums; }
+  .mlrow .mval.pos { color: var(--bull); } .mlrow .mval.neg { color: var(--bear); }
+  .mlbar { position: relative; height: 6px; border-radius: 3px; background: var(--bar); }
+  .mlbar::before { content: ""; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--mut); opacity: .5; }
+  .mlbar i { position: absolute; top: 0; bottom: 0; border-radius: 3px; }
+  .mlbar i.pos { left: 50%; background: var(--bull); }
+  .mlbar i.neg { right: 50%; background: var(--bear); }
+  .mlrow.base .mlbar, .mlrow.total .mlbar { background: transparent; }
+  .mlrow.total { border-top: 1px solid var(--line); margin-top: 4px; padding-top: 6px; }
+  .mlrow.total .mname, .mlrow.total .mval { font-weight: 800; color: var(--tx); }
+  .mlnote { font-size: 10.5px; color: var(--mut); padding: 5px 0 0; }
+
   /* empty state (004-B gentle) */
   .empty { text-align: center; padding: 42px 24px 38px; }
   .empty .big { font-size: 32px; opacity: .9; }
@@ -303,7 +325,31 @@ function setupsPane(){
           <div class="receipt" id="e1"><span class="ic">⌖</span><span class="rname">Market bias</span><span class="rfact">H4 bullish · range <b>1.07920–1.09310</b> · pos <b>38.7%</b></span></div>
           <div class="receipt" id="e4"><span class="ic">▤</span><span class="rname">PD zone</span><span class="rfact">61.3% discount <b>1.08553–1.08751</b> · tap <b>−11.2p</b></span></div>
           <div class="receipt" id="e3"><span class="ic">◇</span><span class="rname">Liquidity sweep</span><span class="rfact">pool <b>1.08420</b> (3 touches) · strength <b>0.82</b> · reclaimed 1 bar</span></div>
-          <div class="receipt" id="e2"><span class="ic">⌁</span><span class="rname">ML contributors</span><span class="rfact">0.45 +0.14 sweep +0.11 bias +0.07 zone −0.05 → <b>0.72</b></span></div>
+          <div class="mlexp" id="e2">
+            <div class="receipt mltoggle" onclick="this.parentElement.classList.toggle('open')">
+              <span class="ic">⌁</span><span class="rname">ML contributors</span>
+              <span class="rfact">0.45 +0.14 sweep +0.11 bias +0.07 zone −0.05 → <b>0.72</b>
+              <span class="bd-link">breakdown <span class="chev">▸</span></span></span>
+            </div>
+            <div class="mlbd">
+              ${[
+                ['base','Base rate (90d, point-in-time)',0.45,'base'],
+                ['sweep','Liquidity sweep strength',+0.14,''],
+                ['bias','H4 market bias position',+0.11,''],
+                ['zone','PD-zone tap depth',+0.07,''],
+                ['bar','Decision-bar close reclaim',+0.03,''],
+                ['sess','Session (Asia) penalty',-0.05,''],
+                ['spread','Spread penalty',-0.03,''],
+              ].map(([k,n,v,cls])=>{
+                const pos=v>=0, w=Math.min(50,Math.abs(v)/0.15*50);
+                return `<div class="mlrow ${cls}"><span class="mname">${n}</span>
+                  <div class="mlbar">${cls?'':`<i class="${pos?'pos':'neg'}" style="width:${w}%"></i>`}</div>
+                  <span class="mval ${cls?'':pos?'pos':'neg'}">${cls==='base'?v.toFixed(2):(pos?'+':'−')+Math.abs(v).toFixed(2)}</span></div>`;
+              }).join('')}
+              <div class="mlrow total"><span class="mname">P(win)</span><div class="mlbar"></div><span class="mval">0.72</span></div>
+              <div class="mlnote">Contributions vs base rate, same bars the model scored on · model v1.3.0 @ 2026-09-05 20:45</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
