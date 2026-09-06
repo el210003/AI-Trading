@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sketch 003 — Evidence Detail · trust vs clutter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { color-scheme: dark; }
+  body { font-family: var(--font-sans); background: #06080F; color: var(--color-text); padding-top: 46px; }
+  button { font-family: inherit; cursor: pointer; }
+
+  #variant-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 9998; background: rgba(10,13,20,.92); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,.08); padding: 8px 16px; display: flex; gap: 8px; align-items: center; }
+  #variant-nav .who { margin-left: auto; font-size: 11px; color: #66748a; }
+  .variant-tab { background: transparent; color: #8B99AC; border: 1px solid transparent; padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; transition: all .15s ease; }
+  .variant-tab:hover { color: #E6EDF3; background: rgba(255,255,255,.06); }
+  .variant-tab.active { color: #fff; background: rgba(0,199,255,.16); border-color: rgba(0,199,255,.45); }
+  .variant { display: none; } .variant.active { display: block; }
+
+  #sketch-tools { position: fixed; bottom: 12px; right: 12px; z-index: 9999; font-family: system-ui; font-size: 12px; background: rgba(0,0,0,.78); color: #fff; padding: 8px 12px; border-radius: 10px; opacity: .35; transition: opacity .2s; display: flex; gap: 10px; align-items: center; border: 1px solid rgba(255,255,255,.12); }
+  #sketch-tools:hover { opacity: 1; }
+  #sketch-tools select { background: #1c2433; color: #ddd; border: 1px solid #333f52; border-radius: 6px; padding: 3px 8px; font-size: 11px; }
+
+  /* shared D shell tokens */
+  .page {
+    --bg: var(--color-bg); --surf: var(--color-surface); --surf2: var(--color-surface-2);
+    --bd: var(--color-border); --tx: var(--color-text); --mut: var(--color-text-muted);
+    --acc: #00C7FF; --acc2: #7C5CFF; --bull: #26A69A; --bear: #EF5350; --warn: #E0A500;
+    --tx2: #c2cddd; --fill: rgba(255,255,255,.035); --line: rgba(255,255,255,.05);
+    --bar: rgba(255,255,255,.08); --hover: rgba(255,255,255,.04);
+    --pad: 14px 18px; --radius: 14px; --fs: 13px;
+    max-width: min(1700px, 96vw); margin: 0 auto; padding: 18px 22px 60px;
+    background: var(--bg); min-height: 100vh; font-size: var(--fs); color: var(--tx);
+  }
+  .head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+  .head h1 { font-size: 16px; font-weight: 800; letter-spacing: .3px; }
+  .head .sub { color: var(--mut); font-size: 12px; }
+  .grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 14px; align-items: start; }
+  @media (max-width: 980px){ .grid { grid-template-columns: 1fr; } }
+  .panel { border: 1px solid var(--bd); background: var(--surf); border-radius: var(--radius); overflow: hidden; }
+  .panel-h { display: flex; align-items: center; gap: 10px; padding: 11px 16px; font-size: 12.5px; font-weight: 700; letter-spacing: .3px; border-bottom: 1px solid var(--bd); }
+  .panel-h .count { font-size: 10.5px; color: var(--mut); font-weight: 600; border: 1px solid var(--bd); border-radius: 9999px; padding: 1px 8px; }
+  .pill { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 700; padding: 2px 9px; border-radius: 9999px; }
+  .st-active { color: var(--acc); background: color-mix(in srgb, var(--acc) 12%, transparent); }
+  .grow { margin-left: auto; }
+  .badge { font-size: 10.5px; font-weight: 800; letter-spacing: .4px; padding: 3px 9px; border-radius: 9999px; }
+  .badge.agree { color: #06281f; background: linear-gradient(135deg, #26A69A, #4fd8c5); }
+  .badge.refute { color: #2b0d0d; background: linear-gradient(135deg, #EF5350, #ff8a80); }
+  .cite { font-family: var(--font-mono); font-size: 10.5px; color: var(--acc); border: 1px solid color-mix(in srgb, var(--acc) 35%, transparent); border-radius: 6px; padding: 1px 6px; cursor: pointer; transition: all .15s; background: transparent; }
+  .cite:hover { background: color-mix(in srgb, var(--acc) 14%, transparent); }
+  .receipt.hl { animation: hl 1.2s ease; }
+  @keyframes hl { 0%,60% { background: color-mix(in srgb, var(--acc) 16%, transparent); } 100% { background: transparent; } }
+  .chart svg { width: 100%; height: auto; display: block; } .chart { padding: 8px 8px 0; }
+  .caption { font-size: 11px; color: var(--mut); padding: 8px 16px 12px; line-height: 1.5; }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 2px 14px; margin-top: 5px; }
+  .kv span { color: var(--mut); font-size: 12px; }
+  .kv b { font-family: var(--font-mono); font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; font-size: 12px; }
+
+  /* ============ A: structured dossier (001 baseline) ============ */
+  .A details { border-bottom: 1px solid var(--line); } .A details:last-child { border-bottom: 0; }
+  .A summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 9px; padding: 10px 16px; font-size: 12px; font-weight: 700; transition: background .15s; }
+  .A summary::-webkit-details-marker { display: none; }
+  .A summary:hover { background: var(--hover); }
+  .A summary .ic { color: var(--acc); width: 16px; text-align: center; }
+  .A summary .chev { margin-left: auto; color: var(--mut); transition: transform .18s; font-size: 11px; }
+  .A details[open] summary .chev { transform: rotate(90deg); }
+  .A .ev-body { padding: 2px 16px 14px 41px; font-size: 12.5px; color: var(--tx2); line-height: 1.55; }
+  .crow { display: grid; grid-template-columns: 145px 1fr 46px; gap: 10px; align-items: center; font-size: 11.5px; margin-top: 5px; }
+  .crow .fname { font-family: var(--font-mono); color: var(--mut); }
+  .crow .cbar { height: 6px; border-radius: 9999px; background: var(--bar); position: relative; }
+  .crow .cbar i { position: absolute; top: 0; bottom: 0; border-radius: 9999px; }
+  .crow .cval { text-align: right; font-family: var(--font-mono); }
+  .crow .cval.pos { color: var(--bull); } .crow .cval.neg { color: var(--bear); }
+
+  /* ============ B: narrative-first ============ */
+  .B .verdict { padding: 18px var(--pad) 14px; }
+  .meter { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .meter .side { text-align: center; }
+  .meter .mval { font-family: var(--font-mono); font-size: 22px; font-weight: 800; }
+  .meter .mlab { font-size: 10px; letter-spacing: 1px; color: var(--mut); text-transform: uppercase; }
+  .meter .link { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--bull); }
+  .meter .link .bar { width: 90px; height: 3px; background: linear-gradient(90deg, var(--acc), var(--bull)); border-radius: 2px; }
+  .narr { border-left: 3px solid var(--acc); padding: 4px 0 4px 16px; font-size: 14px; line-height: 1.7; color: var(--tx); }
+  .narr .refute { display: block; margin-top: 8px; font-size: 12px; color: var(--mut); }
+  .receipts { border-top: 1px solid var(--bd); }
+  .receipt { display: grid; grid-template-columns: 22px 150px 1fr; gap: 10px; align-items: center; padding: 9px 16px; border-bottom: 1px solid var(--line); font-size: 12px; transition: background .3s; }
+  .receipt:last-child { border-bottom: 0; }
+  .receipt .ic { color: var(--acc); text-align: center; }
+  .receipt .rname { font-weight: 700; }
+  .receipt .rfact { color: var(--mut); font-family: var(--font-mono); font-size: 11px; }
+  .receipt .rfact b { color: var(--tx); font-weight: 600; }
+
+  /* ============ C: evidence chain ============ */
+  .chain { padding: 16px var(--pad) 10px; }
+  .node { position: relative; padding: 0 0 18px 34px; }
+  .node::before { content: ""; position: absolute; left: 8px; top: 22px; bottom: 0; width: 2px; background: linear-gradient(180deg, color-mix(in srgb, var(--acc) 55%, transparent), color-mix(in srgb, var(--acc2) 45%, transparent)); }
+  .node:last-child::before { display: none; }
+  .node .dotn { position: absolute; left: 1px; top: 3px; width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--acc); background: var(--bg); box-shadow: 0 0 10px color-mix(in srgb, var(--acc) 40%, transparent); }
+  .node.done .dotn { background: var(--acc); }
+  .node .ntitle { font-size: 12.5px; font-weight: 800; display: flex; gap: 8px; align-items: center; }
+  .node .ntitle .ok { color: var(--bull); font-size: 11px; }
+  .node .nbody { font-size: 11.8px; color: var(--tx2); margin-top: 3px; line-height: 1.5; }
+  .node .nbody code { font-family: var(--font-mono); color: var(--tx); font-size: 11px; }
+  .wf { border-top: 1px solid var(--bd); padding: 12px var(--pad) 14px; }
+  .wf .wrow { display: grid; grid-template-columns: 145px 1fr 52px; gap: 10px; align-items: center; font-size: 11.5px; margin-top: 5px; }
+  .wf .fin { border-top: 1px dashed var(--bd); margin-top: 8px; padding-top: 8px; }
+  .gauge { display: grid; place-items: center; padding: 14px 0 4px; }
+  .gauge .gval { font: 800 20px var(--font-mono); fill: var(--tx); }
+  .quote { border-top: 1px solid var(--bd); padding: 12px var(--pad) 14px; font-size: 12px; color: var(--tx2); line-height: 1.6; }
+  .quote .q1 { color: var(--bull); font-weight: 800; }
+</style>
+<link rel="stylesheet" href="../themes/default.css">
+</head>
+<body>
+
+<nav id="variant-nav">
+  <button class="variant-tab" onclick="showVariant('a', this)">A: Structured dossier (001 baseline)</button>
+  <button class="variant-tab active" onclick="showVariant('b', this)" style="border-color:rgba(38,166,154,.6)">B: Narrative-first ★ Winner</button>
+  <button class="variant-tab" onclick="showVariant('c', this)">C: Evidence chain</button>
+  <span class="who">Sketch 003 · evidence-detail · click citation chips [E-#] — they highlight their receipt</span>
+</nav>
+
+<div id="variant-a" class="variant"><div class="page v-a v-d A" data-v="a"></div></div>
+<div id="variant-b" class="variant active"><div class="page v-a v-d B" data-v="b"></div></div>
+<div id="variant-c" class="variant"><div class="page v-a v-d C" data-v="c"></div></div>
+
+<div id="sketch-tools" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='.35'">
+  <label>theme
+    <select onchange="document.querySelector('link[href*=themes]').href='../themes/'+this.value+'.css'">
+      <option value="default">Dark</option><option value="light">Light</option>
+    </select>
+  </label>
+</div>
+
+<script>
+/* chart component (001 contract) */
+let seed=42; const rnd=()=>(seed=(seed*1103515245+12345)%2147483648)/2147483648;
+function candles(){ seed=42; const bars=[]; let px=1.08560;
+  for(let i=0;i<46;i++){ let d=.00006+(rnd()-.5)*.00090; if(i>=28&&i<=32)d-=.00070; if(i>32&&i<=38)d+=.00075;
+    const o=px,c=px+d,h=Math.max(o,c)+rnd()*.00045,l=Math.min(o,c)-rnd()*.00045; bars.push({o,h,l,c}); px=c; } return bars; }
+function chartSvg(){ seed=42; const bars=candles();
+  const W=660,H=300,PL=8,PR=104,PT=10,PB=8;
+  const lo=Math.min(...bars.map(b=>b.l))-.0006, hi=Math.max(...bars.map(b=>b.h))+.0006;
+  const y=p=>PT+(hi-p)/(hi-lo)*(H-PT-PB); const bw=(W-PL-PR)/bars.length, cw=bw*.58;
+  const E='#00C7FF',SL='#EF5350',TP='#26A69A',grid='rgba(255,255,255,.16)';
+  let s=`<svg viewBox="0 0 ${W} ${H}">`;
+  for(let g=1;g<5;g++){const gy=PT+g*(H-PT-PB)/5,gp=hi-g*(hi-lo)/5;
+    s+=`<line class="gridline" x1="${PL}" y1="${gy}" x2="${W-PR}" y2="${gy}" stroke="${grid}" stroke-width="1"/><text class="dim" x="${W-PR-6}" y="${gy-4}" text-anchor="end" fill="#7B8BA0" font-size="8.5" font-family="JetBrains Mono, monospace">${gp.toFixed(5)}</text>`;}
+  for(let b=6;b<bars.length;b+=8){const gx=PL+b*bw;s+=`<line class="gridline" x1="${gx}" y1="${PT}" x2="${gx}" y2="${H-PB}" stroke="${grid}" stroke-width="1" stroke-dasharray="2 4"/>`;}
+  s+=`<rect class="pdzone" x="${PL}" y="${y(1.08751)}" width="${W-PL-PR}" height="${y(1.08553)-y(1.08751)}" fill="rgba(0,199,255,.16)" stroke="rgba(0,199,255,.55)" stroke-width="1.2" stroke-dasharray="3 3"/>`;
+  s+=`<text class="dim" x="${PL+6}" y="${y(1.08751)+13}" fill="#A9BAD0" font-size="9.5" font-weight="700" font-family="Inter">DISCOUNT ZONE 1.08553–1.08751</text>`;
+  bars.forEach((b,i)=>{const x=PL+i*bw+(bw-cw)/2,bull=b.c>=b.o,col=bull?'#26A69A':'#EF5350';
+    s+=`<line x1="${x+cw/2}" y1="${y(b.h)}" x2="${x+cw/2}" y2="${y(b.l)}" stroke="${col}" stroke-width="1"/>`;
+    s+=`<rect x="${x}" y="${y(Math.max(b.o,b.c))}" width="${cw}" height="${Math.max(1.4,Math.abs(y(b.o)-y(b.c)))}" fill="${col}" rx="1"/>`;});
+  const dx=PL+30*bw+bw/2,dy=y(1.08420);
+  s+=`<path d="M ${dx} ${dy-6} L ${dx+5} ${dy} L ${dx} ${dy+6} L ${dx-5} ${dy} Z" fill="none" stroke="#E0A500" stroke-width="1.6"/>`;
+  s+=`<text x="${dx+9}" y="${dy+4}" fill="#E0A500" font-size="9" font-family="Inter">sweep 1.08420</text>`;
+  const lvl=(p,col,name)=>`<line x1="${PL}" y1="${y(p)}" x2="${W-PR}" y2="${y(p)}" stroke="${col}" stroke-dasharray="5 4" stroke-width="1.4"/><rect x="${W-PR+4}" y="${y(p)-7.5}" width="98" height="15" rx="3" fill="${col}" opacity=".14"/><text x="${W-PR+9}" y="${y(p)+3.7}" fill="${col}" font-size="9.5" font-weight="700" font-family="'JetBrains Mono', monospace">${name} ${p.toFixed(5)}</text>`;
+  s+=lvl(1.09320,TP,'TP')+lvl(1.08740,E,'ENTRY')+lvl(1.08460,SL,'SL');
+  return s+'</svg>'; }
+
+const CHARTPANEL = (extra='') => `
+  <div class="panel">
+    <div class="panel-h">EURUSD · M15 · LONG <span class="pill st-active">● active</span><span class="badge agree grow">✓ ML↔LLM AGREE</span></div>
+    <div class="chart">${chartSvg()}</div>
+    <div class="caption">Decision bar M15 close 20:45 UTC · limit trigger on later bar high/low · R:R 1:2.0 ${extra}</div>
+  </div>`;
+
+const CONTRIB = `
+  <div class="crow"><span class="fname">base rate</span><div class="cbar"><i style="left:0;width:45%;background:var(--mut);opacity:.5"></i></div><span class="cval">0.45</span></div>
+  <div class="crow"><span class="fname">sweep_strength</span><div class="cbar"><i style="left:45%;width:14%;background:var(--bull)"></i></div><span class="cval pos">+0.14</span></div>
+  <div class="crow"><span class="fname">htf_bias</span><div class="cbar"><i style="left:45%;width:11%;background:var(--bull)"></i></div><span class="cval pos">+0.11</span></div>
+  <div class="crow"><span class="fname">dist_to_zone_mid</span><div class="cbar"><i style="left:45%;width:7%;background:var(--bull)"></i></div><span class="cval pos">+0.07</span></div>
+  <div class="crow"><span class="fname">spread_z</span><div class="cbar"><i style="left:45%;width:3%;background:var(--bear)"></i></div><span class="cval neg">−0.03</span></div>
+  <div class="crow"><span class="fname">rsi_15</span><div class="cbar"><i style="left:45%;width:2%;background:var(--bear)"></i></div><span class="cval neg">−0.02</span></div>`;
+
+function paneA(){ return `
+  <div class="panel">
+    <div class="panel-h">EVIDENCE TRACE <span class="count">point-in-time</span></div>
+    <details open><summary><span class="ic">▣</span>Setup header<span class="chev">▶</span></summary>
+      <div class="ev-body">Decision bar M15 close · id <code style="font-family:var(--font-mono)">EURUSD-M15-20260906T2045-L</code><div class="kv"><span>Score source</span><b>ml_llm</b></div></div></details>
+    <details open><summary><span class="ic">⌖</span>Market bias (HTF)<span class="chev">▶</span></summary>
+      <div class="ev-body">H4 delivery bullish; discount retrace.<div class="kv"><span>H4 range</span><b>1.07920 – 1.09310</b></div><div class="kv"><span>Position</span><b>38.7% (discount)</b></div></div></details>
+    <details><summary><span class="ic">▤</span>Zone<span class="chev">▶</span></summary>
+      <div class="ev-body">61.3% discount sub-zone tap.<div class="kv"><span>Zone</span><b>1.08553 – 1.08751</b></div><div class="kv"><span>Tap depth</span><b>−11.2 pips</b></div></div></details>
+    <details><summary><span class="ic">◇</span>Sweep<span class="chev">▶</span></summary>
+      <div class="ev-body">3-touch equal-low pool swept + reclaimed.<div class="kv"><span>Pool</span><b>1.08420</b></div><div class="kv"><span>Strength</span><b>0.82</b></div></div></details>
+    <details><summary><span class="ic">⌁</span>ML contributors — P(WIN) 0.72<span class="chev">▶</span></summary>
+      <div class="ev-body">Calibrated LightGBM (pooled, v1).${CONTRIB}</div></details>
+    <details open><summary><span class="ic">✍</span>LLM narrative — CONFIRM 0.78<span class="chev">▶</span></summary>
+      <div class="ev-body">“Stop-run of the 3-touch pool into discount, closed back above — refutation: H4 close below 1.08420.”
+      <div style="margin-top:8px"><button class="cite" data-cite="e1">E-1.3</button> <button class="cite" data-cite="e3">E-3.1</button> <button class="cite" data-cite="e4">E-4.2</button></div></div></details>
+  </div>`; }
+
+function paneB(){ return `
+  <div class="panel">
+    <div class="panel-h">EVIDENCE TRACE <span class="count">narrative-first</span></div>
+    <div class="verdict">
+      <div class="meter">
+        <div class="side"><div class="mval" style="color:var(--acc)">72%</div><div class="mlab">ML P(win)</div></div>
+        <div class="link"><span style="font-size:15px">⇄</span><div class="bar"></div><span class="badge agree">✓ AGREE</span></div>
+        <div class="side"><div class="mval" style="color:var(--bull)">CONFIRM</div><div class="mlab">LLM 0.78</div></div>
+      </div>
+      <div class="narr">“Stop-run of the <button class="cite" data-cite="e3">E-3.1</button> 3-touch equal-low pool into the <button class="cite" data-cite="e4">E-4.2</button> 61.3% discount zone, closed back above the pool on the decision bar — sweep-and-reclaim with <button class="cite" data-cite="e1">E-1.3</button> H4 delivery supporting continuation. <span class="refute">Refutation: H4 close below 1.08420.</span>”</div>
+    </div>
+    <div class="receipts">
+      <div class="receipt" id="e1"><span class="ic">⌖</span><span class="rname">Market bias</span><span class="rfact">H4 bullish · range <b>1.07920–1.09310</b> · pos <b>38.7%</b></span></div>
+      <div class="receipt" id="e4"><span class="ic">▤</span><span class="rname">PD zone</span><span class="rfact">61.3% discount <b>1.08553–1.08751</b> · tap <b>−11.2p</b></span></div>
+      <div class="receipt" id="e3"><span class="ic">◇</span><span class="rname">Liquidity sweep</span><span class="rfact">pool <b>1.08420</b> (3 touches) · strength <b>0.82</b> · reclaimed 1 bar</span></div>
+      <div class="receipt" id="e2"><span class="ic">⌁</span><span class="rname">ML contributors</span><span class="rfact">0.45 +0.14 sweep +0.11 bias +0.07 zone −0.05 → <b>0.72</b></span></div>
+    </div>
+    <div class="caption">Every claim in the narrative carries a chip; clicking a chip highlights the receipt that grounds it. ML number and LLM verdict sit side-by-side so agreement is visible at a glance.</div>
+  </div>`; }
+
+function paneC(){ return `
+  <div class="panel">
+    <div class="panel-h">EVIDENCE CHAIN <span class="count">ordered derivation</span></div>
+    <div class="gauge">
+      <svg width="120" height="120" viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r="48" fill="none" stroke="var(--bar)" stroke-width="9"/>
+        <circle cx="60" cy="60" r="48" fill="none" stroke="url(#gg)" stroke-width="9" stroke-linecap="round"
+          stroke-dasharray="${2*Math.PI*48*0.72} ${2*Math.PI*48}" transform="rotate(-90 60 60)"/>
+        <defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00C7FF"/><stop offset="1" stop-color="#26A69A"/></linearGradient></defs>
+        <text x="60" y="57" text-anchor="middle" class="gval">72%</text>
+        <text x="60" y="74" text-anchor="middle" style="font:600 9px Inter;fill:var(--mut);letter-spacing:1px">P(WIN)</text>
+      </svg>
+    </div>
+    <div class="chain">
+      <div class="node done"><span class="dotn"></span><div class="ntitle">1 · HTF bias <span class="ok">✓</span></div>
+        <div class="nbody">H4 delivery bullish · price at <code>38.7%</code> of range (discount)</div></div>
+      <div class="node done"><span class="dotn"></span><div class="ntitle">2 · PD zone tap <span class="ok">✓</span></div>
+        <div class="nbody">tap of <code>1.08553–1.08751</code> (61.3% fib) · depth <code>−11.2 pips</code></div></div>
+      <div class="node done"><span class="dotn"></span><div class="ntitle">3 · Sweep + reclaim <span class="ok">✓</span></div>
+        <div class="nbody">equal-low pool <code>1.08420</code> (3 touches) swept · reclaimed in 1 bar · strength <code>0.82</code></div></div>
+      <div class="node done"><span class="dotn"></span><div class="ntitle">4 · Decision bar close <span class="ok">✓</span></div>
+        <div class="nbody">M15 20:45 UTC · entry <code>1.08740</code> · SL <code>1.08460</code> · TP <code>1.09320</code> · R:R <code>1:2.0</code></div></div>
+    </div>
+    <div class="wf">
+      ${CONTRIB}
+      <div class="wrow fin"><span class="fname" style="font-weight:800;color:var(--tx)">P(WIN)</span><div class="cbar" style="height:8px"><i style="left:0;width:72%;background:linear-gradient(90deg,var(--acc),var(--bull))"></i></div><span class="cval pos" style="font-weight:800">0.72</span></div>
+    </div>
+    <div class="quote"><span class="q1">✍ LLM CONFIRM 0.78</span> — “Stop-run of the 3-touch pool into discount, closed back above; refutation: H4 close below 1.08420.” <button class="cite" data-cite="n1">verify</button></div>
+  </div>`; }
+
+const PANES = { a: paneA, b: paneB, c: paneC };
+document.querySelectorAll('.page').forEach(pg => {
+  pg.innerHTML = `<div class="head"><h1>Setup detail — evidence surface</h1><span class="sub">one EURUSD M15 long · three ways to read the same trace (same data, same fields)</span></div>
+    <div class="grid">${CHARTPANEL()}<div>${PANES[pg.dataset.v]()}</div></div>`;
+  pg.querySelectorAll('[data-cite]').forEach(ch => ch.addEventListener('click', () => {
+    const map = { e1: 'e1', e3: 'e3', e4: 'e4', n1: null };
+    const tgt = document.getElementById(map[ch.dataset.cite]);
+    if (tgt) { tgt.classList.remove('hl'); void tgt.offsetWidth; tgt.classList.add('hl'); tgt.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    else { const q = ch.closest('.quote'); q.style.background = 'color-mix(in srgb, var(--acc) 10%, transparent)'; setTimeout(()=>q.style.background='', 900); }
+  }));
+});
+function showVariant(id, btn){
+  document.querySelectorAll('.variant').forEach(x => x.classList.remove('active'));
+  document.getElementById('variant-' + id).classList.add('active');
+  document.querySelectorAll('#variant-nav .variant-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>

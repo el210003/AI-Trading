@@ -21,5 +21,5 @@ starting point, not a ceiling.
 |---|------|----------------|--------|------|
 | 001 | dashboard-shell | Which bold trading-terminal direction makes the setups surface feel stunning? | D ★ Neon Glass + Wide Desk (dark+light) | palette, layout, dark, light, trading-terminal |
 | 002 | tab-family | Do History/Performance/Health/Settings tabs look native to Variant D — and which nav chrome fits a wide shell? | A ★ Underline tabs (001 pattern) | layout, navigation, consistency, tabs |
-| 003 | evidence-detail | How should the evidence trace read as trustworthy, not cluttered, in D? | ○ queued | evidence, trust, components |
+| 003 | evidence-detail | How should the evidence trace read as trustworthy, not cluttered, in D? | B ★ Narrative-first (agreement meter + cited quote + receipts) | evidence, trust, components |
 | 004 | honest-states | What do zero setups / MT5 disconnected / ML-only fallback look like in D? | ○ queued | states, empty, degraded, honesty |
