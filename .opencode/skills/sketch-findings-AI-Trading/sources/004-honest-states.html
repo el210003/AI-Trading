@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sketch 004 — Honest States · zero setups, stale MT5, ML-only</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { color-scheme: dark; }
+  body { font-family: var(--font-sans); background: #06080F; color: var(--color-text); padding-top: 46px; }
+
+  #variant-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 9998; background: rgba(10,13,20,.92); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,.08); padding: 8px 16px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  #variant-nav .who { margin-left: auto; font-size: 11px; color: #66748a; }
+  .variant-tab { background: transparent; color: #8B99AC; border: 1px solid transparent; padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; transition: all .15s ease; cursor: pointer; }
+  .variant-tab:hover { color: #E6EDF3; background: rgba(255,255,255,.06); }
+  .variant-tab.active { color: #fff; background: rgba(0,199,255,.16); border-color: rgba(0,199,255,.45); }
+  .variant { display: none; } .variant.active { display: block; }
+
+  #sketch-tools { position: fixed; bottom: 12px; right: 12px; z-index: 9999; font-family: system-ui; font-size: 12px; background: rgba(0,0,0,.78); color: #fff; padding: 8px 12px; border-radius: 10px; opacity: .35; transition: opacity .2s; display: flex; gap: 10px; align-items: center; border: 1px solid rgba(255,255,255,.12); }
+  #sketch-tools:hover { opacity: 1; }
+  #sketch-tools select { background: #1c2433; color: #ddd; border: 1px solid #333f52; border-radius: 6px; padding: 3px 8px; font-size: 11px; }
+
+  .page {
+    --bg: var(--color-bg); --surf: var(--color-surface); --bd: var(--color-border);
+    --tx: var(--color-text); --mut: var(--color-text-muted);
+    --acc: #00C7FF; --acc2: #7C5CFF; --bull: #26A69A; --bear: #EF5350; --warn: #E0A500;
+    --tx2: #c2cddd; --fill: rgba(255,255,255,.035); --line: rgba(255,255,255,.05);
+    --bar: rgba(255,255,255,.08); --hover: rgba(255,255,255,.04);
+    --pad: 14px 18px; --radius: 14px; --fs: 13px;
+    max-width: min(1600px, 96vw); margin: 0 auto; padding: 18px 22px 60px;
+    background: var(--bg); min-height: 100vh; font-size: var(--fs); color: var(--tx);
+  }
+  .statebar { display: flex; gap: 6px; margin-bottom: 16px; padding: 5px; border: 1px solid var(--bd); border-radius: 9999px; background: var(--fill); width: fit-content; }
+  .statebar button { border: 0; background: transparent; color: var(--mut); padding: 5px 14px; border-radius: 9999px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all .15s; }
+  .statebar button.on { background: var(--acc); color: #04121a; }
+  .statebar button:hover:not(.on) { color: var(--tx); }
+
+  .topbar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+  .brand { font-weight: 800; font-size: 15px; display: flex; gap: 8px; align-items: center; }
+  .brand .logo { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; background: linear-gradient(135deg, var(--acc), var(--acc2)); color: #04121a; font-weight: 800; font-size: 13px; }
+  .feeds { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; padding: 4px 10px; border-radius: 9999px; border: 1px solid var(--bd); background: var(--fill); color: var(--mut); transition: all .2s; }
+  .chip b { color: var(--tx); font-family: var(--font-mono); }
+  .chip.err { border-color: color-mix(in srgb, var(--warn) 55%, transparent); color: var(--warn); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--mut); display: inline-block; }
+  .dot.ok { background: var(--bull); box-shadow: 0 0 6px var(--bull); }
+  .dot.bad { background: var(--bear); box-shadow: 0 0 6px var(--bear); }
+  .dot.warn { background: var(--warn); box-shadow: 0 0 6px var(--warn); }
+
+  .panel { border: 1px solid var(--bd); background: var(--surf); border-radius: var(--radius); overflow: hidden; transition: opacity .3s; }
+  .panel-h { display: flex; align-items: center; gap: 10px; padding: 11px 16px; font-size: 12.5px; font-weight: 700; border-bottom: 1px solid var(--bd); }
+  .panel-h .count { font-size: 10.5px; color: var(--mut); border: 1px solid var(--bd); border-radius: 9999px; padding: 1px 8px; }
+  .grid { display: grid; grid-template-columns: 1fr 1.15fr; gap: 14px; align-items: start; }
+  @media (max-width: 980px){ .grid { grid-template-columns: 1fr; } }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  thead th { text-align: left; font-size: 10px; text-transform: uppercase; color: var(--mut); padding: 8px 11px; border-bottom: 1px solid var(--bd); letter-spacing: .5px; }
+  tbody td { padding: 9px 11px; border-bottom: 1px solid var(--line); font-size: 12px; white-space: nowrap; }
+  .num { font-family: var(--font-mono); }
+  .dir-long { color: var(--bull); font-weight: 700; } .dir-short { color: var(--bear); font-weight: 700; }
+  .src { font-size: 9.5px; font-weight: 700; letter-spacing: .4px; padding: 1.5px 7px; border-radius: 9999px; border: 1px solid var(--bd); color: var(--mut); }
+  .badge { font-size: 10.5px; font-weight: 800; padding: 3px 9px; border-radius: 9999px; }
+  .badge.agree { color: #06281f; background: linear-gradient(135deg,#26A69A,#4fd8c5); }
+  .badge.mlonly { color: var(--mut); border: 1px solid var(--bd); }
+  .caption { font-size: 11px; color: var(--mut); padding: 8px 16px 12px; }
+
+  /* evidence meter (003-B) */
+  .meter { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; padding: 16px var(--pad) 10px; }
+  .meter .side { text-align: center; }
+  .meter .mval { font-family: var(--font-mono); font-size: 21px; font-weight: 800; }
+  .meter .mlab { font-size: 10px; letter-spacing: 1px; color: var(--mut); text-transform: uppercase; }
+  .meter .link { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .meter .link .bar { width: 80px; height: 3px; border-radius: 2px; background: var(--bar); }
+
+  /* empty state */
+  .empty { text-align: center; padding: 44px 24px 40px; }
+  .empty .big { font-size: 34px; margin-bottom: 10px; opacity: .9; }
+  .empty h2 { font-size: 16px; font-weight: 800; margin-bottom: 6px; }
+  .empty p { font-size: 12.5px; color: var(--mut); max-width: 460px; margin: 0 auto 14px; line-height: 1.6; }
+  .countdown { display: inline-flex; align-items: center; gap: 9px; font-family: var(--font-mono); font-size: 12.5px; color: var(--acc); border: 1px solid color-mix(in srgb, var(--acc) 40%, transparent); border-radius: 9999px; padding: 6px 16px; background: color-mix(in srgb, var(--acc) 8%, transparent); }
+  .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--acc); animation: pulse 1.6s ease infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,199,255,.5); } 50% { opacity: .5; box-shadow: 0 0 0 7px rgba(0,199,255,0); } }
+
+  /* ===== Variant A: quiet-inline ===== */
+  /* degraded info lives inline where it belongs: strip chip turns warn, table shows empty, meter goes ml-only. No shouting. */
+  .A .dimwrap { transition: opacity .3s; }
+
+  /* ===== Variant B: loud banner ===== */
+  .banner { display: none; align-items: center; gap: 12px; border: 1px solid color-mix(in srgb, var(--bear) 55%, transparent); background: color-mix(in srgb, var(--bear) 10%, transparent); border-radius: 12px; padding: 11px 16px; margin-bottom: 14px; font-size: 13px; font-weight: 700; }
+  .banner.warn { border-color: color-mix(in srgb, var(--warn) 55%, transparent); background: color-mix(in srgb, var(--warn) 10%, transparent); }
+  .banner.show { display: flex; }
+  .banner .x { margin-left: auto; border: 1px solid var(--bd); border-radius: 8px; background: transparent; color: var(--tx); padding: 4px 12px; font-size: 11.5px; cursor: pointer; }
+  .banner .spin { animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .25; } }
+  .B .dimmed { opacity: .45; pointer-events: none; }
+
+  /* ===== Variant C: status-hero ===== */
+  .hero { display: none; border: 1px solid var(--bd); border-radius: 16px; padding: 22px var(--pad); margin-bottom: 14px; background: linear-gradient(160deg, color-mix(in srgb, var(--acc) 7%, transparent), transparent 60%), var(--surf); }
+  .hero.show { display: block; }
+  .hero h2 { font-size: 17px; font-weight: 800; display: flex; gap: 10px; align-items: center; }
+  .hero p { font-size: 12.8px; color: var(--tx2); margin: 7px 0 12px; max-width: 640px; line-height: 1.6; }
+  .hero .acts { display: flex; gap: 8px; }
+  .hero .btn { background: var(--fill); border: 1px solid var(--bd); color: var(--tx); padding: 6px 14px; border-radius: 9999px; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .hero .btn.acc { border-color: var(--acc); color: var(--acc); }
+  .C .dimmed { opacity: .45; }
+</style>
+<link rel="stylesheet" href="../themes/default.css">
+</head>
+<body>
+
+<nav id="variant-nav">
+  <button class="variant-tab" onclick="showVariant('a', this)">A: Quiet inline</button>
+  <button class="variant-tab active" onclick="showVariant('b', this)" style="border-color:rgba(38,166,154,.6)">B: Loud banner ★ Winner</button>
+  <button class="variant-tab" onclick="showVariant('c', this)">C: Status hero</button>
+  <span class="who">Sketch 004 · honest-states · cycle states below — same data model, three intensities</span>
+</nav>
+
+<div id="variant-a" class="variant"><div class="page v-a A" data-v="a"></div></div>
+<div id="variant-b" class="variant active"><div class="page v-a B" data-v="b"></div></div>
+<div id="variant-c" class="variant"><div class="page v-a C" data-v="c"></div></div>
+
+<div id="sketch-tools" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='.35'">
+  <label>theme <select onchange="document.querySelector('link[href*=themes]').href='../themes/'+this.value+'.css'">
+    <option value="default">Dark</option><option value="light">Light</option></select></label>
+</div>
+
+<script>
+const STATES = ['populated','zero setups','mt5 stale','llm only'];
+
+function content(state){
+  const stale = state === 'mt5 stale';
+  const llmonly = state === 'llm only';
+  const zero = state === 'zero setups';
+  return `
+    <div class="topbar">
+      <div class="brand"><span class="logo">▲</span> AI-Trading</div>
+      <div class="feeds">
+        <span class="chip ${stale?'err':''}"><i class="dot ${stale?'warn':'ok'}"></i>EURUSD·M15 <b>${stale?'Fri 20:45':'20:45'}</b></span>
+        <span class="chip ${stale?'err':''}"><i class="dot ${stale?'bad':'ok'}"></i>MT5 <b>${stale?'last beat 2d 4h':'2m ago'}</b></span>
+        <span class="chip ${llmonly?'err':''}"><i class="dot ${llmonly?'warn':'ok'}"></i>LLM <b>${llmonly?'unavailable · timeout':'ok'}</b></span>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="dimwrap panel">
+        <div class="panel-h">SETUPS <span class="count">${zero?'0 rows':stale?'5 rows · as of Fri 20:45':'5 rows'}</span></div>
+        ${zero ? `<div class="empty">
+            <div class="big">◇</div><h2>No setups this session</h2>
+            <p>No liquidity sweep + PD-zone tap met the decision bar. That's a signal too — the detector is armed and watching, not idle.</p>
+            <span class="countdown"><span class="pulse"></span> next M15 close in 07:12</span>
+          </div>` : `
+        <table><thead><tr><th>Symbol</th><th>Dir</th><th>Status</th><th>Entry</th><th>P(win)</th><th>Src</th></tr></thead><tbody>
+          <tr><td><b>EURUSD</b></td><td class="dir-long">LONG</td><td>● active</td><td class="num">1.08740</td><td class="num">72%</td><td><span class="src">${llmonly?'ML':'ML+LLM'}</span></td></tr>
+          <tr><td><b>GBPUSD</b></td><td class="dir-long">LONG</td><td>● active</td><td class="num">1.27182</td><td class="num">75%</td><td><span class="src">${llmonly?'ML':'ML+LLM'}</span></td></tr>
+          <tr><td><b>EURUSD</b></td><td class="dir-short">SHORT</td><td>○ pending</td><td class="num">1.09215</td><td class="num">61%</td><td><span class="src">ML</span></td></tr>
+          <tr><td><b>GBPUSD</b></td><td class="dir-long">LONG</td><td>✓ tp_hit</td><td class="num">1.26905</td><td class="num">66%</td><td><span class="src">ML</span></td></tr>
+          <tr><td><b>USDJPY</b></td><td class="dir-short">SHORT</td><td>✗ sl_hit</td><td class="num">157.842</td><td class="num">58%</td><td><span class="src">ML</span></td></tr>
+        </tbody></table>`}
+      </div>
+      <div class="dimwrap panel">
+        <div class="panel-h">EURUSD · M15 · LONG <span class="badge ${llmonly?'mlonly':'agree'} grow">${llmonly?'⌀ ML ONLY':'✓ ML↔LLM AGREE'}</span></div>
+        <div class="meter">
+          <div class="side"><div class="mval" style="color:var(--acc)">72%</div><div class="mlab">ML P(win)</div></div>
+          <div class="link"><span style="font-size:14px;color:${llmonly?'var(--mut)':'var(--bull)'}">${llmonly?'⌀':'⇄'}</span><div class="bar" style="${llmonly?'':'background:linear-gradient(90deg,var(--acc),var(--bull))'}"></div>
+            <span class="badge ${llmonly?'mlonly':'agree'}">${llmonly?'NO NARRATIVE':'AGREE'}</span></div>
+          <div class="side"><div class="mval" style="color:${llmonly?'var(--mut)':'var(--bull)'}">${llmonly?'⌀':'CONFIRM'}</div><div class="mlab">${llmonly?'LLM unavailable':'LLM 0.78'}</div></div>
+        </div>
+        ${llmonly ? `<div class="caption">narrative_status = llm_unavailable · reason = timeout (12s) · probability stands on its own — no narrative was invented to fill the gap.</div>` :
+        `<div style="padding:2px 18px 14px 34px;font-size:13px;line-height:1.65;color:var(--tx2)">“Stop-run of the 3-touch equal-low pool into the 61.3% discount zone, closed back above the pool — refutation: H4 close below 1.08420.”</div>`}
+      </div>
+    </div>`;
+}
+
+function loudExtras(state){
+  const stale = state === 'mt5 stale';
+  return `<div class="banner ${stale?'show warn':''} ${state==='llm only'?'show warn':''} ${state==='zero setups'?'':''}">
+      <span class="spin">⚠</span> ${stale ? 'MT5 TERMINAL DISCONNECTED — data frozen at Fri 20:45 UTC · relaunch the terminal to resume' : 'LLM PROVIDER DOWN — running ML-only; narratives disabled until provider responds'}
+      <button class="x">dismiss</button></div>`;
+}
+function heroExtras(state){
+  if (state === 'populated') return '';
+  const map = {
+    'zero setups': [`◇ Watching`, `No candidate met the sweep + zone-tap entry rules on the last M15 close. The engine is armed — this is the system saying “nothing today,” which is information, not downtime.`, false],
+    'mt5 stale':  [`⚠ Data feed frozen`, `The MT5 terminal stopped responding Fri 20:45 UTC. Bars, setups and stats below are LAST-KNOWN — do not act on them until the feed is fresh. Relaunch the terminal; the collector resumes automatically.`, true],
+    'llm only':   [`⌀ Narrative unavailable`, `The LLM provider timed out, so setups carry ML probability only — no narrative, no citation trace. Probabilities are unaffected (ML never depends on the LLM). Retry happens automatically each cycle.`, true],
+  }[state];
+  return `<div class="hero show"><h2>${map[0]}</h2><p>${map[1]}</p>
+    <div class="acts">${map[2]?`<button class="btn acc">Open Health tab</button><button class="btn">Retry now</button>`:`<button class="btn">View detector rules</button>`}</div></div>`;
+}
+
+document.querySelectorAll('.page').forEach(pg => {
+  const v = pg.dataset.v;
+  const render = (state) => {
+    let html = `<div class="statebar">${STATES.map(s=>`<button class="${s===state?'on':''}" data-state="${s}">${s}</button>`).join('')}</div>`;
+    if (v==='b') html += loudExtras(state);
+    if (v==='c') html += heroExtras(state);
+    html += `<div class="${(v!=='a' && state!=='populated' && state!=='zero setups')?'dimmed':''}" data-content>${content(state)}</div>`;
+    pg.innerHTML = html;
+    pg.querySelectorAll('[data-state]').forEach(b => b.addEventListener('click', () => render(b.dataset.state)));
+  };
+  render('populated');
+});
+function showVariant(id, btn){
+  document.querySelectorAll('.variant').forEach(x => x.classList.remove('active'));
+  document.getElementById('variant-' + id).classList.add('active');
+  document.querySelectorAll('#variant-nav .variant-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
