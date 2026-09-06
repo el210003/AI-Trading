@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI-Trading — FINAL mockup (all winners consolidated)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { color-scheme: light; }
+  body { font-family: var(--font-sans); background: #06080F; color: var(--color-text); }
+  button { font-family: inherit; cursor: pointer; }
+
+  .page {
+    --bg: var(--color-bg); --surf: var(--color-surface); --surf2: var(--color-surface-2);
+    --bd: var(--color-border); --tx: var(--color-text); --mut: var(--color-text-muted);
+    --acc: #0092C2; --acc2: #7C5CFF; --bull: #0F8A7E; --bear: #D64545; --warn: #A87A00;
+    --tx2: #45525F; --fill: rgba(15,23,42,.045); --line: rgba(15,23,42,.07);
+    --bar: rgba(15,23,42,.09); --hover: rgba(15,23,42,.045);
+    --pad: 14px 18px; --radius: 14px; --fs: 13px;
+    max-width: min(1800px, 96vw); margin: 0 auto; padding: 18px 22px 70px;
+    background: radial-gradient(900px 320px at 50% -80px, color-mix(in srgb, var(--acc) 10%, transparent), transparent 70%) var(--bg);
+    min-height: 100vh; font-size: var(--fs); color: var(--tx);
+  }
+
+  /* topbar */
+  .topbar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
+  .brand { font-weight: 800; font-size: 15px; letter-spacing: .4px; display: flex; gap: 8px; align-items: center; }
+  .brand .logo { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; background: linear-gradient(135deg, var(--acc), var(--acc2)); color: #f4fbff; font-size: 13px; font-weight: 800; }
+  .brand .env { font-size: 10px; font-weight: 700; color: var(--mut); border: 1px solid var(--bd); padding: 2px 7px; border-radius: 9999px; }
+  .feeds { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; padding: 4px 10px; border-radius: 9999px; border: 1px solid var(--bd); background: var(--fill); color: var(--mut); transition: all .2s; }
+  .chip b { color: var(--tx); font-weight: 600; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .chip.err { border-color: color-mix(in srgb, var(--warn) 55%, transparent); color: var(--warn); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--mut); display: inline-block; }
+  .dot.ok { background: var(--bull); box-shadow: 0 0 6px var(--bull); }
+  .dot.warn { background: var(--warn); box-shadow: 0 0 6px var(--warn); }
+  .dot.bad { background: var(--bear); box-shadow: 0 0 6px var(--bear); }
+  .btn { background: var(--fill); border: 1px solid var(--bd); color: var(--tx); padding: 6px 14px; border-radius: 9999px; font-size: 12px; font-weight: 600; transition: all .15s ease; }
+  .btn:hover { border-color: var(--acc); color: var(--acc); box-shadow: 0 0 14px color-mix(in srgb, var(--acc) 18%, transparent); }
+  .btn.primary { background: linear-gradient(135deg, var(--acc), var(--acc2)); color: #f4fbff; border: 0; font-weight: 800; }
+  .btn.mini { padding: 4px 11px; font-size: 11px; }
+  .grow { margin-left: auto; }
+
+  /* degraded banner (004-B) */
+  .banner { display: none; align-items: center; gap: 12px; border: 1px solid color-mix(in srgb, var(--bear) 55%, transparent); background: color-mix(in srgb, var(--bear) 8%, transparent); border-radius: 12px; padding: 11px 16px; margin-bottom: 12px; font-size: 13px; font-weight: 700; }
+  .banner.warn { border-color: color-mix(in srgb, var(--warn) 55%, transparent); background: color-mix(in srgb, var(--warn) 9%, transparent); }
+  .banner.show { display: flex; }
+  .banner .spin { animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .25; } }
+  .banner .x { margin-left: auto; border: 1px solid var(--bd); border-radius: 8px; background: transparent; color: var(--tx); padding: 4px 12px; font-size: 11.5px; }
+
+  /* tabs (002-A) */
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--bd); margin-bottom: 16px; }
+  .tabs a { padding: 8px 16px; font-size: 13px; font-weight: 600; color: var(--mut); border-bottom: 2px solid transparent; cursor: pointer; transition: all .15s ease; }
+  .tabs a:hover { color: var(--tx); }
+  .tabs a.on { color: var(--acc); border-bottom-color: var(--acc); }
+  .tabpane { display: none; } .tabpane.on { display: block; }
+  #panes.dimmed .tabpane { opacity: .45; pointer-events: none; }
+
+  /* panels & grid */
+  .panel { border: 1px solid var(--bd); background: var(--surf); border-radius: var(--radius); overflow: hidden; box-shadow: 0 1px 2px rgba(16,24,40,.05), 0 8px 24px rgba(16,24,40,.06); }
+  .panel-h { display: flex; align-items: center; gap: 10px; padding: 11px var(--pad); font-size: 12.5px; font-weight: 700; letter-spacing: .3px; border-bottom: 1px solid var(--bd); }
+  .panel-h .count { font-size: 10.5px; color: var(--mut); font-weight: 600; border: 1px solid var(--bd); border-radius: 9999px; padding: 1px 8px; }
+  .gridset { display: grid; grid-template-columns: 1fr 1.15fr; gap: 14px; align-items: start; }
+  .detailcol { display: flex; flex-direction: column; gap: 14px; }
+  @media (max-width: 980px){ .gridset, .grid2, .healthgrid { grid-template-columns: 1fr; } .kpis { grid-template-columns: repeat(2,1fr) !important; } }
+
+  /* KPI */
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 14px; }
+  .kpi { border: 1px solid var(--bd); background: var(--surf); border-radius: var(--radius); padding: var(--pad); position: relative; overflow: hidden; box-shadow: 0 1px 2px rgba(16,24,40,.05), 0 8px 24px rgba(16,24,40,.06); }
+  .kpi::before { content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px; border-radius: 3px; background: linear-gradient(180deg, var(--acc), var(--acc2)); }
+  .kpi .lbl { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--mut); font-weight: 600; }
+  .kpi .val { font-size: 30px; font-weight: 800; font-family: var(--font-mono); margin-top: 4px; letter-spacing: -.5px; }
+  .kpi .sub { margin-top: 5px; font-size: 11px; color: var(--mut); }
+  .delta { font-weight: 700; padding: 1px 7px; border-radius: 9999px; font-size: 10.5px; }
+  .delta.up { color: var(--bull); background: color-mix(in srgb, var(--bull) 13%, transparent); }
+  .delta.dn { color: var(--bear); background: color-mix(in srgb, var(--bear) 13%, transparent); }
+
+  /* filters */
+  .filters { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+  .fchip { border: 1px solid var(--bd); background: transparent; color: var(--mut); padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; transition: all .15s ease; }
+  .fchip:hover { color: var(--tx); border-color: var(--mut); }
+  .fchip.on { color: var(--acc); border-color: var(--acc); background: color-mix(in srgb, var(--acc) 10%, transparent); }
+  .fsep { width: 1px; height: 18px; background: var(--bd); margin: 0 4px; }
+  .minip { font-size: 12px; color: var(--mut); display: flex; gap: 6px; align-items: center; }
+  .minip input { accent-color: var(--acc); width: 90px; }
+
+  /* table (001-D compact) */
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  thead th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .4px; color: var(--mut); font-weight: 700; padding: 8px 7px; border-bottom: 1px solid var(--bd); background: var(--surf); }
+  tbody td { padding: 8px 7px; border-bottom: 1px solid var(--line); font-size: 12px; white-space: nowrap; }
+  tbody td.num, td.mono { font-family: var(--font-mono); }
+  tbody tr { cursor: pointer; transition: background .12s ease; }
+  tbody tr:hover { background: color-mix(in srgb, var(--acc) 8%, transparent); }
+  tbody tr.sel { background: color-mix(in srgb, var(--acc) 11%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--acc) 45%, transparent); }
+  .tablewrap { max-height: 380px; overflow: auto; }
+  .dir-long { color: var(--bull); font-weight: 700; } .dir-short { color: var(--bear); font-weight: 700; }
+  .pill { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 9999px; }
+  .st-active { color: var(--acc); background: color-mix(in srgb, var(--acc) 12%, transparent); }
+  .st-pending { color: var(--mut); background: color-mix(in srgb, var(--mut) 12%, transparent); }
+  .st-tp_hit { color: var(--bull); background: color-mix(in srgb, var(--bull) 14%, transparent); }
+  .st-sl_hit { color: var(--bear); background: color-mix(in srgb, var(--bear) 14%, transparent); }
+  .st-expired, .st-invalidated { color: var(--warn); background: color-mix(in srgb, var(--warn) 12%, transparent); }
+  .out-WIN { color: var(--bull); background: color-mix(in srgb, var(--bull) 14%, transparent); }
+  .out-LOSS { color: var(--bear); background: color-mix(in srgb, var(--bear) 14%, transparent); }
+  .out-TIMEOUT { color: var(--warn); background: color-mix(in srgb, var(--warn) 12%, transparent); }
+  .pwin { display: flex; align-items: center; gap: 6px; min-width: 88px; }
+  .pwin .b1 { flex: 1; height: 5px; border-radius: 9999px; background: var(--bar); overflow: hidden; }
+  .pwin .b1 i { display: block; height: 100%; border-radius: 9999px; background: linear-gradient(90deg, var(--acc), var(--bull)); }
+  .pwin b { font-family: var(--font-mono); font-size: 11.5px; }
+  .src { font-size: 9px; font-weight: 700; letter-spacing: .4px; padding: 1px 5px; border-radius: 9999px; border: 1px solid var(--bd); color: var(--mut); }
+  .rr { font-family: var(--font-mono); font-weight: 700; } .rr.pos { color: var(--bull); } .rr.neg { color: var(--bear); }
+
+  /* chart */
+  .chart { padding: 8px 8px 0; } .chart svg { width: 100%; height: auto; display: block; }
+  .caption { font-size: 11px; color: var(--mut); padding: 8px 16px 12px; line-height: 1.55; }
+
+  /* evidence (003-B) */
+  .meter { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; padding: 16px var(--pad) 12px; }
+  .meter .side { text-align: center; }
+  .meter .mval { font-family: var(--font-mono); font-size: 22px; font-weight: 800; }
+  .meter .mlab { font-size: 10px; letter-spacing: 1px; color: var(--mut); text-transform: uppercase; }
+  .meter .link { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .meter .link .lnk { width: 84px; height: 3px; border-radius: 2px; background: var(--bar); }
+  .badge { font-size: 10.5px; font-weight: 800; letter-spacing: .4px; padding: 3px 9px; border-radius: 9999px; }
+  .badge.agree { color: #f2fbf9; background: linear-gradient(135deg, var(--bull), color-mix(in srgb, var(--bull) 55%, #fff)); }
+  .badge.dis { color: #fff; background: linear-gradient(135deg, var(--bear), color-mix(in srgb, var(--bear) 55%, #fff)); }
+  .badge.mlonly { color: var(--mut); border: 1px solid var(--bd); }
+  .narr { padding: 2px 18px 14px 20px; border-left: 3px solid var(--acc); margin: 0 var(--pad) 12px; font-size: 13.5px; line-height: 1.7; }
+  .narr .refute { display: block; margin-top: 7px; font-size: 11.5px; color: var(--mut); }
+  .cite { font-family: var(--font-mono); font-size: 10px; color: var(--acc); border: 1px solid color-mix(in srgb, var(--acc) 35%, transparent); border-radius: 6px; padding: 0 5px; cursor: pointer; background: transparent; transition: all .15s; }
+  .cite:hover { background: color-mix(in srgb, var(--acc) 14%, transparent); }
+  .receipt { display: grid; grid-template-columns: 22px 148px 1fr; gap: 10px; align-items: center; padding: 8px 16px; border-bottom: 1px solid var(--line); font-size: 12px; transition: background .3s; }
+  .receipt:last-child { border-bottom: 0; }
+  .receipt .ic { color: var(--acc); text-align: center; }
+  .receipt .rname { font-weight: 700; }
+  .receipt .rfact { color: var(--mut); font-family: var(--font-mono); font-size: 10.8px; }
+  .receipt .rfact b { color: var(--tx); font-weight: 600; }
+  .receipt.hl { animation: hl 1.2s ease; }
+  @keyframes hl { 0%,60% { background: color-mix(in srgb, var(--acc) 16%, transparent); } 100% { background: transparent; } }
+
+  /* empty state (004-B gentle) */
+  .empty { text-align: center; padding: 42px 24px 38px; }
+  .empty .big { font-size: 32px; opacity: .9; }
+  .empty h2 { font-size: 15px; font-weight: 800; margin: 8px 0 5px; }
+  .empty p { font-size: 12.5px; color: var(--mut); max-width: 440px; margin: 0 auto 13px; line-height: 1.6; }
+  .countdown { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 12.5px; color: var(--acc); border: 1px solid color-mix(in srgb, var(--acc) 40%, transparent); border-radius: 9999px; padding: 6px 16px; background: color-mix(in srgb, var(--acc) 8%, transparent); }
+  .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--acc); animation: pp 1.6s ease infinite; }
+  @keyframes pp { 0%,100% { opacity: 1; box-shadow: 0 0 0 0 color-mix(in srgb, var(--acc) 50%, transparent); } 50% { opacity: .5; box-shadow: 0 0 0 7px transparent; } }
+
+  /* health */
+  .healthgrid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 14px; align-items: start; }
+  .feedrow { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; padding: 11px 16px; border-bottom: 1px solid var(--line); font-size: 12.5px; }
+  .feedrow:last-child { border-bottom: 0; }
+  .feedrow .t { font-family: var(--font-mono); color: var(--mut); font-size: 11.5px; }
+  .fresh { font-size: 10px; font-weight: 800; letter-spacing: .5px; padding: 2px 8px; border-radius: 9999px; }
+  .fresh.ok { color: var(--bull); background: color-mix(in srgb, var(--bull) 13%, transparent); }
+  .fresh.stale { color: var(--warn); background: color-mix(in srgb, var(--warn) 13%, transparent); }
+  .errrow { padding: 10px 16px; border-bottom: 1px solid var(--line); font-size: 12px; color: var(--tx2); }
+  .errrow code { font-family: var(--font-mono); font-size: 11px; color: var(--warn); }
+
+  /* settings */
+  .form { padding: 6px var(--pad) 16px; }
+  .frow { display: grid; grid-template-columns: 170px 1fr; gap: 14px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--line); }
+  .frow:last-child { border-bottom: 0; }
+  .frow label { font-size: 12px; font-weight: 600; color: var(--mut); }
+  .frow input[type=text], .frow select { background: var(--fill); border: 1px solid var(--bd); color: var(--tx); border-radius: 8px; padding: 7px 11px; font-size: 12.5px; font-family: var(--font-mono); width: min(340px, 60%); }
+  .frow input:focus, .frow select:focus { outline: none; border-color: var(--acc); }
+  .radios { display: flex; gap: 8px; }
+  .radio-pill { border: 1px solid var(--bd); border-radius: 9999px; padding: 5px 14px; font-size: 12px; font-weight: 600; color: var(--mut); cursor: pointer; transition: all .15s; user-select: none; }
+  .radio-pill.on { color: var(--acc); border-color: var(--acc); background: color-mix(in srgb, var(--acc) 12%, transparent); }
+  .probe-out { font-family: var(--font-mono); font-size: 11.5px; color: var(--bull); margin-left: 10px; }
+  .grid2 { display: grid; grid-template-columns: 1.35fr 1fr; gap: 14px; align-items: start; }
+  .note { border: 1px dashed var(--bd); color: var(--mut); border-radius: 10px; padding: 10px 14px; font-size: 11.5px; margin: 0 18px 16px; }
+
+  /* eq curve */
+  .eq { padding: 8px 10px 0; } .eq svg { width: 100%; height: auto; display: block; }
+
+  /* toolbar */
+  #sketch-tools { position: fixed; bottom: 12px; right: 12px; z-index: 9999; font-size: 12px; background: rgba(0,0,0,.8); color: #fff; padding: 8px 12px; border-radius: 10px; opacity: .4; transition: opacity .2s; display: flex; gap: 10px; align-items: center; border: 1px solid rgba(255,255,255,.14); }
+  #sketch-tools:hover { opacity: 1; }
+  #sketch-tools select { background: #1c2433; color: #ddd; border: 1px solid #333f52; border-radius: 6px; padding: 3px 8px; font-size: 11px; }
+  #sketch-tools .lbl { color: #8fb8cf; font-size: 10px; text-transform: uppercase; letter-spacing: .5px; }
+</style>
+<link rel="stylesheet" href="../themes/light.css">
+</head>
+<body>
+
+<div class="page" id="app"></div>
+
+<div id="sketch-tools" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='.4'">
+  <span class="lbl">demo</span>
+  <label>state <select id="st" onchange="setState(this.value)">
+    <option value="populated">populated</option>
+    <option value="zero">zero setups</option>
+    <option value="stale">MT5 stale</option>
+    <option value="llm">LLM down</option>
+  </select></label>
+  <label>theme <select id="th" onchange="setTheme(this.value)">
+    <option value="light">Light</option>
+    <option value="default">Dark</option>
+  </select></label>
+  <label>width
+    <select onchange="document.getElementById('app').style.maxWidth=this.value+'px'">
+      <option value="1800">full</option><option value="1280">1280</option><option value="768">768</option>
+    </select>
+  </label>
+</div>
+
+<script>
+/* ================= data ================= */
+const SETUPS = [
+  { sym:'EURUSD', tf:'M15', dir:'long',  status:'active',      entry:1.08740, sl:1.08460, tp:1.09320, rr:2.0, p:.72, src:'ml_llm',   age:'20:45' },
+  { sym:'GBPUSD', tf:'M15', dir:'long',  status:'active',      entry:1.27182, sl:1.26958, tp:1.27650, rr:2.0, p:.75, src:'ml_llm',   age:'20:45' },
+  { sym:'EURUSD', tf:'H4',  dir:'short', status:'pending',     entry:1.09215, sl:1.09470, tp:1.08655, rr:2.2, p:.61, src:'heuristic',age:'18:00' },
+  { sym:'GBPUSD', tf:'M15', dir:'long',  status:'tp_hit',      entry:1.26905, sl:1.26640, tp:1.27435, rr:2.0, p:.66, src:'ml',       age:'19:00' },
+  { sym:'USDJPY', tf:'H1',  dir:'short', status:'sl_hit',      entry:157.842, sl:158.180, tp:157.166, rr:2.0, p:.58, src:'ml',       age:'16:00' },
+  { sym:'USDJPY', tf:'M15', dir:'short', status:'expired',     entry:157.610, sl:157.890, tp:157.050, rr:2.0, p:.55, src:'ml',       age:'14:30' },
+  { sym:'EURUSD', tf:'M15', dir:'long',  status:'tp_hit',      entry:1.08310, sl:1.08095, tp:1.08740, rr:2.0, p:.69, src:'ml',       age:'Fri' },
+  { sym:'GBPUSD', tf:'H4',  dir:'long',  status:'invalidated', entry:1.27490, sl:1.27205, tp:1.28060, rr:2.0, p:.63, src:'ml',       age:'Fri' },
+];
+const GLYPH = { active:'●', pending:'○', tp_hit:'✓', sl_hit:'✗', expired:'⌀', invalidated:'◌' };
+const LABEL = { active:'active', pending:'pending', tp_hit:'TP hit', sl_hit:'SL hit', expired:'expired', invalidated:'invalidated' };
+const fmt = x => x < 50 ? x.toFixed(5) : x.toFixed(3);
+let STATE = 'populated';
+const llmDown = () => STATE === 'llm';
+const stale = () => STATE === 'stale';
+
+/* ================= chart (001 contract) ================= */
+let seed=42; const rnd=()=>(seed=(seed*1103515245+12345)%2147483648)/2147483648;
+function chartSvg(){
+  seed=42; const bars=[]; let px=1.08560;
+  for(let i=0;i<46;i++){ let d=.00006+(rnd()-.5)*.00090; if(i>=28&&i<=32)d-=.00070; if(i>32&&i<=38)d+=.00075;
+    const o=px,c=px+d,h=Math.max(o,c)+rnd()*.00045,l=Math.min(o,c)-rnd()*.00045; bars.push({o,h,l,c}); px=c; }
+  const W=660,H=300,PL=8,PR=104,PT=10,PB=8;
+  const lo=Math.min(...bars.map(b=>b.l))-.0006, hi=Math.max(...bars.map(b=>b.h))+.0006;
+  const y=p=>PT+(hi-p)/(hi-lo)*(H-PT-PB); const bw=(W-PL-PR)/bars.length, cw=bw*.58;
+  const E='#0092C2',SL='#D64545',TP='#0F8A7E',grid='rgba(15,23,42,.12)';
+  let s=`<svg viewBox="0 0 ${W} ${H}">`;
+  for(let g=1;g<5;g++){const gy=PT+g*(H-PT-PB)/5,gp=hi-g*(hi-lo)/5;
+    s+=`<line class="gridline" x1="${PL}" y1="${gy}" x2="${W-PR}" y2="${gy}" stroke="${grid}" stroke-width="1"/><text class="dim" x="${W-PR-6}" y="${gy-4}" text-anchor="end" fill="#5B6B7F" font-size="8.5" font-family="JetBrains Mono, monospace">${gp.toFixed(5)}</text>`;}
+  for(let b=6;b<bars.length;b+=8){const gx=PL+b*bw;s+=`<line class="gridline" x1="${gx}" y1="${PT}" x2="${gx}" y2="${H-PB}" stroke="${grid}" stroke-width="1" stroke-dasharray="2 4"/>`;}
+  s+=`<rect x="${PL}" y="${y(1.08751)}" width="${W-PL-PR}" height="${y(1.08553)-y(1.08751)}" fill="rgba(0,146,194,.10)" stroke="rgba(0,146,194,.55)" stroke-width="1.2" stroke-dasharray="3 3"/>`;
+  s+=`<text x="${PL+6}" y="${y(1.08751)+13}" fill="#5B6B7F" font-size="9.5" font-weight="700" font-family="Inter">DISCOUNT ZONE 1.08553–1.08751</text>`;
+  bars.forEach((b,i)=>{const x=PL+i*bw+(bw-cw)/2,bull=b.c>=b.o,col=bull?'#0F8A7E':'#D64545';
+    s+=`<line x1="${x+cw/2}" y1="${y(b.h)}" x2="${x+cw/2}" y2="${y(b.l)}" stroke="${col}" stroke-width="1"/>`;
+    s+=`<rect x="${x}" y="${y(Math.max(b.o,b.c))}" width="${cw}" height="${Math.max(1.4,Math.abs(y(b.o)-y(b.c)))}" fill="${col}" rx="1"/>`;});
+  const dx=PL+30*bw+bw/2,dy=y(1.08420);
+  s+=`<path d="M ${dx} ${dy-6} L ${dx+5} ${dy} L ${dx} ${dy+6} L ${dx-5} ${dy} Z" fill="none" stroke="#A87A00" stroke-width="1.6"/><text x="${dx+9}" y="${dy+4}" fill="#A87A00" font-size="9" font-family="Inter">sweep 1.08420</text>`;
+  const lvl=(p,col,name)=>`<line x1="${PL}" y1="${y(p)}" x2="${W-PR}" y2="${y(p)}" stroke="${col}" stroke-dasharray="5 4" stroke-width="1.4"/><rect x="${W-PR+4}" y="${y(p)-7.5}" width="98" height="15" rx="3" fill="${col}" opacity=".12"/><text x="${W-PR+9}" y="${y(p)+3.7}" fill="${col}" font-size="9.5" font-weight="700" font-family="'JetBrains Mono', monospace">${name} ${p.toFixed(5)}</text>`;
+  s+=lvl(1.09320,TP,'TP')+lvl(1.08740,E,'ENTRY')+lvl(1.08460,SL,'SL');
+  return s+'</svg>';
+}
+
+/* ================= panes ================= */
+function setupsPane(){
+  const zero = STATE === 'zero';
+  const src = s => llmDown() ? 'ML' : (s==='ml_llm'?'ML+LLM':(s==='ml'?'ML':'HEUR'));
+  return `
+  <div class="filters">
+    <button class="fchip on">All symbols</button><button class="fchip">EURUSD</button><button class="fchip">GBPUSD</button><button class="fchip">USDJPY</button>
+    <span class="fsep"></span><button class="fchip on">All statuses</button><button class="fchip">● active</button><button class="fchip">✓ tp_hit</button><button class="fchip">✗ sl_hit</button>
+    <span class="fsep"></span><button class="fchip on">Any direction</button><button class="fchip">LONG</button><button class="fchip">SHORT</button>
+    <span class="fsep"></span><label class="minip">P(win) ≥ <input type="range" min="50" max="80" value="50"> <b class="mp" style="font-family:var(--font-mono)">50%</b></label>
+    <button class="fchip" style="margin-left:auto">Reset filters</button>
+  </div>
+  <div class="gridset">
+    <div class="panel">
+      <div class="panel-h">SETUPS <span class="count">${zero?'0 rows':'8 rows'}</span>${stale()?'<span class="count" style="color:var(--warn);border-color:var(--warn)">as of Fri 20:45</span>':''}</div>
+      ${zero ? `<div class="empty"><div class="big">◇</div><h2>No setups this session</h2>
+          <p>No liquidity sweep + PD-zone tap met the decision bar. That's a signal too — the detector is armed and watching, not idle.</p>
+          <span class="countdown"><span class="pulse"></span> next M15 close in 07:12</span></div>` : `
+      <div class="tablewrap"><table><thead><tr><th>Symbol</th><th>TF</th><th>Dir</th><th>Status</th><th>Entry</th><th>SL</th><th>TP</th><th>R:R</th><th>P(win)</th><th>Src</th><th>Age</th></tr></thead>
+      <tbody>${SETUPS.map((s,i)=>`<tr data-i="${i}" class="${i===0?'sel':''}">
+        <td><b>${s.sym}</b></td><td>${s.tf}</td><td class="dir-${s.dir}">${s.dir==='long'?'LONG':'SHORT'}</td>
+        <td><span class="pill st-${s.status}">${GLYPH[s.status]} ${LABEL[s.status]}</span></td>
+        <td class="num">${fmt(s.entry)}</td><td class="num" style="color:var(--mut)">${fmt(s.sl)}</td><td class="num" style="color:var(--mut)">${fmt(s.tp)}</td>
+        <td class="num">1:${s.rr.toFixed(1)}</td>
+        <td><div class="pwin"><div class="b1"><i style="width:${Math.round(s.p*100)}%"></i></div><b>${Math.round(s.p*100)}%</b></div></td>
+        <td><span class="src">${src(s.src)}</span></td><td style="color:var(--mut)">${s.age}</td></tr>`).join('')}
+      </tbody></table></div>`}
+    </div>
+    <div class="detailcol">
+      <div class="panel">
+        <div class="panel-h" data-title>EURUSD · M15 · LONG <span class="pill st-active" data-stpill>● active</span><span class="badge ${llmDown()?'mlonly':'agree'} grow" data-badge>${llmDown()?'⌀ ML ONLY':'✓ ML↔LLM AGREE'}</span></div>
+        <div class="chart">${chartSvg()}</div>
+        <div class="caption" data-legend>Entry 1.08740 · SL 1.08460 · TP 1.09320 · R:R 1:2.0 · P(win) 72% ${llmDown()?'[ML]':'[ML+LLM]'}</div>
+      </div>
+      <div class="panel">
+        <div class="panel-h">EVIDENCE <span class="count">point-in-time</span></div>
+        <div class="meter">
+          <div class="side"><div class="mval" style="color:var(--acc)">72%</div><div class="mlab">ML P(win)</div></div>
+          <div class="link"><span style="font-size:14px;color:${llmDown()?'var(--mut)':'var(--bull)'}">${llmDown()?'⌀':'⇄'}</span>
+            <div class="lnk" ${llmDown()?'':'style="background:linear-gradient(90deg,var(--acc),var(--bull))"'}></div>
+            <span class="badge ${llmDown()?'mlonly':'agree'}">${llmDown()?'NO NARRATIVE':'AGREE'}</span></div>
+          <div class="side"><div class="mval" style="color:${llmDown()?'var(--mut)':'var(--bull)'}">${llmDown()?'⌀':'CONFIRM'}</div><div class="mlab">${llmDown()?'LLM unavailable · timeout':'LLM 0.78'}</div></div>
+        </div>
+        ${llmDown() ? `<div class="caption">narrative_status = llm_unavailable · reason = timeout (12s) — probability stands on its own; no narrative was invented to fill the gap. Auto-retry each cycle.</div>`
+        : `<div class="narr">“Stop-run of the <button class="cite" data-cite="e3">E-3.1</button> 3-touch equal-low pool into the <button class="cite" data-cite="e4">E-4.2</button> 61.3% discount zone, closed back above the pool on the decision bar — sweep-and-reclaim with <button class="cite" data-cite="e1">E-1.3</button> H4 delivery supporting continuation. <span class="refute">Refutation: H4 close below 1.08420.</span>”</div>`}
+        <div style="border-top:1px solid var(--bd)">
+          <div class="receipt" id="e1"><span class="ic">⌖</span><span class="rname">Market bias</span><span class="rfact">H4 bullish · range <b>1.07920–1.09310</b> · pos <b>38.7%</b></span></div>
+          <div class="receipt" id="e4"><span class="ic">▤</span><span class="rname">PD zone</span><span class="rfact">61.3% discount <b>1.08553–1.08751</b> · tap <b>−11.2p</b></span></div>
+          <div class="receipt" id="e3"><span class="ic">◇</span><span class="rname">Liquidity sweep</span><span class="rfact">pool <b>1.08420</b> (3 touches) · strength <b>0.82</b> · reclaimed 1 bar</span></div>
+          <div class="receipt" id="e2"><span class="ic">⌁</span><span class="rname">ML contributors</span><span class="rfact">0.45 +0.14 sweep +0.11 bias +0.07 zone −0.05 → <b>0.72</b></span></div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function historyPane(){
+  const H=[
+    ['Sat 19:15','GBPUSD','M15','long','WIN',2.0,'4h 15m'],['Sat 16:45','EURUSD','M15','long','WIN',2.0,'9h 00m'],
+    ['Fri 22:00','USDJPY','H1','short','LOSS',-1.0,'2h 00m'],['Fri 18:30','EURUSD','M15','long','TIMEOUT',0.3,'24h 00m'],
+    ['Fri 15:15','GBPUSD','M15','long','WIN',1.8,'1h 30m'],['Fri 11:45','USDJPY','M15','short','LOSS',-1.0,'3h 45m']];
+  return `
+  <div class="filters"><button class="fchip on">All outcomes</button><button class="fchip">WIN</button><button class="fchip">LOSS</button><button class="fchip">TIMEOUT</button></div>
+  <div class="panel"><div class="panel-h">HISTORY <span class="count">6 closed setups · newest first</span></div>
+    <table><thead><tr><th>Closed</th><th>Symbol</th><th>TF</th><th>Dir</th><th>Outcome</th><th>R (gross)</th><th>Duration</th></tr></thead>
+    <tbody>${H.map(h=>`<tr><td style="color:var(--mut)">${h[0]}</td><td><b>${h[1]}</b></td><td>${h[2]}</td>
+      <td class="dir-${h[3]}">${h[3].toUpperCase()}</td><td><span class="pill out-${h[4]}">${h[4]}</span></td>
+      <td class="rr ${h[5]>=0?'pos':'neg'}">${h[5]>=0?'+':''}${h[5].toFixed(1)}R</td><td class="mono" style="color:var(--mut)">${h[6]}</td></tr>`).join('')}</tbody></table>
+    <div class="caption">R is structural (signals-only, no cost model) — same honesty rule as Performance.</div></div>`;
+}
+
+function eqCurve(){
+  const steps=[0,.4,-.6,-.2,1.8,1.4,3.4,3.0,4.6];
+  const W=640,H=200,PL=34,PR=10,PT=12,PB=22;
+  const lo=Math.min(...steps)-.3, hi=Math.max(...steps)+.3;
+  const x=i=>PL+i*(W-PL-PR)/(steps.length-1), y=v=>PT+(hi-v)/(hi-lo)*(H-PT-PB);
+  let s=`<svg viewBox="0 0 ${W} ${H}">`;
+  s+=`<line x1="${PL}" y1="${y(0)}" x2="${W-PR}" y2="${y(0)}" stroke="rgba(15,23,42,.2)" stroke-dasharray="3 3"/>`;
+  s+=`<polyline points="${steps.map((v,i)=>x(i)+','+y(v)).join(' ')} ${x(steps.length-1)},${y(Math.min(...steps))} ${x(0)},${y(Math.min(...steps))}" fill="rgba(214,69,69,.06)" stroke="none"/>`;
+  s+=`<polyline points="${steps.map((v,i)=>x(i)+','+y(v)).join(' ')}" fill="none" stroke="url(#g)" stroke-width="2.4" stroke-linejoin="round"/>`;
+  s+=`<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0092C2"/><stop offset="1" stop-color="#0F8A7E"/></linearGradient></defs>`;
+  steps.forEach((v,i)=>{ if(i>0){ const col=steps[i]>=steps[i-1]?'#0F8A7E':'#D64545'; s+=`<circle cx="${x(i)}" cy="${y(v)}" r="3" fill="${col}"/>`; } });
+  for(let t=0;t<=4;t++){ const gv=Math.round((lo+(hi-lo)*t/4)*10)/10; s+=`<text x="${PL-5}" y="${y(gv)+3}" text-anchor="end" fill="#5B6B7F" font-size="9" font-family="JetBrains Mono">${gv.toFixed(1)}R</text>`; }
+  return s+'</svg>';
+}
+
+function perfPane(){ return `
+  <div class="kpis">
+    <div class="kpi"><div class="lbl">Win Rate</div><div class="val">61.5%</div><div class="sub"><span class="delta up">+4.2pp</span> vs backtest baseline</div></div>
+    <div class="kpi"><div class="lbl">Profit Factor</div><div class="val">1.62</div><div class="sub"><span class="delta dn">−0.08</span> vs backtest baseline</div></div>
+    <div class="kpi"><div class="lbl">Expectancy</div><div class="val">+0.34R</div><div class="sub"><span class="delta up">+0.05R</span> vs backtest baseline</div></div>
+    <div class="kpi"><div class="lbl">Trades</div><div class="val">13</div><div class="sub">resolved only</div></div>
+  </div>
+  <div class="grid2">
+    <div class="panel"><div class="panel-h">CUMULATIVE R <span class="count">all symbols</span></div><div class="eq">${eqCurve()}</div>
+      <div class="caption">Live is a trigger-filtered subset of the backtest universe (live limit-trigger fill vs backtest next-open fill); R is structural (signals-only, no cost model).</div></div>
+    <div class="panel"><div class="panel-h">PER SYMBOL</div>
+      <table><thead><tr><th>Symbol</th><th>Trades</th><th>Win %</th><th>Exp R</th></tr></thead><tbody>
+      <tr><td><b>EURUSD</b></td><td class="num">6</td><td class="num">67%</td><td class="rr pos">+0.42R</td></tr>
+      <tr><td><b>GBPUSD</b></td><td class="num">4</td><td class="num">75%</td><td class="rr pos">+0.51R</td></tr>
+      <tr><td><b>USDJPY</b></td><td class="num">3</td><td class="num">33%</td><td class="rr neg">−0.12R</td></tr>
+      </tbody></table><div class="note">Per-symbol numbers are small-sample (n&lt;30) — directional, not statistical.</div></div>
+  </div>`;
+}
+
+function healthPane(){
+  const st = stale();
+  const feeds=[['EURUSD · M15', st?'Fri 20:45':'20:45', st?'2d 4h':'2m ago'],['GBPUSD · M15', st?'Fri 20:45':'20:45', st?'2d 4h':'2m ago'],['USDJPY · M15', st?'Fri 20:45':'20:45', st?'2d 4h':'2m ago'],['EURUSD · H1', st?'Fri 20:00':'20:00', st?'2d 4h':'47m ago'],['BTCUSD · M15','20:45','2m ago']];
+  return `<div class="healthgrid">
+    <div class="panel"><div class="panel-h">FEEDS <span class="count">bar store · UTC</span></div>
+      ${feeds.map(f=>`<div class="feedrow"><span><b>${f[0]}</b></span><span class="t">last bar ${f[1]} · ${f[2]}</span><span class="fresh ${st?'stale':'ok'}">${st?'STALE':'FRESH'}</span></div>`).join('')}
+    </div>
+    <div>
+      <div class="panel" style="margin-bottom:14px"><div class="panel-h">MT5 / COLLECTOR</div>
+        <div style="padding:14px 16px;display:flex;align-items:center;gap:10px;font-size:13px"><i class="dot ${st?'bad':'ok'}"></i> <b>${st?'Disconnected':'Connected'}</b> — ${st?'last beat 2d 4h ago':'heartbeat 2m ago'}
+        <span class="fresh ${st?'stale':'ok'}" style="margin-left:auto">${st?'DOWN':'ALIVE'}</span></div></div>
+      <div class="panel"><div class="panel-h">RECENT ERRORS <span class="count">7 days</span></div>
+        <div class="errrow"><code>bar_gaps</code> GBPUSD H1 — 03:00→03:15 (12 bars) · backfilled ✓</div>
+        ${st?'<div class="errrow" style="color:var(--bear)"><code>mt5_connection</code> terminal unreachable since Fri 20:45 · relaunch terminal</div>':''}
+        <div class="errrow" style="color:var(--mut);border-bottom:0"><code>offset_drift</code> weekend tick — human-confirmed sample replaced 2026-08-30</div></div>
+    </div></div>`;
+}
+
+function settingsPane(){ return `
+  <div class="grid2">
+    <div class="panel"><div class="panel-h">LLM PROVIDER <span class="count">live config</span></div><div class="form">
+      <div class="frow"><label>Provider</label><select><option>OpenAI-compatible</option><option>disabled (ML-only)</option></select></div>
+      <div class="frow"><label>Base URL</label><input type="text" value="http://192.168.5.20:8000/v1"></div>
+      <div class="frow"><label>Model</label><input type="text" value="MiniMax-M3"></div>
+      <div class="frow"><label>Temperature</label><input type="text" value="0.2" style="width:90px"></div>
+      <div class="frow"><label>Theme</label><div class="radios">
+        <span class="radio-pill" data-theme="default" onclick="setTheme('default')">◐ Dark</span>
+        <span class="radio-pill on" data-theme="light" onclick="setTheme('light')">☀ Light</span></div></div>
+      <div class="frow"><label>Actions</label><div style="display:flex;align-items:center">
+        <button class="btn primary mini" data-save>Save</button>
+        <button class="btn mini" style="margin-left:8px" data-probe>Test connection</button>
+        <span class="probe-out" data-probe-out></span></div></div>
+    </div></div>
+    <div class="panel"><div class="panel-h">ENGINE <span class="count">scheduler</span></div><div class="form">
+      <div class="frow"><label>Setup engine</label><div style="font-size:12.5px;display:flex;align-items:center;gap:8px"><i class="dot ok"></i>monitor running · next M15 close 21:00</div></div>
+      <div class="frow"><label>Trigger window</label><input type="text" value="8 bars" style="width:110px"></div>
+      <div class="frow"><label>Barrier</label><input type="text" value="96 bars" style="width:110px"></div>
+      <div class="frow"><label>Broker offset</label><div style="font-size:12.5px;color:var(--mut);font-family:var(--font-mono)">UTC+3 · validated 2026-08-30</div></div>
+    </div>
+    <div class="note">Alerts (Telegram/email push) arrive with SEED-003 v2 scope — this panel is the mount point.</div></div>
+  </div>`;
+}
+
+const PANES = [['setups','Setups',setupsPane],['history','History',historyPane],['performance','Performance',perfPane],['health','Health',healthPane],['settings','Settings',settingsPane]];
+let TAB = 'setups';
+
+function render(){
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <header class="topbar">
+      <div class="brand"><span class="logo">▲</span> AI-Trading <span class="env">MT5 · UTC+3→UTC</span></div>
+      <div class="feeds">
+        <span class="chip ${stale()?'err':''}"><i class="dot ${stale()?'warn':'ok'}"></i>EURUSD·M15 <b>${stale()?'Fri 20:45':'20:45'}</b></span>
+        <span class="chip ${stale()?'err':''}"><i class="dot ${stale()?'bad':'ok'}"></i>MT5 <b>${stale()?'2d 4h':'2m ago'}</b></span>
+        <span class="chip ${llmDown()?'err':''}"><i class="dot ${llmDown()?'warn':'ok'}"></i>LLM <b>${llmDown()?'timeout':'ok'}</b></span>
+      </div>
+      <button class="btn grow" data-refresh>⟳ Refresh</button>
+    </header>
+    <div class="banner ${stale()?'show warn':''}" id="b1"><span class="spin">⚠</span> MT5 TERMINAL DISCONNECTED — data frozen at Fri 20:45 UTC · relaunch the terminal to resume <button class="x">dismiss</button></div>
+    <div class="banner ${llmDown()?'show warn':''}" id="b2"><span class="spin">⚠</span> LLM PROVIDER DOWN — running ML-only; narratives disabled until provider responds <button class="x">dismiss</button></div>
+    <nav class="tabs">${PANES.map(p=>`<a data-tab="${p[0]}" class="${TAB===p[0]?'on':''}">${p[1]}</a>`).join('')}</nav>
+    <div id="panes" class="${(stale()||llmDown())?'dimmed':''}">
+      ${PANES.map(p=>`<section class="tabpane ${TAB===p[0]?'on':''}" data-pane="${p[0]}">${p[2]()}</section>`).join('')}
+    </div>`;
+  app.querySelectorAll('[data-tab]').forEach(t => t.addEventListener('click', () => { TAB = t.dataset.tab; render(); }));
+  app.querySelectorAll('.fchip').forEach(c => c.addEventListener('click', () => { c.parentElement.querySelectorAll('.fchip').forEach(x=>{}); c.classList.toggle('on'); }));
+  app.querySelector('[data-refresh]').addEventListener('click', e => { e.target.textContent='⟳ Syncing…'; setTimeout(()=>{e.target.textContent='✓ Updated 20:59:12'; setTimeout(()=>{e.target.textContent='⟳ Refresh'; render();},1600);},600); });
+  app.querySelectorAll('[data-save]').forEach(b=>b.addEventListener('click',()=>{ b.textContent='✓ Saved'; setTimeout(()=>{render();},1400); }));
+  app.querySelectorAll('[data-probe]').forEach(b=>b.addEventListener('click',()=>{ const o=b.parentElement.querySelector('.probe-out'); o.textContent='…'; setTimeout(()=>{ o.textContent= llmDown()?'✗ timeout after 12s — provider unreachable':'✓ /v1/models 412ms · MiniMax-M3 ok · JSON extraction ok'; o.style.color = llmDown()?'var(--bear)':'var(--bull)'; },900); }));
+  app.querySelectorAll('[data-theme]').forEach(r=>r.classList.toggle('on',(r.dataset.theme==='light')===(document.querySelector('link[href*=themes]').href.includes('light'))));
+  if (TAB==='setups'){
+    app.querySelectorAll('[data-tbody] tr').forEach(tr=>tr.addEventListener('click',()=>{}));
+    app.querySelectorAll('tbody tr[data-i]').forEach(tr => tr.addEventListener('click', () => {
+      app.querySelectorAll('tbody tr').forEach(t=>t.classList.remove('sel')); tr.classList.add('sel');
+      const s = SETUPS[+tr.dataset.i];
+      app.querySelector('[data-title]').firstChild.textContent = `${s.sym} · ${s.tf} · ${s.dir==='long'?'LONG':'SHORT'} `;
+      const sp = app.querySelector('[data-stpill]'); sp.className = 'pill st-'+s.status; sp.innerHTML = `${GLYPH[s.status]} ${LABEL[s.status]}`;
+      app.querySelector('[data-legend]').textContent = `Entry ${fmt(s.entry)} · SL ${fmt(s.sl)} · TP ${fmt(s.tp)} · R:R 1:${s.rr.toFixed(1)} · P(win) ${Math.round(s.p*100)}% ${llmDown()?'[ML]':'[ML+LLM]'}`;
+    }));
+    app.querySelectorAll('[data-cite]').forEach(ch=>ch.addEventListener('click',()=>{ const t=document.getElementById(ch.dataset.cite); if(t){ t.classList.remove('hl'); void t.offsetWidth; t.classList.add('hl'); } }));
+    const mp = app.querySelector('.minip input'); mp.addEventListener('input', e => app.querySelector('.mp').textContent = e.target.value+'%');
+  }
+}
+function setState(s){ STATE = s; render(); }
+function setTheme(t){
+  document.querySelector('link[href*=themes]').href = '../themes/'+t+'.css';
+  document.getElementById('th').value = t;
+  document.querySelectorAll('[data-theme]').forEach(r=>r.classList.toggle('on', r.dataset.theme===t));
+  document.documentElement.style.colorScheme = t==='light' ? 'light' : 'dark';
+}
+render();
+</script>
+</body>
+</html>

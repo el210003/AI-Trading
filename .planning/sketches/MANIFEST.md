@@ -23,3 +23,4 @@ starting point, not a ceiling.
 | 002 | tab-family | Do History/Performance/Health/Settings tabs look native to Variant D — and which nav chrome fits a wide shell? | A ★ Underline tabs (001 pattern) | layout, navigation, consistency, tabs |
 | 003 | evidence-detail | How should the evidence trace read as trustworthy, not cluttered, in D? | B ★ Narrative-first (agreement meter + cited quote + receipts) | evidence, trust, components |
 | 004 | honest-states | What do zero setups / MT5 disconnected / ML-only fallback look like in D? | B ★ Loud banner (dimmed content; zero-setups stays gentle) | states, empty, degraded, honesty |
+| 005 | final-consolidated | Do all winners compose into one coherent, implementation-ready dashboard? | ★ FINAL composition (001-D + 002-A + 003-B + 004-B, both themes, demo state-cycling) | consistency, reference, implementation |
