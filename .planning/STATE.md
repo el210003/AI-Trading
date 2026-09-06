@@ -142,5 +142,5 @@ Items acknowledged and carried forward from previous milestone close:
 ## Session Continuity
 
 Last session: 2026-09-06
-Stopped at: SEED-003 sketching started — Sketch 001 (dashboard-shell) winner D "Neon Glass + Wide Desk", dark+light themes, committed 781e7fe. Open: sketch 002 evidence-detail (optional) then UI-SPEC v2. Prior state: UAT 3/4 passed (1, 2a, 3); BTCUSD collect-only feed live (collector monitor detached); LLM switched to MiniMax-M3 (provider JSON-extraction + dotted-path citations). Remaining: UAT test 2 live engine drive + broker-offset re-validation (Monday), setups-store cleanup decision, unconfirmed weekend duplicate-assembly edge case.
+Stopped at: SEED-003 sketching COMPLETE — winners: 001-D Neon Glass+Wide Desk (dark+light), 002-A underline tabs, 003-B narrative-first evidence (agreement meter + cited quote + receipts), 004-B loud banner for stale/LLM-down (zero-setups stays gentle). Next: /gsd-sketch --wrap-up, then UI-SPEC v2 + implementation phase after Monday's milestone close. Prior state: UAT 3/4 passed (1, 2a, 3); BTCUSD collect-only feed live (collector monitor detached); LLM switched to MiniMax-M3 (provider JSON-extraction + dotted-path citations). Remaining: UAT test 2 live engine drive + broker-offset re-validation (Monday), setups-store cleanup decision, unconfirmed weekend duplicate-assembly edge case.
 Resume file: None
