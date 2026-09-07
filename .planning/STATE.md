@@ -131,6 +131,7 @@ None — open items: UAT test 2 (live engine drive, Monday); broker-offset re-va
 - [Init]: Subagent (Task tool) spawns aborted repeatedly in this runtime — research completed inline; prefer inline execution if subagent spawns fail again
 - [Init - resolved 2026-08-30]: Broker server timezone offset validated empirically (plan 01-02 Task 4): human-confirmed UTC+3, DST-dependent — re-validate at DST transitions (plan 01-03 owns the re-derivation guard)
 - [Init]: MT5 terminal must be running and logged in for any collector work
+- [Phase 6]: bar_store.merge_and_write uses a fixed .tmp path — two concurrent collectors race (WinError 32). Single-writer topology is law; hardening (unique tmp + retry + single-instance guard) deferred to v2
 
 ## Deferred Items
 
