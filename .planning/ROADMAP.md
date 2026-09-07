@@ -187,7 +187,7 @@ Plans:
 
 - [x] 06-01: Setup assembly + persistence + lifecycle monitor + scheduled engine wiring (M15 close trigger)
 - [x] 06-02: Streamlit dashboard — setup table, chart with SMC overlays, evidence detail view
-- [ ] 06-03: History with outcomes, performance stats panel, data-health strip
+- [x] 06-03: History with outcomes, performance stats panel, data-health strip
 
 ## Progress
 
@@ -201,4 +201,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Backtesting & Labeling | 3/3 | Complete    | 2026-09-02 |
 | 4. ML Scoring | 3/3 | Complete    | 2026-09-03 |
 | 5. LLM Narrative Layer | 2/2 | Complete    | 2026-09-04 |
-| 6. Setups & Dashboard | 3/3 | Complete   | 2026-09-04 |
+| 6. Setups & Dashboard | 3/3 | Complete    | 2026-09-04 |

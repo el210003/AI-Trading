@@ -1,19 +1,22 @@
 ---
 phase: 06-setups-dashboard
 verified: 2026-09-04T23:13:18Z
-status: human_needed
+status: passed
 score: 10/10 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
 gaps: []
 behavior_unverified_items: []
 human_verification:
+
   - test: "Run `uv run streamlit run src/ai_trading/dashboard/app.py` against a populated data store (real bars + real setups.parquet) and inspect the four tabs."
     expected: "The Setups tab shows a filterable table with P(win)+score_source tags and status chips; selecting a row renders the candlestick with entry/SL/TP + sweep ◇ + PD-zone bands and the 6-section evidence trace; History, Performance, and Health tabs render fully with the locked dark palette."
     why_human: "The offline AppTest suite boots the app against a fixture tmp store and asserts element presence, but it cannot validate the real persisted-data rendering, visual appearance, or the locked 06-UI-SPEC palette/layout without a populated store on screen."
+
   - test: "Run the scheduled setup engine end-to-end against a live MT5 terminal (collector feeding data/ bars; `uv run python -m ai_trading.setup --once` and the `--monitor` loop) and confirm a fresh M15 close produces a persisted pending setup and that the health strip shows a live heartbeat."
     expected: "After an M15 close the engine assembles + persists a setup and advances the pending->active->tp_hit/sl_hit/expired/invalidated lifecycle; the Health strip shows the per-feed last-bar time, an MT5 'connected' heartbeat, and recent errors."
     why_human: "The engine and health aggregation are MT5-free by design and unit-tested against fixture bars, so live MT5/collector heartbeat freshness, the real M15-close trigger timing, and the auto-refresh loop cannot be exercised by the offline suite."
+
   - test: "Confirm the live-vs-backtest comparability caveat is visible on the Performance tab (D-01/D-04 divergence)."
     expected: "A small caption notes live is a trigger-filtered subset of the backtest universe (live limit-trigger fill vs the backtest next-open fill) and that R is structural (signals-only)."
     why_human: "The caption copy is present in code and rendered only when resolved setups exist; whether it reads clearly to a user on the rendered Performance panel requires an interactive look."

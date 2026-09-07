@@ -18,9 +18,11 @@ Produce high-probability SMC-based forex trade setups with transparent, reasoned
 - [x] ML model scores each setup's probability — Validated in Phase 4: ML Scoring (point-in-time feature builder + 3-layer leak audit; LightGBM P(WIN) with CalibratedClassifierCV, pooled model; versioned artifact + loadable scorer; walk-forward eval on the Phase 3 harness; verification 9/9 must-haves)
 - [x] LLM produces narrative/confirmation reasoning per setup — Validated in Phase 5: LLM Narrative Layer (OpenAI-compatible provider → local vLLM; structured LLMNarrative verdict+confidence+reasoning+citations; reference-only levels with schema guard; strict citation check; ML↔LLM agreement flag; graceful ML-only fallback on timeout/disabled; verification 10/10 must-haves)
 
+- [x] Web dashboard presents setups: direction, entry, SL, TP, probability, rationale — Validated in Phase 6: Setups Dashboard (Streamlit app: setup table + filters, candlestick with entry/SL/TP + sweep/PD-zone overlays, 6-section evidence trace with ML↔LLM agreement, History/Performance tabs with live-vs-backtest caveat, data-health strip; UAT 4/4 passed incl. live MT5-driven assembly of 4 real setups 2026-09-07)
+
 ### Active
 
-- [ ] Web dashboard presents setups: direction, entry, SL, TP, probability, rationale
+- (none — all v1 requirements validated; v2 candidates live in .planning/seeds/)
 
 ### Out of Scope
 
@@ -78,4 +80,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-04 after Phase 5 (LLM Narrative Layer) completion*
+*Last updated: 2026-09-07 after Phase 6 (Setups Dashboard) completion — all v1 requirements validated*

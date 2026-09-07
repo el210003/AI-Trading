@@ -2,44 +2,44 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 6
-current_phase_name: Setups & Dashboard
-status: verifying
-stopped_at: Completed 06-03-PLAN.md
-last_updated: "2026-09-04T15:02:11.029Z"
-last_activity: 2026-09-04
-last_activity_desc: Phase 6 execution started
+current_phase: 06
+status: milestone_complete
+stopped_at: "v1.0 COMPLETE — Phase 6 UAT 4/4 passed (test 2 passed 2026-09-07: 4 live setups assembled at 02:01Z/04:02Z UTC, pending→expired lifecycle proven live, ml_llm narratives + agree). All 18/18 plans, 6/6 phases done. Next: /gsd-complete-milestone v1.0, then /gsd-new-milestone (candidates: SEED-005 self-improvement loop, SEED-006 USD-pair expansion, SEED-002 label depth, SEED-001). Carry-forward backlog: merge_and_write single-writer hardening (unique tmp + retry), setups-store cleanup decision, weekend duplicate-assembly edge case, first live tp_hit/sl_hit outcome still accruing."
+last_updated: "2026-09-07T08:42:20.189Z"
+last_activity: 2026-09-07
+last_activity_desc: Phase 06 complete
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 18
-  completed_plans: 17
-  percent: 83
+  completed_plans: 18
+  percent: 100
+current_phase_name: Setups & Dashboard
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-08-29)
+See: .planning/PROJECT.md (updated 2026-09-07)
 
 **Core value:** Produce high-probability SMC-based forex trade setups with transparent, reasoned evidence the user can trust and verify
-**Current focus:** Phase 6 — Setups & Dashboard
+**Current focus:** v1.0 complete — milestone close, then v2 selection (seeds 001–006)
 
 ## Current Position
 
-Phase: 6 (Setups & Dashboard) — EXECUTING
-Plan: 3 of 3
-Status: Phase complete — ready for verification
-Last activity: 2026-09-04 — Phase 6 execution started
+Phase: 06 of 6 — COMPLETE
+Plan: 3/3 complete
+Status: Milestone v1.0 complete — ready to archive
+Last activity: 2026-09-07 — Phase 06 UAT passed 4/4, phase marked complete
 
-Progress: [███████░░░] 67%
+Progress: [████████████████████] 18/18 plans (100%)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 15
+- Total plans completed: 18
 - Average duration: —
 - Total execution time: —
 
@@ -52,6 +52,7 @@ Progress: [███████░░░] 67%
 | 03 | 3 | - | - |
 | 04 | 3 | - | - |
 | 05 | 2 | - | - |
+| 06 | 3 | - | - |
 
 **Recent Trend:**
 
@@ -142,5 +143,5 @@ Items acknowledged and carried forward from previous milestone close:
 ## Session Continuity
 
 Last session: 2026-09-07
-Stopped at: v1.0 close-out WAITING ON MARKET — UAT test 2 awaiting first live (non-backfill) setup (watcher PID logging data/logs/live_setup_watch.log, LIVE-SETUP tag; expect London/NY session). Machine-side halves already green Monday: engine --monitor driving live post-close passes (assembled 0, honest — Asian session), collector/engine relaunched single-writer after duplicate-race WinError-32 crash (killed stale Saturday pairs; backlog note: merge_and_write retry/unique-tmp + single-instance guard), health strip human-confirmed (00:00 UTC bars), broker offset revalidated no-drift (validated_at 2026-09-07T00:21:09Z). Test 2 pass → complete_session → /gsd-complete-milestone. v2 seeds planted: SEED-005 autonomous replay-gated self-improvement loop + SEED-006 USD-pair expansion w/ trade-1-shadow-4 cluster dedup (headline candidates for /gsd-new-milestone). Prior: UAT 1/2a/3 passed; sketch cycle wrapped (skill sketch-findings-AI-Trading). Remaining v1 tail: setups-store cleanup decision, weekend duplicate-assembly edge case.
+Stopped at: Phase 6 complete (UAT 4/4 — first 4 live setups assembled 02:01Z/04:02Z UTC and human-confirmed; pending→expired lifecycle proven on live data), ready for milestone close: /gsd-complete-milestone v1.0, then /gsd-new-milestone (SEED-005/006/002/001 compete; 2 pending v2 todos: replay-gate criteria, USD-cluster schema). Carry-forward: merge_and_write single-writer hardening, setups-store cleanup decision, weekend duplicate-assembly edge case, first live tp_hit/sl_hit outcome accruing naturally.
 Resume file: None
