@@ -1,18 +1,14 @@
 ---
-status: testing
+status: complete
 phase: 06-setups-dashboard
 source: [06-VERIFICATION.md]
 started: 2026-09-04T11:40:00Z
-updated: 2026-09-04T11:40:00Z
+updated: 2026-09-07T07:30:00Z
 ---
 
 ## Current Test
 
-number: 2
-name: Drive the scheduled engine against live MT5
-expected: |
-  Run the MT5-free engine directly against the live MT5 terminal; confirm a real setup is assembled after the M15 close and the health strip shows connected + last-bar times. (Live heartbeat/trigger timing — human-only.)
-awaiting: user response
+[testing complete]
 
 ## Tests
 
@@ -22,7 +18,7 @@ result: passed (human visual review 2026-09-05) — 18-row populated store (all 
 
 ### 2. Drive the scheduled engine against live MT5
 expected: Run the MT5-free engine directly against the live MT5 terminal; confirm a real setup is assembled after the M15 close and the health strip shows connected + last-bar times. (Live heartbeat/trigger timing — human-only.)
-result: [pending]
+result: passed (human confirmation 2026-09-07) — engine --monitor drove live post-close passes from 23:52Z Mon; collector heartbeat 00:00:03Z with all-12-state freshness; health strip human-confirmed (bars 2026-09-07 00:00 UTC, connected). First live (non-backfill) setups assembled at M15 closes 02:01Z/04:02Z UTC (4 rows: EURUSD×2 long, GBPUSD long, USDJPY short; source=ml_llm, agreement=agree), then pending→expired via the 8-bar trigger window — full assembly→trigger→lifecycle seam proven on live data. Note: no entry filled yet (all expired untriggered); first live tp_hit/sl_hit outcome still accrues naturally post-milestone.
 
 ### 3. Performance-caveat readability
 expected: The Performance panel's live-vs-backtest comparability caveat renders clearly and is human-readable.
@@ -35,9 +31,9 @@ result: passed (observed 2026-09-05) — BTCUSD M15 34755→34758 bars across th
 ## Summary
 
 total: 4
-passed: 3
+passed: 4
 issues: 0
-pending: 1
+pending: 0
 skipped: 0
 blocked: 0
 
