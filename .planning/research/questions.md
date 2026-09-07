@@ -13,3 +13,16 @@
   leading indicator that an autonomous selection change is poisoning future
   training data (e.g., shadow-scoring the retired rule on the new rule's
   feed)?
+
+## SEED-006 — USD-pair expansion + cluster dedup
+
+- **Symbol-addition mechanics audit**: exact retrain blast radius when
+  AUDUSD/USDCHF join — `_CATEGORICAL_CATEGORIES` bump +
+  `ml_feature_list_version` + full retrain vs incremental; per-symbol
+  backfill wall-time from terminal depth; spread-fallback defaults for
+  AUDCHF quotes (default_spread_points=20 validity per symbol).
+- **Shadow-cluster sample size**: how many resolved USD-clusters (shadow
+  members) are needed before representative-selection quality (did the
+  chosen member win as often as the best member would have?) is measurable
+  at actionable confidence? Sets the bar for trusting the representative
+  rule and for widening to the full 7-major basket.
