@@ -2,11 +2,22 @@
 
 ## What This Is
 
-A Python-based AI trading assistant that ingests OHLC forex data from a local MetaTrader 5 terminal (via the official MetaTrader5 Python library), detects Smart Money Concepts (SMC) — focused on liquidity sweeps and premium/discount zones — and produces high-probability trade setups through hybrid AI analysis: a machine learning model scores setup probability while an LLM adds narrative reasoning and confirmation. Setups are presented in a web dashboard. Version 1 is signals-only.
+A Python-based AI trading assistant that ingests OHLC forex data from a local MetaTrader 5 terminal (via the official MetaTrader5 Python library), detects Smart Money Concepts (SMC) — focused on liquidity sweeps and premium/discount zones — and produces high-probability trade setups through hybrid AI analysis: a machine learning model scores setup probability while an LLM adds narrative reasoning and confirmation. Setups are presented in a Streamlit dashboard with evidence traces, history, performance stats, and health monitoring. Shipped as v1.0 (signals-only); live setup assembly proven on real data 2026-09-07.
 
 ## Core Value
 
 Produce high-probability SMC-based forex trade setups with transparent, reasoned evidence the user can trust and verify.
+
+## Current State
+
+**v1.0 MVP shipped 2026-09-07** (see `.planning/MILESTONES.md`). Signals-only system live end-to-end: MT5 collector → SMC detection → calibrated ML scoring → LLM narrative → scheduled setup assembly → Streamlit dashboard. First 4 live setups assembled and lifecycle-proven 2026-09-07.
+
+- Codebase: ~22,100 Python LOC across 135 files; stack: Python 3.12, metatrader5 5.0.6147, pandas, LightGBM 4.7.0 + scikit-learn 1.9.0, SQLite + Parquet, Streamlit
+- Known debt carried into v2: `merge_and_write` fixed-.tmp race (single-writer hardening: unique tmp + retry + single-instance guard); setups-store cleanup decision open; weekend duplicate-assembly edge case (unconfirmed); broker offset DST re-validation due early November 2026 (UTC+3 → +2); first live tp_hit/sl_hit outcome still accruing
+
+## Next Milestone Goals
+
+**v2 candidate scope (to be confirmed via `/gsd-new-milestone`):** first execution milestone — semi-auto approval via MT5 order_send (EXEC-01), filtered auto-execution (EXEC-02), risk-based position sizing with prop-firm caps (EXEC-03), plus seed-driven candidates: SEED-005 replay-gated self-improvement loop, SEED-006 USD-cluster expansion ("trade 1, shadow 4"), SEED-002 deep-backfill ML improvement, SEED-001 crypto 7x24, SEED-003 dashboard modernization + alerts. Full v2 requirement IDs archived in `.planning/milestones/v1.0-REQUIREMENTS.md`.
 
 ## Requirements
 
@@ -22,15 +33,20 @@ Produce high-probability SMC-based forex trade setups with transparent, reasoned
 
 ### Active
 
-- (none — all v1 requirements validated; v2 candidates live in .planning/seeds/)
+- [ ] Semi-auto execution: user approves a signal → MT5 order_send (EXEC-01)
+- [ ] Full-auto execution when setups pass configured filters (EXEC-02)
+- [ ] Position sizing from account risk %, SL distance, MT5 instrument specs; optional prop-firm loss caps (EXEC-03)
+- SMC expansion candidates (SMCX-01…06), enhancements (ENH-01…07) and seeds SEED-001…006 — full text in `.planning/milestones/v1.0-REQUIREMENTS.md` and `.planning/seeds/`; to be scoped by `/gsd-new-milestone`
 
 ### Out of Scope
 
-- Order execution (semi-auto/full-auto) — planned as the next milestone once v1 signals are trusted
-- Order blocks, FVG/imbalance, BOS/CHoCH as first-class labeled features — v1 focuses on liquidity + PD zones; swing structure is built internally as a dependency, not as a user-facing feature
-- Non-forex instruments (indices, crypto, metals) — forex majors only for v1
-- Mobile app — web dashboard first
-- External data vendors — MT5 endpoint is the sole data source for v1
+- Order execution (semi-auto/full-auto) — v1 decision held: shipped signals-only v1.0; now the planned v2 focus once signal trust is proven live
+- Order blocks, FVG/imbalance, BOS/CHoCH as first-class labeled features — each needs its own backtest validation before UI exposure (v2 SMCX candidates)
+- Non-forex instruments (indices, crypto, metals) — forex majors for v1; crypto only via dormant SEED-001
+- Mobile app / hosted SaaS / multi-user — local-MT5 desktop dashboard remains the surface
+- External data vendors — MT5 endpoint is the sole data source
+- Real-time tick streaming — M15/H1/H4 system gains nothing
+- Online/continuous ML retraining — scheduled reviewed retrains instead
 
 ## Context
 
@@ -52,15 +68,15 @@ Produce high-probability SMC-based forex trade setups with transparent, reasoned
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| v1 is signals-only; execution deferred to next milestone | Build trust in signal quality before automating risk | — Pending |
+| v1 is signals-only; execution deferred to next milestone | Build trust in signal quality before automating risk | ✓ Good — v1.0 shipped signals-only; live setups proven 2026-09-07; execution is v2 |
 | Hybrid AI (ML scoring + LLM reasoning) | Combines quantitative probability with interpretable narrative confirmation | — ML scoring Proven in Phase 4 (calibrated P(WIN), walk-forward eval); LLM layer Proven in Phase 5 (evidence-grounded confirm/refute + agreement flag) |
 | LLM narrative conventions (Phase 5): LLM receives only the structured evidence object, never originates levels/probabilities; strict citation check; graceful ML-only fallback | Verifiable trust — the LLM narrates, never invents; SC1 enforced mechanically | — Validated in Phase 5 |
-| MetaTrader5 Python lib for data feed | Official, reliable OHLC source from the user's local terminal | — Pending |
+| MetaTrader5 Python lib for data feed | Official, reliable OHLC source from the user's local terminal | ✓ Good — proven in v1.0 (health-checked collector, UTC-normalized store, idempotent backfill) |
 | Backtesting included in v1 | Validate SMC detection and setup quality on historical data before live use | — Proven in Phase 3 (identical-pipeline replay, walk-forward harness) |
 | Backtest labeling conventions: triple-barrier with SL-first intrabar tie; entry candidates = sweep + zone tap | Conservative, reproducible labels (D-01…D-22 in Phase 3 CONTEXT.md) | — Validated in Phase 3 |
 | ML scoring conventions (Phase 4): P(WIN) decided-only label (TIMEOUT excluded), one pooled model, leak-free point-in-time features | Honest calibrated probabilities with transparent, reproducible evidence | — Validated in Phase 4 |
-| SMC scope: liquidity sweeps + premium/discount zones | User-selected v1 focus; swing detection built as internal dependency | — Pending |
-| Web dashboard as delivery interface | Rich presentation of setups, history, and stats | — Pending |
+| SMC scope: liquidity sweeps + premium/discount zones | User-selected v1 focus; swing detection built as internal dependency | ✓ Good — Validated in Phase 2 (non-repainting chain, point-in-time MTF) |
+| Web dashboard as delivery interface | Rich presentation of setups, history, and stats | ✓ Good — Validated in Phase 6 (UAT 4/4 incl. live assembly, 2026-09-07) |
 
 ## Evolution
 
@@ -80,4 +96,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-07 after Phase 6 (Setups Dashboard) completion — all v1 requirements validated*
+*Last updated: 2026-09-07 after v1.0 MVP milestone completion*

@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 06
-status: milestone_complete
-stopped_at: "v1.0 COMPLETE — Phase 6 UAT 4/4 passed (test 2 passed 2026-09-07: 4 live setups assembled at 02:01Z/04:02Z UTC, pending→expired lifecycle proven live, ml_llm narratives + agree). All 18/18 plans, 6/6 phases done. Next: /gsd-complete-milestone v1.0, then /gsd-new-milestone (candidates: SEED-005 self-improvement loop, SEED-006 USD-pair expansion, SEED-002 label depth, SEED-001). Carry-forward backlog: merge_and_write single-writer hardening (unique tmp + retry), setups-store cleanup decision, weekend duplicate-assembly edge case, first live tp_hit/sl_hit outcome still accruing."
-last_updated: "2026-09-07T08:42:20.189Z"
+current_phase: 0
+status: Awaiting next milestone
+stopped_at: "v1.0 milestone CLOSED 2026-09-07 (override_closeout, 8 deferred items in STATE.md). Archives in .planning/milestones/. Next: /clear then /gsd-new-milestone (SEED-005/006/002/001/003 compete; 2 v2 todos: replay-gate criteria, USD-cluster schema). Carry-forward: merge_and_write single-writer hardening, setups-store cleanup decision, weekend duplicate-assembly edge case, first live tp_hit/sl_hit outcome accruing naturally."
+last_updated: "2026-09-07T09:24:22.169Z"
 last_activity: 2026-09-07
-last_activity_desc: Phase 06 complete
+last_activity_desc: Milestone v1.0 completed and archived
 progress:
   total_phases: 6
   completed_phases: 6
@@ -24,16 +24,14 @@ current_phase_name: Setups & Dashboard
 See: .planning/PROJECT.md (updated 2026-09-07)
 
 **Core value:** Produce high-probability SMC-based forex trade setups with transparent, reasoned evidence the user can trust and verify
-**Current focus:** v1.0 complete — milestone close, then v2 selection (seeds 001–006)
+**Current focus:** v1.0 shipped — awaiting /gsd-new-milestone (v2 scoping; seeds 001–006)
 
 ## Current Position
 
-Phase: 06 of 6 — COMPLETE
-Plan: 3/3 complete
-Status: Milestone v1.0 complete — ready to archive
-Last activity: 2026-09-07 — Phase 06 UAT passed 4/4, phase marked complete
-
-Progress: [████████████████████] 18/18 plans (100%)
+Phase: Milestone v1.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-09-07 — Milestone v1.0 completed and archived
 
 ## Performance Metrics
 
@@ -135,14 +133,25 @@ None — open items: UAT test 2 (live engine drive, Monday); broker-offset re-va
 
 ## Deferred Items
 
-Items acknowledged and carried forward from previous milestone close:
+Items acknowledged and deferred at v1.0 milestone close on 2026-09-07:
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
-| *(none)* | | | |
+| uat_gap | Phase 05: 05-UAT.md | testing (0 pending scenarios) | 2026-09-07 |
+| todo | 2026-09-07-define-replay-gate-criteria.md | pending (medium) | 2026-09-07 |
+| todo | 2026-09-07-spec-usd-cluster-schema.md | pending (medium) | 2026-09-07 |
+| seed | SEED-001-crypto-7x24-trading | dormant | 2026-09-07 |
+| seed | SEED-002-ml-improvement-deep-backfill | dormant | 2026-09-07 |
+| seed | SEED-003-dashboard-modernization-alerts | dormant | 2026-09-07 |
+| seed | SEED-005-autonomous-self-improvement-loop | dormant | 2026-09-07 |
+| seed | SEED-006-more-usd-pairs-cluster-dedup | dormant | 2026-09-07 |
 
 ## Session Continuity
 
 Last session: 2026-09-07
-Stopped at: Phase 6 complete (UAT 4/4 — first 4 live setups assembled 02:01Z/04:02Z UTC and human-confirmed; pending→expired lifecycle proven on live data), ready for milestone close: /gsd-complete-milestone v1.0, then /gsd-new-milestone (SEED-005/006/002/001 compete; 2 pending v2 todos: replay-gate criteria, USD-cluster schema). Carry-forward: merge_and_write single-writer hardening, setups-store cleanup decision, weekend duplicate-assembly edge case, first live tp_hit/sl_hit outcome accruing naturally.
+Stopped at: v1.0 milestone closed and archived (MILESTONES.md, milestones/v1.0-ROADMAP.md, milestones/v1.0-REQUIREMENTS.md). Next: /clear then /gsd-new-milestone to scope v2 (SEED-005/006/002/001/003 compete; 2 v2 todos: replay-gate criteria, USD-cluster schema). Carry-forward: merge_and_write single-writer hardening, setups-store cleanup decision, weekend duplicate-assembly edge case, first live tp_hit/sl_hit outcome accruing naturally, broker-offset DST re-validation (early Nov).
 Resume file: None
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone
